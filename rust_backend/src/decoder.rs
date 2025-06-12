@@ -57,7 +57,7 @@ pub fn decode_binary(encoded: &str) -> Result<String, String> {
     Ok(binary)
 }
 
-/// Convert a binary string to base64.
+/// Convert a binary string to bytes.
 ///
 /// # Arguments
 ///
@@ -65,8 +65,11 @@ pub fn decode_binary(encoded: &str) -> Result<String, String> {
 ///
 /// # Returns
 ///
-/// * `Result<String, String>` - The base64 string, or an error message
-fn binary_to_base64(binary: &str) -> Result<String, String> {
+/// * `Result<Vec<u8>, String>` - The bytes, or an error message
+fn binary_to_bytes(binary: &str) -> Result<Vec<u8>, String> {
+    if binary.len() % 8 != 0 {
+        return Err("Binary string length must be a multiple of 8".to_string());
+    }
     let mut bytes = Vec::new();
     for chunk in binary.as_bytes().chunks(8) {
         let byte = u8::from_str_radix(
@@ -75,7 +78,7 @@ fn binary_to_base64(binary: &str) -> Result<String, String> {
         ).map_err(|e| e.to_string())?;
         bytes.push(byte);
     }
-    Ok(BASE64.encode(&bytes))
+    Ok(bytes)
 }
 
 /// Decode a message from text.
@@ -100,36 +103,28 @@ pub fn decode_message(text: &str, password: Option<&str>) -> Result<String, Stri
     // Decode binary
     let binary = decode_binary(payload)?;
 
-    // Convert to base64
-    let base64_str = binary_to_base64(&binary)?;
+    // Convert to bytes
+    let bytes = binary_to_bytes(&binary)?;
 
-    // Decrypt/Decode the message
     if let Some(password) = password {
-        // Decode the base64 message
+        // Treat bytes as base64 string
+        let base64_str = String::from_utf8(bytes.clone()).map_err(|e| e.to_string())?;
         let encrypted_data = BASE64.decode(base64_str).map_err(|e| e.to_string())?;
-
-        // Extract salt, IV, tag, and ciphertext
         if encrypted_data.len() < SALT_LENGTH + IV_LENGTH + TAG_LENGTH {
             return Err("Invalid encrypted data length".to_string());
         }
-
         let salt = &encrypted_data[..SALT_LENGTH];
         let iv = &encrypted_data[SALT_LENGTH..SALT_LENGTH + IV_LENGTH];
         let _tag = &encrypted_data[SALT_LENGTH + IV_LENGTH..SALT_LENGTH + IV_LENGTH + TAG_LENGTH];
         let ciphertext = &encrypted_data[SALT_LENGTH + IV_LENGTH + TAG_LENGTH..];
-
-        // Derive key using the stored salt
         let key = derive_key(password, salt);
         let cipher = Aes256Gcm::new(Key::<Aes256Gcm>::from_slice(&key));
         let nonce = Nonce::from_slice(iv);
-
-        // Decrypt the message
         let plaintext = cipher.decrypt(nonce, ciphertext).map_err(|e| e.to_string())?;
         Ok(String::from_utf8(plaintext).map_err(|e| e.to_string())?)
     } else {
-        // Just base64 decode
-        let decoded = BASE64.decode(base64_str).map_err(|e| e.to_string())?;
-        Ok(String::from_utf8(decoded).map_err(|e| e.to_string())?)
+        // Just decode bytes to string
+        Ok(String::from_utf8(bytes).map_err(|e| e.to_string())?)
     }
 }
 
