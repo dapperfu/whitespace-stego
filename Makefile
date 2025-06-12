@@ -30,11 +30,11 @@ test-all: test
 	./test_roundtrip.sh
 	# Add any other bash test scripts here
 
-rust-cli: rust_backend/target/release/whitespace_stego_rs
-	cp $< ./whitespace_stego_rs
-
-rust_backend/target/release/whitespace_stego_rs:
+whitespace_stego_rs: rust_backend/Cargo.toml $(shell find rust_backend/src -type f)
 	$(MAKE) -C rust_backend build-release
+	cp rust_backend/target/release/whitespace_stego_rs ./whitespace_stego_rs
+
+rust-cli: whitespace_stego_rs
 
 c-cli: c_backend/bin/whitespace_stego_c
 	cp $< ./whitespace_stego_c
