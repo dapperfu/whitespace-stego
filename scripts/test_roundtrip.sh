@@ -74,12 +74,15 @@ run_test() {
     ./target/release/whitespace_stego_rs encode -m "$msg" -c "$carrier" -o "$TEMP_DIR/rust_encoded.txt" ${password:+-p "$password"}
     python3 -m whitespace_stego.cli decode -i "$TEMP_DIR/rust_encoded.txt" ${password:+-p "$password"} > "$TEMP_DIR/py_decoded.txt"
     
-    if [ "$(cat "$TEMP_DIR/py_decoded.txt")" = "$msg" ]; then
+    # Remove the "Decoded message: " prefix from Python output
+    local py_output=$(cat "$TEMP_DIR/py_decoded.txt" | sed 's/^Decoded message: //')
+    
+    if [ "$py_output" = "$msg" ]; then
         echo -e "${GREEN}✓ Rust encode -> Python decode: PASS${NC}"
     else
         echo -e "${RED}✗ Rust encode -> Python decode: FAIL${NC}"
         echo "Expected: $msg"
-        echo "Got: $(cat "$TEMP_DIR/py_decoded.txt")"
+        echo "Got: $py_output"
         exit 1
     fi
 }
