@@ -15,13 +15,13 @@ pub use decoder::decode_and_remove as decode;
 /// Encode a binary string using zero-width characters.
 #[pyfunction]
 fn encode_binary_rs(binary_str: &str) -> PyResult<String> {
-    Ok(encode_binary(binary_str))
+    encode_binary(binary_str).map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e))
 }
 
 /// Encode a message into a steganographic payload.
 #[pyfunction]
-fn encode_message_rs(message: &str, password: Option<&str>) -> PyResult<String> {
-    Ok(encode_message(message, password))
+fn encode_message_rs(message: &str, carrier: &str, password: Option<&str>) -> PyResult<String> {
+    encode_message(message, carrier, password).map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e))
 }
 
 /// Insert a steganographic payload into carrier text.

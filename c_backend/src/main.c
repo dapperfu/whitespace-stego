@@ -3,14 +3,14 @@
  * @brief Main program for whitespace steganography
  */
 
-#include "encode.h"
 #include "decode.h"
+#include "encode.h"
 #include "utils.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX_BUFFER_SIZE (1024 * 1024) // 1MB buffer
+#define MAX_BUFFER_SIZE (1024 * 1024)  // 1MB buffer
 
 void print_usage(const char* program_name) {
     fprintf(stderr, "Usage: %s <command> [options]\n", program_name);
@@ -75,7 +75,9 @@ int main(int argc, char* argv[]) {
         }
 
         if (!carrier && !carrier_file) {
-            fprintf(stderr, "Error: Either carrier text (-c) or carrier file (--carrier-file) is required\n");
+            fprintf(
+                stderr,
+                "Error: Either carrier text (-c) or carrier file (--carrier-file) is required\n");
             result = 1;
             goto cleanup;
         }
@@ -103,16 +105,14 @@ int main(int argc, char* argv[]) {
             goto cleanup;
         }
 
-        size_t encoded_len = encode_message(
-            message,
-            message_len,
-            carrier,
-            carrier_len,
-            buffer,
-            MAX_BUFFER_SIZE,
-            password,
-            password ? strlen(password) : 0
-        );
+        size_t encoded_len = encode_message(message,
+                                            message_len,
+                                            carrier,
+                                            carrier_len,
+                                            buffer,
+                                            MAX_BUFFER_SIZE,
+                                            password,
+                                            password ? strlen(password) : 0);
 
         if (encoded_len == 0) {
             fprintf(stderr, "Error: Failed to encode message\n");
@@ -149,14 +149,12 @@ int main(int argc, char* argv[]) {
         }
 
         // Decode message
-        size_t decoded_len = decode_message(
-            (char*)input_data,
-            input_size,
-            buffer,
-            MAX_BUFFER_SIZE,
-            password,
-            password ? strlen(password) : 0
-        );
+        size_t decoded_len = decode_message((char*)input_data,
+                                            input_size,
+                                            buffer,
+                                            MAX_BUFFER_SIZE,
+                                            password,
+                                            password ? strlen(password) : 0);
 
         free(input_data);
 
@@ -186,4 +184,4 @@ int main(int argc, char* argv[]) {
 cleanup:
     free(buffer);
     return result;
-} 
+}

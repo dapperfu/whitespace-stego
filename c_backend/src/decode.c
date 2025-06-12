@@ -5,11 +5,13 @@
 
 #include "decode.h"
 #include "utils.h"
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 // Start and stop markers for encoded messages
-static const char START_MARKER = '\u200B'; // Zero-width space
-static const char STOP_MARKER = '\uFEFF';  // Zero-width no-break space
+static const char START_MARKER[] = "\u200B";  // Zero-width space
+static const char STOP_MARKER[] = "\uFEFF";   // Zero-width no-break space
 
 size_t calculate_decoded_size(size_t input_len) {
     // Each 8 zero-width characters represent 1 byte
@@ -17,28 +19,26 @@ size_t calculate_decoded_size(size_t input_len) {
     return (input_len / 8) * 3 / 4;
 }
 
-size_t decode_message(
-    const char* input,
-    size_t input_len,
-    char* output,
-    size_t output_len,
-    const char* password,
-    size_t password_len
-) {
-    if (!input || !output) {
+size_t decode_message(const char* input,
+                      size_t input_len,
+                      char* output,
+                      size_t output_len,
+                      const char* password,
+                      size_t password_len) {
+    if (!input || !output || input_len == 0) {
         return 0;
     }
 
     // Find start and stop markers
-    const char* start = strchr(input, START_MARKER);
-    const char* stop = strrchr(input, STOP_MARKER);
+    const char* start = strstr(input, START_MARKER);
+    const char* stop = strstr(input, STOP_MARKER);
 
-    if (!start || !stop || stop <= start) {
+    if (!start || !stop || stop <= start || stop + strlen(STOP_MARKER) > input + input_len) {
         return 0;
     }
 
     // Calculate length of zero-width encoded data
-    size_t zw_len = stop - start - 1;
+    size_t zw_len = stop - start - strlen(START_MARKER);
     if (zw_len % 8 != 0) {
         return 0;
     }
@@ -50,14 +50,16 @@ size_t decode_message(
     }
 
     // Convert zero-width characters to binary
-    size_t binary_len = zerowidth_to_binary(start + 1, zw_len, binary_buffer, zw_len / 8);
+    size_t binary_len =
+        zerowidth_to_binary(start + strlen(START_MARKER), zw_len, binary_buffer, zw_len / 8);
     if (binary_len == 0) {
         free(binary_buffer);
         return 0;
     }
 
     // Base64 decode
-    size_t decoded_len = base64_decode((char*)binary_buffer, binary_len, (uint8_t*)output, output_len);
+    size_t decoded_len =
+        base64_decode((char*)binary_buffer, binary_len, (uint8_t*)output, output_len);
     free(binary_buffer);
 
     if (decoded_len == 0) {
@@ -72,4 +74,4 @@ size_t decode_message(
     }
 
     return decoded_len;
-} 
+}

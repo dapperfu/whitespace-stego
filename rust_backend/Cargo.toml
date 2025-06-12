@@ -14,12 +14,12 @@ name = "whitespace_stego_rs"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-pyo3 = { version = "0.19", features = ["extension-module"] }
-base64 = "0.21"
-aes-gcm = "0.10"
-pbkdf2 = "0.12"
-rand = "0.8"
+pyo3 = { version = "0.19.2", features = ["extension-module"] }
+base64 = "0.21.7"
+aes-gcm = "0.10.3"
+pbkdf2 = { version = "0.12.2", features = ["simple"] }
+rand = "0.8.5"
 lazy_static = "1.4"
-clap = { version = "4.4", features = ["derive"] }
+clap = { version = "4.5.40", features = ["derive"] }
 thiserror = "1.0"
 anyhow = "1.0" 

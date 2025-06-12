@@ -5,43 +5,40 @@
 
 #include "encode.h"
 #include "utils.h"
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 // Start and stop markers for encoded messages
-static const char START_MARKER = '\u200B'; // Zero-width space
-static const char STOP_MARKER = '\uFEFF';  // Zero-width no-break space
+static const char START_MARKER[] = "\u200B";  // Zero-width space
+static const char STOP_MARKER[] = "\uFEFF";   // Zero-width no-break space
 
 size_t calculate_encoded_size(size_t message_len, size_t carrier_len) {
     // Base64 encoding expands data by 4/3
     size_t base64_len = ((message_len + 2) / 3) * 4;
-    
-    // Each byte becomes 8 zero-width characters
-    size_t zerowidth_len = base64_len * 8;
-    
-    // Add start and stop markers
-    size_t total_len = carrier_len + zerowidth_len + 2;
-    
+    // Each base64 byte becomes 8 zero-width chars, each 3 bytes (UTF-8)
+    size_t zerowidth_len = base64_len * 8 * 3;
+    // Add start and stop markers (UTF-8, 3 bytes each)
+    size_t total_len = carrier_len + zerowidth_len + strlen(START_MARKER) + strlen(STOP_MARKER);
     return total_len;
 }
 
-size_t encode_message(
-    const char* message,
-    size_t message_len,
-    const char* carrier,
-    size_t carrier_len,
-    char* output,
-    size_t output_len,
-    const char* password,
-    size_t password_len
-) {
+size_t encode_message(const char* message,
+                      size_t message_len,
+                      const char* carrier,
+                      size_t carrier_len,
+                      char* output,
+                      size_t output_len,
+                      const char* password,
+                      size_t password_len) {
     if (!message || !carrier || !output) {
         return 0;
     }
 
     // Calculate required buffer sizes
     size_t base64_len = ((message_len + 2) / 3) * 4;
-    size_t zerowidth_len = base64_len * 8;
-    size_t total_len = carrier_len + zerowidth_len + 2;
+    size_t zerowidth_len = base64_len * 8 * 3;
+    size_t total_len = carrier_len + zerowidth_len + strlen(START_MARKER) + strlen(STOP_MARKER);
 
     if (output_len < total_len) {
         return 0;
@@ -84,7 +81,8 @@ size_t encode_message(
         return 0;
     }
 
-    size_t zw_len = binary_to_zerowidth((uint8_t*)base64_buffer, encoded_len, zerowidth_buffer, zerowidth_len);
+    size_t zw_len =
+        binary_to_zerowidth((uint8_t*)base64_buffer, encoded_len, zerowidth_buffer, zerowidth_len);
     free(base64_buffer);
 
     if (zw_len == 0) {
@@ -100,15 +98,17 @@ size_t encode_message(
     pos += carrier_len;
 
     // Add start marker
-    output[pos++] = START_MARKER;
+    memcpy(output + pos, START_MARKER, strlen(START_MARKER));
+    pos += strlen(START_MARKER);
 
     // Add zero-width encoded message
     memcpy(output + pos, zerowidth_buffer, zw_len);
     pos += zw_len;
 
     // Add stop marker
-    output[pos++] = STOP_MARKER;
+    memcpy(output + pos, STOP_MARKER, strlen(STOP_MARKER));
+    pos += strlen(STOP_MARKER);
 
     free(zerowidth_buffer);
     return pos;
-} 
+}

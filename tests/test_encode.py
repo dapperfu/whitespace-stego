@@ -42,6 +42,13 @@ def test_encode_message() -> None:
     assert encoded.endswith(END_MARKER)
     assert ZWSP in encoded or ZWNJ in encoded
 
+def test_encode_message_empty() -> None:
+    """Test that encoding an empty message raises an error."""
+    with pytest.raises(ValueError):
+        encode_message("")
+    with pytest.raises(ValueError):
+        encode_message("", "secret")
+
 def test_insert_payload() -> None:
     """Test payload insertion."""
     logging.debug(f"Running {__name__}.test_insert_payload")

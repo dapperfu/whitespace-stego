@@ -42,6 +42,8 @@ def encode_message(message: str, password: Optional[str] = None) -> str:
     str
         The encoded steganographic payload.
     """
+    if not message:
+        raise ValueError("Message must not be empty")
     # First encrypt/encode the message
     encrypted = encrypt_message(message, password)
     

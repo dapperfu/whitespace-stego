@@ -9,13 +9,12 @@
 #include <string.h>
 
 // Base64 encoding table
-static const char base64_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+static const char base64_table[] =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-// Zero-width whitespace characters
-static const char ZERO_WIDTH_SPACE = '\u200B';      // Zero-width space
-static const char ZERO_WIDTH_NON_JOINER = '\u200C'; // Zero-width non-joiner
-static const char ZERO_WIDTH_JOINER = '\u200D';     // Zero-width joiner
-static const char ZERO_WIDTH_NO_BREAK_SPACE = '\uFEFF'; // Zero-width no-break space
+// Zero-width whitespace characters (UTF-8 encoded)
+static const char ZERO_WIDTH_NON_JOINER[] = "\xE2\x80\x8C";  // U+200C
+static const char ZERO_WIDTH_JOINER[] = "\xE2\x80\x8D";      // U+200D
 
 size_t base64_encode(const uint8_t* input, size_t input_len, char* output, size_t output_len) {
     if (!input || !output || output_len < ((input_len + 2) / 3) * 4) {
@@ -54,8 +53,10 @@ size_t base64_decode(const char* input, size_t input_len, uint8_t* output, size_
 
     size_t padding = 0;
     if (input_len > 0) {
-        if (input[input_len - 1] == '=') padding++;
-        if (input[input_len - 2] == '=') padding++;
+        if (input[input_len - 1] == '=')
+            padding++;
+        if (input[input_len - 2] == '=')
+            padding++;
     }
 
     size_t decoded_len = (input_len / 4) * 3 - padding;
@@ -68,15 +69,21 @@ size_t base64_decode(const char* input, size_t input_len, uint8_t* output, size_
 
     while (i < input_len) {
         uint32_t sextet_a = input[i] == '=' ? 0 : strchr(base64_table, input[i]) - base64_table;
-        uint32_t sextet_b = input[i + 1] == '=' ? 0 : strchr(base64_table, input[i + 1]) - base64_table;
-        uint32_t sextet_c = input[i + 2] == '=' ? 0 : strchr(base64_table, input[i + 2]) - base64_table;
-        uint32_t sextet_d = input[i + 3] == '=' ? 0 : strchr(base64_table, input[i + 3]) - base64_table;
+        uint32_t sextet_b =
+            input[i + 1] == '=' ? 0 : strchr(base64_table, input[i + 1]) - base64_table;
+        uint32_t sextet_c =
+            input[i + 2] == '=' ? 0 : strchr(base64_table, input[i + 2]) - base64_table;
+        uint32_t sextet_d =
+            input[i + 3] == '=' ? 0 : strchr(base64_table, input[i + 3]) - base64_table;
 
         uint32_t triple = (sextet_a << 18) + (sextet_b << 12) + (sextet_c << 6) + sextet_d;
 
-        if (j < decoded_len) output[j++] = (triple >> 16) & 0xFF;
-        if (j < decoded_len) output[j++] = (triple >> 8) & 0xFF;
-        if (j < decoded_len) output[j++] = triple & 0xFF;
+        if (j < decoded_len)
+            output[j++] = (triple >> 16) & 0xFF;
+        if (j < decoded_len)
+            output[j++] = (triple >> 8) & 0xFF;
+        if (j < decoded_len)
+            output[j++] = triple & 0xFF;
 
         i += 4;
     }
@@ -84,8 +91,12 @@ size_t base64_decode(const char* input, size_t input_len, uint8_t* output, size_
     return decoded_len;
 }
 
-size_t binary_to_zerowidth(const uint8_t* input, size_t input_len, char* output, size_t output_len) {
-    if (!input || !output || output_len < input_len * 4) {
+size_t binary_to_zerowidth(const uint8_t* input,
+                           size_t input_len,
+                           char* output,
+                           size_t output_len) {
+    // For simplicity, use ZERO_WIDTH_JOINER for 1, ZERO_WIDTH_NON_JOINER for 0 (each 3 bytes)
+    if (!input || !output || output_len < input_len * 8 * 3) {
         return 0;
     }
 
@@ -93,23 +104,30 @@ size_t binary_to_zerowidth(const uint8_t* input, size_t input_len, char* output,
     for (size_t i = 0; i < input_len; i++) {
         uint8_t byte = input[i];
         for (int bit = 7; bit >= 0; bit--) {
-            output[j++] = (byte & (1 << bit)) ? ZERO_WIDTH_JOINER : ZERO_WIDTH_NON_JOINER;
+            const char* zw = (byte & (1 << bit)) ? ZERO_WIDTH_JOINER : ZERO_WIDTH_NON_JOINER;
+            memcpy(output + j, zw, 3);
+            j += 3;
         }
     }
 
     return j;
 }
 
-size_t zerowidth_to_binary(const char* input, size_t input_len, uint8_t* output, size_t output_len) {
-    if (!input || !output || input_len % 8 != 0 || output_len < input_len / 8) {
+size_t zerowidth_to_binary(const char* input,
+                           size_t input_len,
+                           uint8_t* output,
+                           size_t output_len) {
+    // Each zero-width char is 3 bytes, 8 bits per byte
+    if (!input || !output || input_len % 24 != 0 || output_len < input_len / 24) {
         return 0;
     }
 
     size_t j = 0;
-    for (size_t i = 0; i < input_len; i += 8) {
+    for (size_t i = 0; i < input_len; i += 24) {
         uint8_t byte = 0;
         for (int bit = 0; bit < 8; bit++) {
-            if (input[i + bit] == ZERO_WIDTH_JOINER) {
+            const char* zw = input + i + bit * 3;
+            if (memcmp(zw, ZERO_WIDTH_JOINER, 3) == 0) {
                 byte |= (1 << (7 - bit));
             }
         }
@@ -186,4 +204,4 @@ bool write_file(const char* filename, const uint8_t* data, size_t size) {
     fclose(file);
 
     return bytes_written == size;
-} 
+}
