@@ -1,0 +1,23 @@
+[project]
+name = "whitespace-stego"
+version = "0.1.0"
+description = "A steganographic tool using zero-width characters to hide messages."
+authors = [{ name="Your Name", email="you@example.com" }]
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.9"
+
+[project.scripts]
+whitespace-stego = "whitespace_stego.cli.main:app"
+
+[tool.setuptools.packages.find]
+where = ["whitespace_stego"]
+
+[build-system]
+requires = ["setuptools>=67", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "--html=report.html --self-contained-html"
+testpaths = ["tests"]
