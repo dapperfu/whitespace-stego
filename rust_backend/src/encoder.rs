@@ -1,5 +1,5 @@
 use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
-use crate::charset::{binary_to_char, START_MARKER, END_MARKER, is_valid_carrier};
+use crate::charset::{binary_to_char, START_MARKER, END_MARKER, is_valid_carrier, strip_zero_width_and_control};
 use aes_gcm::{
     aead::{Aead, KeyInit},
     Aes256Gcm, Key, Nonce,
@@ -161,4 +161,18 @@ pub fn encode_and_insert(
 ) -> Result<String, String> {
     let payload = encode_message(message, carrier, password)?;
     insert_payload(carrier, &payload, position)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_carrier_integrity() {
+        let carrier = "Secret Secret";
+        let message = "Hello World";
+        let result = encode_and_insert(message, carrier, None, None).unwrap();
+        let carrier_after = strip_zero_width_and_control(&result);
+        assert_eq!(carrier_after, carrier);
+    }
 } 

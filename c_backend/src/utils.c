@@ -205,3 +205,31 @@ bool write_file(const char* filename, const uint8_t* data, size_t size) {
 
     return bytes_written == size;
 }
+
+void strip_zero_width_and_control(const char* input, char* output) {
+    // UTF-8 encoded zero-width and control characters
+    const char* zw_chars[] = {
+        "\xE2\x80\x8C", // U+200C ZWNJ
+        "\xE2\x80\x8B", // U+200B ZWSP
+        "\xE2\x81\xA0", // U+2060 START_MARKER (Word Joiner)
+        "\xE2\x81\xA1"  // U+2061 END_MARKER (Function Application)
+    };
+    size_t num_zw = sizeof(zw_chars) / sizeof(zw_chars[0]);
+    const char* p = input;
+    char* out = output;
+    while (*p) {
+        int matched = 0;
+        for (size_t i = 0; i < num_zw; ++i) {
+            size_t len = strlen(zw_chars[i]);
+            if (strncmp(p, zw_chars[i], len) == 0) {
+                p += len;
+                matched = 1;
+                break;
+            }
+        }
+        if (!matched) {
+            *out++ = *p++;
+        }
+    }
+    *out = '\0';
+}

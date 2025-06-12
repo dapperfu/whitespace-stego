@@ -85,4 +85,12 @@ bool read_file(const char* filename, uint8_t** data, size_t* size);
  */
 bool write_file(const char* filename, const uint8_t* data, size_t size);
 
+/**
+ * @brief Remove all zero-width and control characters used for steganography from a string.
+ *
+ * @param input Input string
+ * @param output Output buffer for cleaned string
+ */
+void strip_zero_width_and_control(const char* input, char* output);
+
 #endif /* WHITESPACE_STEGO_UTILS_H */ 

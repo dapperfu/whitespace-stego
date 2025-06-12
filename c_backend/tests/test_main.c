@@ -206,6 +206,18 @@ void test_empty_message(void) {
     assert(output_len == 0);
 }
 
+void test_carrier_integrity(void) {
+    printf("Testing carrier integrity...\n");
+    const char* carrier = "Secret Secret";
+    const char* message = "Hello World";
+    char encoded[TEST_BUFFER_SIZE];
+    char cleaned[TEST_BUFFER_SIZE];
+    size_t encoded_len = encode_and_insert(message, strlen(message), carrier, strlen(carrier), NULL, 0, encoded, TEST_BUFFER_SIZE, NULL, 0);
+    assert(encoded_len > 0);
+    strip_zero_width_and_control(encoded, cleaned);
+    assert(strcmp(cleaned, carrier) == 0);
+}
+
 int main(void) {
     printf("Running whitespace steganography tests...\n\n");
 
@@ -221,6 +233,7 @@ int main(void) {
     test_error_handling();
     test_matrix();
     test_empty_message();
+    test_carrier_integrity();
 
     printf("\nAll tests passed!\n");
     return 0;

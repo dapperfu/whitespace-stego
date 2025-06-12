@@ -64,4 +64,21 @@ def get_binary_chars() -> Tuple[str, str]:
     Tuple[str, str]
         A tuple containing (zero_width_space, zero_width_non_joiner)
     """
-    return ZWSP, ZWNJ 
+    return ZWSP, ZWNJ
+
+def strip_zero_width_and_control(text: str) -> str:
+    """Remove all zero-width and control characters used for steganography from the text.
+    
+    Parameters
+    ----------
+    text : str
+        The text to clean.
+    
+    Returns
+    -------
+    str
+        The cleaned text with all stego control and zero-width characters removed.
+    """
+    for char in (START_MARKER, END_MARKER, ZWSP, ZWNJ):
+        text = text.replace(char, "")
+    return text 

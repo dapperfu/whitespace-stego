@@ -61,4 +61,12 @@ pub fn get_control_chars() -> (&'static str, &'static str) {
 #[allow(dead_code)]
 pub fn get_binary_chars() -> (&'static str, &'static str) {
     (ZWSP, ZWNJ)
+}
+
+pub fn strip_zero_width_and_control(text: &str) -> String {
+    let mut result = text.to_string();
+    for ch in [START_MARKER, END_MARKER, ZWSP, ZWNJ] {
+        result = result.replace(ch, "");
+    }
+    result
 } 

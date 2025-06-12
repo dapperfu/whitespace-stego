@@ -10,7 +10,7 @@ from whitespace_stego.encode import (
     insert_payload,
     encode_and_insert
 )
-from whitespace_stego.common.charset import START_MARKER, END_MARKER, ZWSP, ZWNJ
+from whitespace_stego.common.charset import START_MARKER, END_MARKER, ZWSP, ZWNJ, strip_zero_width_and_control
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
@@ -105,4 +105,12 @@ def test_encode_and_insert() -> None:
     with pytest.raises(ValueError):
         encode_and_insert(message, carrier, "secret", -1)
     with pytest.raises(ValueError):
-        encode_and_insert(message, carrier, "secret", len(carrier) + 1) 
+        encode_and_insert(message, carrier, "secret", len(carrier) + 1)
+
+def test_carrier_integrity() -> None:
+    """Test that encoding a message does not alter the carrier text (after stripping stego chars)."""
+    carrier = "Secret Secret"
+    message = "Hello World"
+    result = encode_and_insert(message, carrier)
+    carrier_after = strip_zero_width_and_control(result)
+    assert carrier_after == carrier 
