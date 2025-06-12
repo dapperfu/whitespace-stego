@@ -1,4 +1,4 @@
-.PHONY: install test lint format clean md-report-gfm test-all
+.PHONY: install test lint format clean md-report-gfm test-all rust-cli c-cli all-cli clean-rust clean-c clean-cli
 
 install:
 	pip install -e .[dev]
@@ -28,4 +28,26 @@ md-report-gfm:
 test-all: test
 	cd rust_backend && cargo test
 	./test_roundtrip.sh
-	# Add any other bash test scripts here 
+	# Add any other bash test scripts here
+
+rust-cli: rust_backend/target/release/whitespace_stego_rs
+	cp $< ./whitespace_stego_rs
+
+rust_backend/target/release/whitespace_stego_rs:
+	$(MAKE) -C rust_backend build-release
+
+c-cli: c_backend/bin/whitespace_stego_c
+	cp $< ./whitespace_stego_c
+
+c_backend/bin/whitespace_stego_c:
+	$(MAKE) -C c_backend
+
+all-cli: rust-cli c-cli
+
+clean-rust:
+	$(MAKE) -C rust_backend clean
+
+clean-c:
+	$(MAKE) -C c_backend clean
+
+clean-cli: clean-rust clean-c 
