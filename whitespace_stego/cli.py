@@ -6,10 +6,11 @@ hidden messages in text using zero-width Unicode characters.
 
 import argparse
 import sys
-from typing import Optional, TextIO
+from typing import Optional, TextIO, Any
 from pathlib import Path
-from .encode import encode_and_insert
-from .decode import decode_and_remove
+from .encode import encode_and_insert as py_encode_and_insert
+from .decode import decode_and_remove as py_decode_and_remove
+from . import rust_bridge
 
 def read_text_source(source: Optional[Path], stdin: Optional[TextIO] = None) -> str:
     """Read text from a file or stdin.
@@ -57,19 +58,27 @@ def encode_command(args: argparse.Namespace) -> None:
     args : argparse.Namespace
         Command-line arguments.
     """
-    # Read message
     message = read_text_source(args.message_file, sys.stdin) if args.message_file else args.message or ""
-    # Read carrier
     carrier = read_text_source(args.carrier_file, sys.stdin) if args.carrier_file else args.carrier or ""
+    backend = getattr(args, "backend", "python")
     try:
-        # Encode and insert the message
-        result = encode_and_insert(
-            message=message,
-            carrier=carrier,
-            password=args.password,
-            position=args.position
-        )
-        # Write output
+        if backend == "rust":
+            if not rust_bridge.RUST_AVAILABLE:
+                print("Error: Rust backend is not available.", file=sys.stderr)
+                sys.exit(1)
+            result = rust_bridge.encode_and_insert(
+                message=message,
+                carrier=carrier,
+                password=args.password,
+                position=args.position
+            )
+        else:
+            result = py_encode_and_insert(
+                message=message,
+                carrier=carrier,
+                password=args.password,
+                position=args.position
+            )
         write_text_sink(args.output_file, result, sys.stdout)
     except ValueError as e:
         print(f"Error: {e}", file=sys.stderr)
@@ -83,12 +92,16 @@ def decode_command(args: argparse.Namespace) -> None:
     args : argparse.Namespace
         Command-line arguments.
     """
-    # Read input
     text = read_text_source(args.input_file, sys.stdin) if args.input_file else args.input or ""
+    backend = getattr(args, "backend", "python")
     try:
-        # Decode the message
-        message, carrier = decode_and_remove(text, args.password)
-        # Write output
+        if backend == "rust":
+            if not rust_bridge.RUST_AVAILABLE:
+                print("Error: Rust backend is not available.", file=sys.stderr)
+                sys.exit(1)
+            message, carrier = rust_bridge.decode_and_remove(text, args.password)
+        else:
+            message, carrier = py_decode_and_remove(text, args.password)
         write_text_sink(args.output_file, message, sys.stdout)
         if args.carrier_output_file:
             write_text_sink(args.carrier_output_file, carrier, sys.stdout)
@@ -97,9 +110,18 @@ def decode_command(args: argparse.Namespace) -> None:
         sys.exit(1)
 
 def main() -> None:
-    """Main entry point for the CLI."""
+    """Main entry point for the CLI.
+    
+    Parses command-line arguments and dispatches to the appropriate command handler.
+    """
     parser = argparse.ArgumentParser(
         description="Hide messages in text using zero-width Unicode characters"
+    )
+    parser.add_argument(
+        "--backend",
+        choices=["python", "rust"],
+        default="python",
+        help="Backend to use for encoding/decoding (default: python)"
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
     # Encode command
