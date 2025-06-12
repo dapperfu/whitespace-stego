@@ -18,8 +18,8 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y build-essential clang
         
-    - name: Build and test C backend
-      run: |
-        cd c_backend
-        make
-        make test 
+    - name: Build C CLI
+      run: make c-cli
+
+    - name: Run C tests
+      run: make -C c_backend test 

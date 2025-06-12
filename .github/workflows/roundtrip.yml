@@ -40,6 +40,9 @@ jobs:
         cd c_backend
         make
 
+    - name: Build all CLI tools
+      run: make all-cli
+
     - name: Run roundtrip tests
       run: |
         bash test_roundtrip.sh

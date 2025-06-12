@@ -19,20 +19,18 @@ jobs:
         components: rustfmt, clippy
         
     - name: Install Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v5make
       with:
         python-version: "3.10"
         
     - name: Install maturin
       run: pip install maturin
         
-    - name: Build and test Rust
-      run: |
-        cd rust_backend
-        cargo build
-        cargo test
-        cargo clippy -- -D warnings
-        cargo fmt -- --check
+    - name: Build Rust CLI
+      run: make rust-cli
+
+    - name: Run Rust tests
+      run: make -C rust_backend test
         
     - name: Build and test Python bindings
       run: |
