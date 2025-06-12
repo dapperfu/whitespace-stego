@@ -1,7 +1,7 @@
 .PHONY: install test lint format clean md-report-gfm test-all
 
 install:
-	pip install -e .
+	pip install -e .[dev]
 
 test:
 	pytest tests/ --cov=python --cov-report=term-missing
