@@ -1,4 +1,4 @@
-.PHONY: install test lint format clean md-report-gfm
+.PHONY: install test lint format clean md-report-gfm test-all
 
 install:
 	pip install -e .
@@ -23,4 +23,9 @@ clean:
 	find . -type f -name "*.pyc" -delete
 
 md-report-gfm:
-	venv/bin/pytest --md-report --md-report-flavor gfm tests/ > report.md 
+	venv/bin/pytest --md-report --md-report-flavor gfm tests/ > report.md
+
+test-all: test
+	cd rust_backend && cargo test
+	./test_roundtrip.sh
+	# Add any other bash test scripts here 
