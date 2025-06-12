@@ -83,6 +83,7 @@ jobs:
         
     - name: Build and test Rust
       run: |
+        cd rust_backend
         cargo build
         cargo test
         cargo clippy -- -D warnings
@@ -93,31 +94,20 @@ jobs:
         maturin develop
         pytest tests/test_rs.py
 
-  rust-cli:
+  c-backend:
     runs-on: ubuntu-latest
     needs: rust
-    if: exists('rust_cli/Cargo.toml')
     
     steps:
     - uses: actions/checkout@v4
     
-    - name: Install Rust
-      uses: dtolnay/rust-toolchain@stable
-      
-    - name: Build and test Rust CLI
+    - name: Install build dependencies
       run: |
-        cargo build --manifest-path rust_cli/Cargo.toml
-        cargo test --manifest-path rust_cli/Cargo.toml
-
-  c-cli:
-    runs-on: ubuntu-latest
-    needs: rust-cli
-    if: exists('c_cli/Makefile')
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Build and test C CLI
+        sudo apt-get update
+        sudo apt-get install -y build-essential clang
+        
+    - name: Build and test C backend
       run: |
-        make -C c_cli
-        ./c_cli/build/whitespace-stego --help 
+        cd c_backend
+        make
+        make test 
