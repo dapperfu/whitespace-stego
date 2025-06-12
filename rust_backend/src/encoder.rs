@@ -1,52 +1,114 @@
 use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
 use crate::charset::{binary_to_char, START_MARKER, END_MARKER, is_valid_carrier};
+use aes_gcm::{
+    aead::{Aead, KeyInit},
+    Aes256Gcm, Key, Nonce,
+};
+use pbkdf2::{
+    password_hash::{
+        PasswordHasher, SaltString,
+    },
+    Pbkdf2,
+};
+use rand::{Rng, rngs::OsRng};
 
-/// Encode a binary string using zero-width characters.
+const SALT_LENGTH: usize = 16;
+const IV_LENGTH: usize = 12;
+const TAG_LENGTH: usize = 16;
+const KEY_LENGTH: usize = 32; // 256 bits
+const ITERATIONS: u32 = 100_000;
+
+/// Derive an encryption key from a password using PBKDF2.
 ///
 /// # Arguments
 ///
-/// * `binary_str` - A string of '0's and '1's to encode
+/// * `password` - The password to derive the key from
+/// * `salt` - Salt for key derivation
 ///
 /// # Returns
 ///
-/// * `String` - The encoded string using zero-width characters
-pub fn encode_binary(binary_str: &str) -> String {
-    binary_str
-        .chars()
-        .map(|c| binary_to_char(c.to_digit(10).unwrap() as u8))
-        .collect()
+/// * `Vec<u8>` - The derived key
+fn derive_key(password: &str, salt: &[u8]) -> Vec<u8> {
+    let salt_str = SaltString::encode_b64(salt).unwrap();
+    let password_hash = Pbkdf2.hash_password(
+        password.as_bytes(),
+        &salt_str,
+    ).unwrap();
+
+    password_hash.hash.unwrap().as_bytes().to_vec()
 }
 
-/// Encode a message into a steganographic payload.
+/// Encode a binary string into zero-width characters.
+///
+/// # Arguments
+///
+/// * `binary` - The binary string to encode
+///
+/// # Returns
+///
+/// * `Result<String, String>` - The encoded string using zero-width characters, or an error message
+pub fn encode_binary(binary: &str) -> Result<String, String> {
+    let mut encoded = String::new();
+    for c in binary.chars() {
+        let bit = c.to_digit(2).ok_or_else(|| format!("Invalid binary char: {}", c))? as u8;
+        encoded.push_str(binary_to_char(bit));
+    }
+    Ok(encoded)
+}
+
+/// Encode a message into text.
 ///
 /// # Arguments
 ///
 /// * `message` - The message to encode
-/// * `password` - Optional password for encryption before encoding
+/// * `carrier` - The carrier text to hide the message in
+/// * `password` - Optional password for encryption
 ///
 /// # Returns
 ///
-/// * `String` - The encoded steganographic payload
-pub fn encode_message(message: &str, password: Option<&str>) -> String {
-    // First encrypt/encode the message
-    let encrypted = if let Some(_pwd) = password {
-        // TODO: Implement encryption with password
-        BASE64.encode(message.as_bytes())
+/// * `Result<String, String>` - The text with the hidden message, or an error message
+pub fn encode_message(message: &str, carrier: &str, password: Option<&str>) -> Result<String, String> {
+    // Encrypt/encode the message
+    let bytes = if let Some(password) = password {
+        // Generate a random salt and IV
+        let mut salt = [0u8; SALT_LENGTH];
+        let mut iv = [0u8; IV_LENGTH];
+        OsRng.fill(&mut salt);
+        OsRng.fill(&mut iv);
+
+        // Derive key using the salt
+        let key = derive_key(password, &salt);
+        let cipher = Aes256Gcm::new(Key::<Aes256Gcm>::from_slice(&key));
+        let nonce = Nonce::from_slice(&iv);
+
+        // Encrypt the message
+        let ciphertext = cipher.encrypt(nonce, message.as_bytes()).map_err(|e| e.to_string())?;
+
+        // Combine salt, IV, and ciphertext
+        let mut combined = Vec::new();
+        combined.extend_from_slice(&salt);
+        combined.extend_from_slice(&iv);
+        combined.extend_from_slice(&ciphertext);
+        combined
     } else {
-        BASE64.encode(message.as_bytes())
+        message.as_bytes().to_vec()
     };
 
+    // Base64 encode the bytes
+    let encoded = BASE64.encode(&bytes);
+
     // Convert to binary
-    let binary = encrypted
-        .bytes()
-        .map(|b| format!("{:08b}", b))
+    let binary = encoded.as_bytes().iter()
+        .map(|&b| format!("{:08b}", b))
         .collect::<String>();
 
-    // Encode binary using zero-width characters
-    let encoded = encode_binary(&binary);
+    // Encode binary into zero-width characters
+    let zero_width = encode_binary(&binary)?;
 
-    // Wrap with control characters
-    format!("{}{}{}", START_MARKER, encoded, END_MARKER)
+    // Insert the encoded message into the carrier text
+    let result = format!("{}{}{}{}", carrier, START_MARKER, zero_width, END_MARKER);
+
+    Ok(result)
 }
 
 /// Insert a steganographic payload into carrier text.
@@ -65,13 +127,14 @@ pub fn insert_payload(carrier: &str, payload: &str, position: Option<usize>) -> 
         return Err("Carrier text contains control characters".to_string());
     }
 
-    let pos = position.unwrap_or_else(|| carrier.len());
+    let pos = position.unwrap_or(carrier.len());
     if pos > carrier.len() {
-        return Err("Invalid insertion position".to_string());
+        return Err("Position is beyond carrier text length".to_string());
     }
 
-    let mut result = carrier.to_string();
-    result.insert_str(pos, payload);
+    let mut result = carrier[..pos].to_string();
+    result.push_str(payload);
+    result.push_str(&carrier[pos..]);
     Ok(result)
 }
 
@@ -93,6 +156,6 @@ pub fn encode_and_insert(
     password: Option<&str>,
     position: Option<usize>,
 ) -> Result<String, String> {
-    let payload = encode_message(message, password);
+    let payload = encode_message(message, carrier, password)?;
     insert_payload(carrier, &payload, position)
 } 
