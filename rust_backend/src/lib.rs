@@ -21,7 +21,8 @@ fn encode_binary_rs(binary_str: &str) -> PyResult<String> {
 /// Encode a message into a steganographic payload.
 #[pyfunction]
 fn encode_message_rs(message: &str, carrier: &str, password: Option<&str>) -> PyResult<String> {
-    encode_message(message, carrier, password).map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)
+    let payload = encode_message(message, password).map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)?;
+    insert_payload(carrier, &payload, None).map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)
 }
 
 /// Insert a steganographic payload into carrier text.
