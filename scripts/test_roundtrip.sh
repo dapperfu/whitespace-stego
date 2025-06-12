@@ -53,7 +53,7 @@ run_test() {
     
     # Python encode -> Rust decode
     echo "Testing Python encode -> Rust decode..."
-    python3 -m whitespace_stego encode -m "$msg" -c "$carrier" -o "$TEMP_DIR/py_encoded.txt" ${password:+-p "$password"}
+    python3 -m whitespace_stego.cli encode -m "$msg" -c "$carrier" -o "$TEMP_DIR/py_encoded.txt" ${password:+-p "$password"}
     ./rust_backend/target/release/whitespace_stego_rs decode -i "$TEMP_DIR/py_encoded.txt" ${password:+-p "$password"} > "$TEMP_DIR/rust_decoded.txt"
     
     if [ "$(cat "$TEMP_DIR/rust_decoded.txt")" = "$msg" ]; then
@@ -68,7 +68,7 @@ run_test() {
     # Rust encode -> Python decode
     echo "Testing Rust encode -> Python decode..."
     ./rust_backend/target/release/whitespace_stego_rs encode -m "$msg" -c "$carrier" -o "$TEMP_DIR/rust_encoded.txt" ${password:+-p "$password"}
-    python3 -m whitespace_stego decode -i "$TEMP_DIR/rust_encoded.txt" ${password:+-p "$password"} > "$TEMP_DIR/py_decoded.txt"
+    python3 -m whitespace_stego.cli decode -i "$TEMP_DIR/rust_encoded.txt" ${password:+-p "$password"} > "$TEMP_DIR/py_decoded.txt"
     
     if [ "$(cat "$TEMP_DIR/py_decoded.txt")" = "$msg" ]; then
         echo -e "${GREEN}✓ Rust encode -> Python decode: PASS${NC}"
