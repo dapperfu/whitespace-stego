@@ -15,20 +15,30 @@ const (
 
 // Encoder handles the encoding of messages into zero-width characters
 type Encoder struct {
-	password []byte
+	password string
 }
 
 // NewEncoder creates a new encoder instance
 func NewEncoder(password string) *Encoder {
 	return &Encoder{
-		password: []byte(password),
+		password: password,
 	}
 }
 
 // Encode converts a message into zero-width characters
 func (e *Encoder) Encode(message string, carrier string) (string, error) {
-	// Convert message to bytes
-	msgBytes := []byte(message)
+	// Encrypt the message if a password is provided
+	var msgBytes []byte
+	var err error
+	if e.password != "" {
+		encrypted, err := Encrypt([]byte(message), e.password)
+		if err != nil {
+			return "", fmt.Errorf("failed to encrypt message: %w", err)
+		}
+		msgBytes = []byte(encrypted)
+	} else {
+		msgBytes = []byte(message)
+	}
 
 	// Create the encoded string
 	var encoded string
