@@ -19,11 +19,32 @@ void print_usage(const char* program_name) {
     fprintf(stderr, "  decode    Decode a message from carrier text\n");
     fprintf(stderr, "\nOptions:\n");
     fprintf(stderr, "  -m <msg>      Message to encode\n");
+    fprintf(stderr, "  --message-file <file>  Read message from file ('-' for stdin)\n");
     fprintf(stderr, "  -c <text>     Carrier text\n");
-    fprintf(stderr, "  --carrier-file <file>  Read carrier from file\n");
-    fprintf(stderr, "  -o <file>     Output file\n");
-    fprintf(stderr, "  -i <file>     Input file to decode\n");
+    fprintf(stderr, "  --carrier-file <file>  Read carrier from file ('-' for stdin)\n");
+    fprintf(stderr, "  -o <file>     Output file ('-' for stdout)\n");
+    fprintf(stderr, "  --output-file <file>   Output file (long option, '-' for stdout)\n");
+    fprintf(stderr, "  -i <file>     Input file to decode ('-' for stdin)\n");
+    fprintf(stderr, "  --input-file <file>    Input file (long option, '-' for stdin)\n");
     fprintf(stderr, "  -p <pass>     Optional password\n");
+}
+
+// Helper to read from file or stdin
+char* read_text(const char* filename, size_t* out_size) {
+    if (!filename || strcmp(filename, "-") == 0) {
+        // Read from stdin
+        char* buffer = malloc(MAX_BUFFER_SIZE);
+        if (!buffer) return NULL;
+        size_t len = fread(buffer, 1, MAX_BUFFER_SIZE, stdin);
+        if (out_size) *out_size = len;
+        return buffer;
+    } else {
+        uint8_t* file_data;
+        size_t file_size;
+        if (!read_file(filename, &file_data, &file_size)) return NULL;
+        if (out_size) *out_size = file_size;
+        return (char*)file_data;
+    }
 }
 
 int main(int argc, char* argv[]) {
@@ -34,30 +55,42 @@ int main(int argc, char* argv[]) {
 
     const char* command = argv[1];
     const char* message = NULL;
+    const char* message_file = NULL;
     const char* carrier = NULL;
     const char* carrier_file = NULL;
     const char* output_file = NULL;
+    const char* output_file_long = NULL;
     const char* input_file = NULL;
+    const char* input_file_long = NULL;
     const char* password = NULL;
 
     // Parse command line arguments
     for (int i = 2; i < argc; i++) {
         if (strcmp(argv[i], "-m") == 0 && i + 1 < argc) {
             message = argv[++i];
+        } else if (strcmp(argv[i], "--message-file") == 0 && i + 1 < argc) {
+            message_file = argv[++i];
         } else if (strcmp(argv[i], "-c") == 0 && i + 1 < argc) {
             carrier = argv[++i];
         } else if (strcmp(argv[i], "--carrier-file") == 0 && i + 1 < argc) {
             carrier_file = argv[++i];
         } else if (strcmp(argv[i], "-o") == 0 && i + 1 < argc) {
             output_file = argv[++i];
+        } else if (strcmp(argv[i], "--output-file") == 0 && i + 1 < argc) {
+            output_file_long = argv[++i];
         } else if (strcmp(argv[i], "-i") == 0 && i + 1 < argc) {
             input_file = argv[++i];
+        } else if (strcmp(argv[i], "--input-file") == 0 && i + 1 < argc) {
+            input_file_long = argv[++i];
         } else if (strcmp(argv[i], "-p") == 0 && i + 1 < argc) {
             password = argv[++i];
         }
     }
 
-    // Allocate buffers
+    // Prefer long output/input file if both are set
+    if (output_file_long) output_file = output_file_long;
+    if (input_file_long) input_file = input_file_long;
+
     char* buffer = (char*)malloc(MAX_BUFFER_SIZE);
     if (!buffer) {
         fprintf(stderr, "Error: Failed to allocate memory\n");
@@ -67,52 +100,60 @@ int main(int argc, char* argv[]) {
     int result = 0;
 
     if (strcmp(command, "encode") == 0) {
-        // Validate encode arguments
-        if (!message) {
-            fprintf(stderr, "Error: Message (-m) is required for encoding\n");
+        // Read message
+        char* msg_buf = NULL;
+        size_t msg_len = 0;
+        if (message_file) {
+            msg_buf = read_text(message_file, &msg_len);
+            if (!msg_buf) {
+                fprintf(stderr, "Error: Failed to read message file\n");
+                result = 1;
+                goto cleanup;
+            }
+        } else if (message) {
+            msg_buf = (char*)message;
+            msg_len = strlen(message);
+        } else {
+            fprintf(stderr, "Error: Message (-m or --message-file) is required for encoding\n");
             result = 1;
             goto cleanup;
         }
 
-        if (!carrier && !carrier_file) {
-            fprintf(
-                stderr,
-                "Error: Either carrier text (-c) or carrier file (--carrier-file) is required\n");
-            result = 1;
-            goto cleanup;
-        }
-
-        // Read carrier from file if specified
+        // Read carrier
+        char* carrier_buf = NULL;
+        size_t carrier_len = 0;
         if (carrier_file) {
-            uint8_t* file_data;
-            size_t file_size;
-            if (!read_file(carrier_file, &file_data, &file_size)) {
+            carrier_buf = read_text(carrier_file, &carrier_len);
+            if (!carrier_buf) {
                 fprintf(stderr, "Error: Failed to read carrier file\n");
                 result = 1;
                 goto cleanup;
             }
-            carrier = (char*)file_data;
+        } else if (carrier) {
+            carrier_buf = (char*)carrier;
+            carrier_len = strlen(carrier);
+        } else {
+            carrier_buf = "";
+            carrier_len = 0;
         }
 
-        // Encode message
-        size_t message_len = strlen(message);
-        size_t carrier_len = strlen(carrier);
-        size_t output_len = calculate_encoded_size(message_len, carrier_len);
-
+        size_t output_len = calculate_encoded_size(msg_len, carrier_len);
         if (output_len > MAX_BUFFER_SIZE) {
             fprintf(stderr, "Error: Output would exceed maximum buffer size\n");
             result = 1;
             goto cleanup;
         }
 
-        size_t encoded_len = encode_message(message,
-                                            message_len,
-                                            carrier,
+        size_t encoded_len = encode_message(msg_buf,
+                                            msg_len,
+                                            carrier_buf,
                                             carrier_len,
                                             buffer,
                                             MAX_BUFFER_SIZE,
                                             password,
                                             password ? strlen(password) : 0);
+        if (message_file) free(msg_buf);
+        if (carrier_file) free(carrier_buf);
 
         if (encoded_len == 0) {
             fprintf(stderr, "Error: Failed to encode message\n");
@@ -121,7 +162,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Write output
-        if (output_file) {
+        if (output_file && strcmp(output_file, "-") != 0) {
             if (!write_file(output_file, (uint8_t*)buffer, encoded_len)) {
                 fprintf(stderr, "Error: Failed to write output file\n");
                 result = 1;
@@ -132,31 +173,30 @@ int main(int argc, char* argv[]) {
         }
 
     } else if (strcmp(command, "decode") == 0) {
-        // Validate decode arguments
-        if (!input_file) {
-            fprintf(stderr, "Error: Input file (-i) is required for decoding\n");
-            result = 1;
-            goto cleanup;
-        }
-
-        // Read input file
-        uint8_t* input_data;
-        size_t input_size;
-        if (!read_file(input_file, &input_data, &input_size)) {
-            fprintf(stderr, "Error: Failed to read input file\n");
+        // Read input
+        char* input_buf = NULL;
+        size_t input_len = 0;
+        if (input_file) {
+            input_buf = read_text(input_file, &input_len);
+            if (!input_buf) {
+                fprintf(stderr, "Error: Failed to read input file\n");
+                result = 1;
+                goto cleanup;
+            }
+        } else {
+            fprintf(stderr, "Error: Input file (-i or --input-file) is required for decoding\n");
             result = 1;
             goto cleanup;
         }
 
         // Decode message
-        size_t decoded_len = decode_message((char*)input_data,
-                                            input_size,
+        size_t decoded_len = decode_message((char*)input_buf,
+                                            input_len,
                                             buffer,
                                             MAX_BUFFER_SIZE,
                                             password,
                                             password ? strlen(password) : 0);
-
-        free(input_data);
+        if (input_file) free(input_buf);
 
         if (decoded_len == 0) {
             fprintf(stderr, "Error: Failed to decode message\n");
@@ -165,7 +205,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Write output
-        if (output_file) {
+        if (output_file && strcmp(output_file, "-") != 0) {
             if (!write_file(output_file, (uint8_t*)buffer, decoded_len)) {
                 fprintf(stderr, "Error: Failed to write output file\n");
                 result = 1;
