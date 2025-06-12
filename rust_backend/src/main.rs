@@ -2,8 +2,7 @@ use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
 use std::fs;
 use std::path::PathBuf;
-use whitespace_stego_rs::encoder::encode;
-use whitespace_stego_rs::decoder::decode;
+use whitespace_stego_rs::{encode, decode};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -75,7 +74,7 @@ fn main() -> Result<()> {
         Commands::Decode { input, password } => {
             let encoded = fs::read_to_string(&input)
                 .with_context(|| format!("Failed to read input file: {:?}", input))?;
-            let decoded = decode(&encoded, password.as_deref())?;
+            let (decoded, _) = decode(&encoded, password.as_deref())?;
             println!("{}", decoded);
         }
     }

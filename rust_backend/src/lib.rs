@@ -2,11 +2,15 @@ use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
 
 mod charset;
-mod encoder;
-mod decoder;
+pub mod encoder;
+pub mod decoder;
 
 use encoder::{encode_binary, encode_message, insert_payload, encode_and_insert};
 use decoder::{decode_binary, decode_message, decode_and_remove};
+
+// Re-export the main functions for the CLI
+pub use encoder::encode_and_insert as encode;
+pub use decoder::decode_and_remove as decode;
 
 /// Encode a binary string using zero-width characters.
 #[pyfunction]
