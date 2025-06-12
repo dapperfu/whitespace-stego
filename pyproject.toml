@@ -1,32 +1,63 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = ["setuptools>=42", "wheel", "setuptools-rust>=1.5.2"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "whitespace-stego"
 version = "0.1.0"
-description = "Hide messages in text using zero-width Unicode characters"
-authors = [
-    { name = "Your Name", email = "your.email@example.com" }
-]
+description = "A Python package for hiding messages in text using zero-width Unicode characters"
 readme = "README.md"
 requires-python = ">=3.8"
-dependencies = [
-    "cryptography>=41.0.0"
+license = {text = "MIT"}
+authors = [
+    {name = "Your Name", email = "your.email@example.com"}
 ]
 classifiers = [
-    "Development Status :: 3 - Alpha",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11"
+    "Programming Language :: Python :: 3.11",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "cryptography>=41.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "mypy>=1.0.0",
+    "black>=23.0.0",
+    "isort>=5.0.0",
+    "flake8>=6.0.0",
 ]
 
 [project.scripts]
 whitespace-stego = "whitespace_stego.cli:main"
+
+[tool.setuptools]
+packages = ["whitespace_stego"]
+
+[tool.setuptools-rust]
+rust-extension = "whitespace_stego_rs"
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+
+[tool.black]
+line-length = 88
+target-version = ["py38"]
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -34,13 +65,4 @@ python_files = ["test_*.py"]
 addopts = "--cov=whitespace_stego --cov-report=term-missing --html=report.html --self-contained-html"
 
 [tool.coverage.run]
-source = ["whitespace_stego"]
-
-[project.optional-dependencies]
-test = [
-    "pytest>=8.0.0",
-    "pytest-cov>=4.0.0",
-    "pytest-benchmark>=4.0.0",
-    "pytest-html>=4.0.0",
-    "pytest-md-report>=0.0.1"
-] 
+source = ["whitespace_stego"] 

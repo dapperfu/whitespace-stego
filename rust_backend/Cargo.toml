@@ -1,0 +1,15 @@
+[package]
+name = "whitespace_stego_rs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "whitespace_stego_rs"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.19", features = ["extension-module"] }
+base64 = "0.21"
+aes-gcm = "0.10"
+pbkdf2 = "0.12"
+rand = "0.8" 
