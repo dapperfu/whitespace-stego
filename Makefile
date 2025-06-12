@@ -1,4 +1,4 @@
-.PHONY: install test lint format clean
+.PHONY: install test lint format clean md-report-gfm
 
 install:
 	pip install -e .
@@ -20,4 +20,7 @@ clean:
 	rm -rf dist/
 	rm -rf *.egg-info
 	find . -type d -name __pycache__ -exec rm -rf {} +
-	find . -type f -name "*.pyc" -delete 
+	find . -type f -name "*.pyc" -delete
+
+md-report-gfm:
+	venv/bin/pytest --md-report --md-report-flavor gfm tests/ > report.md 
