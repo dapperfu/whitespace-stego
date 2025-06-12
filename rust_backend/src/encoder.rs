@@ -1,7 +1,7 @@
 use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
 use crate::charset::{binary_to_char, START_MARKER, END_MARKER, is_valid_carrier, strip_zero_width_and_control};
 use aes_gcm::{
-    aead::{Aead, KeyInit},
+    aead::{Aead, KeyInit, AeadInPlace},
     Aes256Gcm, Key, Nonce,
 };
 use pbkdf2::{
@@ -84,13 +84,15 @@ pub fn encode_message(message: &str, password: Option<&str>) -> Result<String, S
         let nonce = Nonce::from_slice(&iv);
 
         // Encrypt the message
-        let ciphertext = cipher.encrypt(nonce, message.as_bytes()).map_err(|e| e.to_string())?;
+        let mut buffer = message.as_bytes().to_vec();
+        let tag = cipher.encrypt_in_place_detached(nonce, b"", &mut buffer).map_err(|e| e.to_string())?;
 
-        // Combine salt, IV, and ciphertext
+        // Combine salt, IV, tag, and ciphertext
         let mut combined = Vec::new();
         combined.extend_from_slice(&salt);
         combined.extend_from_slice(&iv);
-        combined.extend_from_slice(&ciphertext);
+        combined.extend_from_slice(&tag);
+        combined.extend_from_slice(&buffer);
         combined
     } else {
         message.as_bytes().to_vec()

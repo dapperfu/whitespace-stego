@@ -57,6 +57,13 @@ def test_stego_encode_decode(message: str, password: str | None, carrier: str) -
         The carrier text to hide the message in
     """
     logging.debug(f"Testing with message={message!r}, carrier={carrier!r}, password={password!r}")
+    
+    # Empty messages should fail with ValueError
+    if not message:
+        with pytest.raises(ValueError, match="Message must not be empty"):
+            encode(message, carrier=carrier, password=password)
+        return
+        
     encoded = encode(message, carrier=carrier, password=password)
-    decoded_message, _ = decode(encoded, password=password)
-    assert decoded_message == message 
+    decoded = decode(encoded, password=password)
+    assert decoded == message 

@@ -84,9 +84,8 @@ def test_read_file_not_found(temp_dir: Path) -> None:
     """Test file reading with non-existent file."""
     logging.debug(f"Running {__name__}.test_read_file_not_found")
     file_path = temp_dir / "nonexistent.txt"
-    with pytest.raises(SystemExit) as exc_info:
+    with pytest.raises(FileNotFoundError):
         read_file(file_path)
-    assert exc_info.value.code == 1
 
 def test_write_file(temp_dir: Path) -> None:
     """Test file writing."""
@@ -128,7 +127,7 @@ def test_encode_command_with_stdin(
     output_file = temp_dir / "encoded.txt"
     args = type("Args", (), {
         "message": None,
-        "message_file": None,
+        "message_file": '-',
         "carrier": None,
         "carrier_file": carrier_file,
         "password": "secret",
@@ -327,25 +326,25 @@ def test_main_decode_command(
     logging.debug(f"Running {__name__}.test_main_decode_command")
     # First encode a message
     encoded_file = temp_dir / "encoded.txt"
-    encode_args = type("Args", (), {
-        "message": message_file,
-        "carrier": carrier_file,
-        "password": "secret",
-        "output": encoded_file,
-        "position": None
-    })
-    encode_command(encode_args)
-    
+    sys.argv = [
+        "whitespace-stego",
+        "encode",
+        "-mf", str(message_file),
+        "-cf", str(carrier_file),
+        "-p", "secret",
+        "-o", str(encoded_file)
+    ]
+    main()
+    assert encoded_file.exists()
     # Then decode it
     output_file = temp_dir / "decoded.txt"
     sys.argv = [
         "whitespace-stego",
         "decode",
-        "-i", str(encoded_file),
+        "-if", str(encoded_file),
         "-p", "secret",
         "-o", str(output_file)
     ]
-    
     main()
     assert output_file.exists()
     assert output_file.read_text() == message_file.read_text() 

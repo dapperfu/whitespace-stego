@@ -1,7 +1,7 @@
 use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
 use crate::charset::{char_to_binary, START_MARKER, END_MARKER};
 use aes_gcm::{
-    aead::{Aead, KeyInit},
+    aead::{Aead, KeyInit, AeadInPlace},
     Aes256Gcm, Key, Nonce,
 };
 use pbkdf2::{
@@ -115,13 +115,14 @@ pub fn decode_message(text: &str, password: Option<&str>) -> Result<String, Stri
         }
         let salt = &encrypted_data[..SALT_LENGTH];
         let iv = &encrypted_data[SALT_LENGTH..SALT_LENGTH + IV_LENGTH];
-        let _tag = &encrypted_data[SALT_LENGTH + IV_LENGTH..SALT_LENGTH + IV_LENGTH + TAG_LENGTH];
+        let tag = &encrypted_data[SALT_LENGTH + IV_LENGTH..SALT_LENGTH + IV_LENGTH + TAG_LENGTH];
         let ciphertext = &encrypted_data[SALT_LENGTH + IV_LENGTH + TAG_LENGTH..];
         let key = derive_key(password, salt);
         let cipher = Aes256Gcm::new(Key::<Aes256Gcm>::from_slice(&key));
         let nonce = Nonce::from_slice(iv);
-        let plaintext = cipher.decrypt(nonce, ciphertext).map_err(|e| e.to_string())?;
-        Ok(String::from_utf8(plaintext).map_err(|e| e.to_string())?)
+        let mut buffer = ciphertext.to_vec();
+        cipher.decrypt_in_place_detached(nonce, b"", &mut buffer, tag.into()).map_err(|e| e.to_string())?;
+        Ok(String::from_utf8(buffer).map_err(|e| e.to_string())?)
     } else {
         // Treat bytes as base64 string, decode, then decode as UTF-8
         let base64_str = String::from_utf8(bytes).map_err(|e| e.to_string())?;

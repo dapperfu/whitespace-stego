@@ -1,4 +1,4 @@
-.PHONY: install test lint format clean md-report-gfm test-all rust-cli c-cli all-cli clean-rust clean-c clean-cli
+.PHONY: install test lint format clean md-report-gfm test-all rust-cli c-cli all-cli clean-rust clean-c clean-cli go-cli test-go-cli test-go-cli-integration
 
 install:
 	pip install -e .[dev]
@@ -50,4 +50,13 @@ clean-rust:
 clean-c:
 	$(MAKE) -C c_backend clean
 
-clean-cli: clean-rust clean-c 
+clean-cli: clean-rust clean-c
+
+go-cli:
+	cd go_cli && go build -o ../bin/whitespace-stego-go
+
+test-go-cli:
+	cd go_cli && go test ./...
+
+test-go-cli-integration:
+	./scripts/test_go.sh 
