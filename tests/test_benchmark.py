@@ -71,4 +71,11 @@ def test_benchmark_decode_unicode_rust(benchmark, large_text):
     encoded = rust_encode(large_text, carrier)
     result = benchmark(lambda: rust_decode(encoded))
     assert isinstance(result, str)
-    assert large_text == result 
+    assert large_text == result
+
+@pytest.mark.benchmark(group="encryption")
+def test_benchmark_encryption(benchmark, benchmark_encryption):
+    """Test encryption performance."""
+    message, carrier = benchmark_encryption
+    result = benchmark(lambda: rust_encode(message, carrier))
+    assert isinstance(result, str) 
