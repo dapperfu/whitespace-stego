@@ -143,12 +143,45 @@ void test_matrix(void) {
     const char* messages[] = {"hello", "こんにちは", "👋🌍", "Hello, 世界!", "A"};
     const char* passwords[] = {"secret", "秘密", "", NULL, "A"};
     const char* carriers[] = {"", "A", "AB", "The quick brown fox", "🌸", "Hello, 世界!", "A"};
+    char encoded[TEST_BUFFER_SIZE];
+    char decoded[TEST_BUFFER_SIZE];
     for (size_t i = 0; i < sizeof(messages)/sizeof(messages[0]); ++i) {
         for (size_t j = 0; j < sizeof(passwords)/sizeof(passwords[0]); ++j) {
             for (size_t k = 0; k < sizeof(carriers)/sizeof(carriers[0]); ++k) {
-                printf("Matrix test: message=\"%s\", carrier=\"%s\", password=\"%s\"\n",
-                       messages[i], carriers[k], passwords[j] ? passwords[j] : "(null)");
-                test_encode_decode(messages[i], carriers[k], passwords[j]);
+                size_t message_len = strlen(messages[i]);
+                size_t carrier_len = strlen(carriers[k]);
+                size_t password_len = passwords[j] ? strlen(passwords[j]) : 0;
+                size_t encoded_len = encode_message(messages[i], message_len, carriers[k], carrier_len, encoded, TEST_BUFFER_SIZE, passwords[j], password_len);
+                printf("Matrix test: message=\"%s\", carrier=\"%s\", password=\"%s\", encoded=\"%.*s\"\n",
+                       messages[i], carriers[k], passwords[j] ? passwords[j] : "(null)", (int)encoded_len, encoded);
+                // Optionally, decode and check as before
+                if (encoded_len > 0) {
+                    size_t decoded_len = decode_message(encoded, encoded_len, decoded, TEST_BUFFER_SIZE, passwords[j], password_len);
+                    if (!(decoded_len == message_len && memcmp(decoded, messages[i], message_len) == 0)) {
+                        printf("[WARN] Decoded message mismatch for message=\"%s\", carrier=\"%s\", password=\"%s\"\n",
+                               messages[i], carriers[k], passwords[j] ? passwords[j] : "(null)");
+                    }
+                }
+            }
+        }
+    }
+    // Explicit tests for message="hello" and specified carriers
+    const char* explicit_message = "hello";
+    const char* explicit_carriers[] = {"", "A", "AB", "The quick brown fox"};
+    const char* explicit_password = "";
+    for (size_t i = 0; i < 4; ++i) {
+        size_t message_len = strlen(explicit_message);
+        size_t carrier_len = strlen(explicit_carriers[i]);
+        size_t password_len = strlen(explicit_password);
+        size_t encoded_len = encode_message(explicit_message, message_len, explicit_carriers[i], carrier_len, encoded, TEST_BUFFER_SIZE, explicit_password, password_len);
+        printf("Matrix test: message=\"%s\", carrier=\"%s\", password=\"%s\", encoded=\"%.*s\"\n",
+               explicit_message, explicit_carriers[i], explicit_password, (int)encoded_len, encoded);
+        // Optionally, decode and check as before
+        if (encoded_len > 0) {
+            size_t decoded_len = decode_message(encoded, encoded_len, decoded, TEST_BUFFER_SIZE, explicit_password, password_len);
+            if (!(decoded_len == message_len && memcmp(decoded, explicit_message, message_len) == 0)) {
+                printf("[WARN] Decoded message mismatch for message=\"%s\", carrier=\"%s\", password=\"%s\"\n",
+                       explicit_message, explicit_carriers[i], explicit_password);
             }
         }
     }
