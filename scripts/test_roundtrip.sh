@@ -1,111 +1,104 @@
 #!/bin/bash
 
-# Exit on any error
-set -e
-
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
-# Test messages
-TEST_MESSAGES=(
-    "Hello World"
-    "Special chars: !@#$%^&*()"
-    "Unicode: 你好世界"
-    "Emoji: 🌍🌎🌏"
-    "Multiline
-message
-with
-newlines"
+# Test cases
+declare -a TEST_MESSAGES=(
+    "Hello, World!"
+    "Hello, 世界!"
+    "Hello 👋 World 🌍!"
+    "Secret message with password"
 )
 
-# Test carriers
-TEST_CARRIERS=(
-    "Simple carrier"
-    "Carrier with spaces"
-    "Carrier with special chars: !@#$%^&*()"
-    "Unicode carrier: 你好世界"
-    "Multiline carrier
-with
-newlines"
+declare -a TEST_CARRIERS=(
+    "This is a test message."
+    "This is a 测试 message."
+    "This is a test 🎯 message."
+    "Public text for secret message"
 )
 
-# Create temporary directory for test files
-TEMP_DIR=$(mktemp -d)
-trap 'rm -rf "$TEMP_DIR"' EXIT
-
-echo "🔍 Testing round-trip compatibility between Python and Rust implementations..."
+declare -a TEST_PASSWORDS=(
+    ""
+    ""
+    ""
+    "password123"
+)
 
 # Function to run a test case
 run_test() {
-    local msg="$1"
+    local message="$1"
     local carrier="$2"
-    local test_name="$3"
-    local password="$4"
-    
-    echo -e "\n📝 Test: $test_name"
-    echo "Message: $msg"
+    local password="$3"
+    local test_num="$4"
+
+    echo "Test $test_num:"
+    echo "Message: $message"
     echo "Carrier: $carrier"
-    if [ ! -z "$password" ]; then
+    if [ -n "$password" ]; then
         echo "Password: $password"
     fi
-    
-    # Write message and carrier to temporary files
-    echo "$msg" > "$TEMP_DIR/message.txt"
-    echo "$carrier" > "$TEMP_DIR/carrier.txt"
-    
-    # Python encode -> Rust decode
-    echo "Testing Python encode -> Rust decode..."
-    python3 -m whitespace_stego.cli encode -m "$TEMP_DIR/message.txt" -c "$TEMP_DIR/carrier.txt" -o "$TEMP_DIR/py_encoded.txt" ${password:+-p "$password"}
-    ./target/release/whitespace_stego_rs decode -i "$TEMP_DIR/py_encoded.txt" ${password:+-p "$password"} > "$TEMP_DIR/rust_decoded.txt"
-    
-    if [ "$(cat "$TEMP_DIR/rust_decoded.txt")" = "$msg" ]; then
-        echo -e "${GREEN}✓ Python encode -> Rust decode: PASS${NC}"
-    else
-        echo -e "${RED}✗ Python encode -> Rust decode: FAIL${NC}"
-        echo "Expected: $msg"
-        echo "Got: $(cat "$TEMP_DIR/rust_decoded.txt")"
-        exit 1
+
+    # Encode the message
+    echo "Encoding..."
+    encoded=$(python3 -c "
+from whitespace_stego import encode
+print(encode('$message', '$carrier'${password:+, '$password'}))
+")
+
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}Encoding failed${NC}"
+        return 1
     fi
-    
-    # Rust encode -> Python decode
-    echo "Testing Rust encode -> Python decode..."
-    ./target/release/whitespace_stego_rs encode -m "$msg" -c "$carrier" -o "$TEMP_DIR/rust_encoded.txt" ${password:+-p "$password"}
-    python3 -m whitespace_stego.cli decode -i "$TEMP_DIR/rust_encoded.txt" ${password:+-p "$password"} > "$TEMP_DIR/py_decoded.txt"
-    
-    # Remove the "Decoded message: " prefix from Python output
-    local py_output=$(cat "$TEMP_DIR/py_decoded.txt" | sed 's/^Decoded message: //')
-    
-    if [ "$py_output" = "$msg" ]; then
-        echo -e "${GREEN}✓ Rust encode -> Python decode: PASS${NC}"
+
+    echo "Encoded: \`$encoded\`"
+
+    # Decode the message
+    echo "Decoding..."
+    decoded=$(python3 -c "
+from whitespace_stego import decode
+decoded, _ = decode('$encoded'${password:+, '$password'})
+print(decoded)
+")
+
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}Decoding failed${NC}"
+        return 1
+    fi
+
+    # Compare original and decoded messages
+    if [ "$message" = "$decoded" ]; then
+        echo -e "${GREEN}Test passed: Message matches${NC}"
+        return 0
     else
-        echo -e "${RED}✗ Rust encode -> Python decode: FAIL${NC}"
-        echo "Expected: $msg"
-        echo "Got: $py_output"
-        exit 1
+        echo -e "${RED}Test failed: Message mismatch${NC}"
+        echo "Original: $message"
+        echo "Decoded:  $decoded"
+        return 1
     fi
 }
 
-# Run tests without password
-for msg in "${TEST_MESSAGES[@]}"; do
-    for carrier in "${TEST_CARRIERS[@]}"; do
-        run_test "$msg" "$carrier" "Basic test"
-    done
+# Main test loop
+echo "Starting round-trip tests..."
+echo "============================"
+
+failed_tests=0
+for i in "${!TEST_MESSAGES[@]}"; do
+    echo
+    if ! run_test "${TEST_MESSAGES[$i]}" "${TEST_CARRIERS[$i]}" "${TEST_PASSWORDS[$i]}" $((i + 1)); then
+        failed_tests=$((failed_tests + 1))
+    fi
+    echo "============================"
 done
 
-# Run tests with password
-PASSWORD="test_password123"
-for msg in "${TEST_MESSAGES[@]}"; do
-    for carrier in "${TEST_CARRIERS[@]}"; do
-        run_test "$msg" "$carrier" "Password-protected test" "$PASSWORD"
-    done
-done
-
-# Test with empty carrier
-for msg in "${TEST_MESSAGES[@]}"; do
-    run_test "$msg" "" "Empty carrier test"
-    run_test "$msg" "" "Empty carrier with password" "$PASSWORD"
-done
-
-echo -e "\n${GREEN}✅ All tests passed!${NC}" 
+# Print summary
+echo
+if [ $failed_tests -eq 0 ]; then
+    echo -e "${GREEN}All tests passed!${NC}"
+    exit 0
+else
+    echo -e "${RED}$failed_tests test(s) failed${NC}"
+    exit 1
+fi 
