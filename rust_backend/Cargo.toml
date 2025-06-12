@@ -2,10 +2,16 @@
 name = "whitespace_stego_rs"
 version = "0.1.0"
 edition = "2021"
+description = "A Rust implementation of whitespace steganography CLI tool"
+authors = ["Your Name <your.email@example.com>"]
+
+[[bin]]
+name = "whitespace_stego_rs"
+path = "src/main.rs"
 
 [lib]
 name = "whitespace_stego_rs"
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 pyo3 = { version = "0.19", features = ["extension-module"] }
@@ -13,4 +19,7 @@ base64 = "0.21"
 aes-gcm = "0.10"
 pbkdf2 = "0.12"
 rand = "0.8"
-lazy_static = "1.4" 
+lazy_static = "1.4"
+clap = { version = "4.4", features = ["derive"] }
+thiserror = "1.0"
+anyhow = "1.0" 
