@@ -36,11 +36,11 @@ whitespace_stego_rs: rust_backend/Cargo.toml $(shell find rust_backend/src -type
 
 rust-cli: whitespace_stego_rs
 
-c-cli: c_backend/bin/whitespace_stego_c
-	cp $< ./whitespace_stego_c
-
-c_backend/bin/whitespace_stego_c:
+whitespace_stego_c: c_backend/Makefile $(shell find c_backend/src -type f)
 	$(MAKE) -C c_backend
+	cp c_backend/bin/whitespace_stego_c ./whitespace_stego_c
+
+c-cli: whitespace_stego_c
 
 all-cli: rust-cli c-cli
 
