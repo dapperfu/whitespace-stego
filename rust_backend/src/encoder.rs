@@ -64,13 +64,12 @@ pub fn encode_binary(binary: &str) -> Result<String, String> {
 /// # Arguments
 ///
 /// * `message` - The message to encode
-/// * `carrier` - The carrier text to hide the message in
 /// * `password` - Optional password for encryption
 ///
 /// # Returns
 ///
 /// * `Result<String, String>` - The text with the hidden message, or an error message
-pub fn encode_message(message: &str, carrier: &str, password: Option<&str>) -> Result<String, String> {
+pub fn encode_message(message: &str, password: Option<&str>) -> Result<String, String> {
     // Encrypt/encode the message
     let bytes = if let Some(password) = password {
         // Generate a random salt and IV
@@ -108,9 +107,8 @@ pub fn encode_message(message: &str, carrier: &str, password: Option<&str>) -> R
     // Encode binary into zero-width characters
     let zero_width = encode_binary(&binary)?;
 
-    // Insert the encoded message into the carrier text
-    let result = format!("{}{}{}{}", carrier, START_MARKER, zero_width, END_MARKER);
-
+    // Just return the payload with markers
+    let result = format!("{}{}{}", START_MARKER, zero_width, END_MARKER);
     Ok(result)
 }
 
@@ -159,7 +157,7 @@ pub fn encode_and_insert(
     password: Option<&str>,
     position: Option<usize>,
 ) -> Result<String, String> {
-    let payload = encode_message(message, carrier, password)?;
+    let payload = encode_message(message, password)?;
     insert_payload(carrier, &payload, position)
 }
 
