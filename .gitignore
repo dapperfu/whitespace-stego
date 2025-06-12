@@ -210,3 +210,17 @@ cython_debug/
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
 .cursorindexingignore
+
+# C backend build artifacts
+c_backend/bin/
+c_backend/obj/
+c_backend/report.html
+
+# Rust backend build artifacts
+rust_backend/target/
+
+# Rust package files (optional, if not tracking)
+Cargo.lock
+Cargo.toml
+rust_backend/Cargo.lock
+rust_backend/Cargo.toml
