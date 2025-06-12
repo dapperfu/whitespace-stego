@@ -15,19 +15,19 @@ pub use decoder::decode_and_remove as decode;
 /// Encode a binary string using zero-width characters.
 #[pyfunction]
 fn encode_binary_rs(binary_str: &str) -> PyResult<String> {
-    encode_binary(binary_str).map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e))
+    encode_binary(binary_str).map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)
 }
 
 /// Encode a message into a steganographic payload.
 #[pyfunction]
 fn encode_message_rs(message: &str, carrier: &str, password: Option<&str>) -> PyResult<String> {
-    encode_message(message, carrier, password).map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e))
+    encode_message(message, carrier, password).map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)
 }
 
 /// Insert a steganographic payload into carrier text.
 #[pyfunction]
 fn insert_payload_rs(carrier: &str, payload: &str, position: Option<usize>) -> PyResult<String> {
-    insert_payload(carrier, payload, position).map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e))
+    insert_payload(carrier, payload, position).map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)
 }
 
 /// Encode a message and insert it into carrier text.
@@ -39,25 +39,25 @@ fn encode_and_insert_rs(
     position: Option<usize>,
 ) -> PyResult<String> {
     encode_and_insert(message, carrier, password, position)
-        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e))
+        .map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)
 }
 
 /// Decode zero-width characters back to binary string.
 #[pyfunction]
 fn decode_binary_rs(encoded: &str) -> PyResult<String> {
-    decode_binary(encoded).map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e))
+    decode_binary(encoded).map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)
 }
 
 /// Decode a hidden message from text.
 #[pyfunction]
 fn decode_message_rs(text: &str, password: Option<&str>) -> PyResult<String> {
-    decode_message(text, password).map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e))
+    decode_message(text, password).map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)
 }
 
 /// Decode a hidden message and remove it from the carrier text.
 #[pyfunction]
 fn decode_and_remove_rs(text: &str, password: Option<&str>) -> PyResult<(String, String)> {
-    decode_and_remove(text, password).map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e))
+    decode_and_remove(text, password).map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)
 }
 
 /// A Python module implemented in Rust.
