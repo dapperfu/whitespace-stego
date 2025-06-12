@@ -14,46 +14,71 @@ CARRIER_FILE="carrier.txt"
 ENCODED_FILE="encoded.txt"
 DECODED_FILE="decoded.txt"
 
-# Clean up any existing files
-rm -f "$MESSAGE_FILE" "$CARRIER_FILE" "$ENCODED_FILE" "$DECODED_FILE"
+# Function to clean up existing files
+cleanup() {
+    rm -f "$MESSAGE_FILE" "$CARRIER_FILE" "$ENCODED_FILE" "$DECODED_FILE"
+}
 
-# Create message and carrier files
-echo "$MESSAGE" > "$MESSAGE_FILE"
-echo "$CARRIER" > "$CARRIER_FILE"
+# Function to create message and carrier files
+create_files() {
+    echo "$MESSAGE" > "$MESSAGE_FILE"
+    echo "$CARRIER" > "$CARRIER_FILE"
+    echo "Created message file: $MESSAGE_FILE"
+    echo "Created carrier file: $CARRIER_FILE"
+}
 
-echo "Created message file: $MESSAGE_FILE"
-echo "Created carrier file: $CARRIER_FILE"
+# Function to encode a message into a carrier
+encode_message() {
+    local message_file="$1"
+    local carrier_file="$2"
+    local output_file="$3"
+    echo "Encoding message from $message_file into carrier $carrier_file and output to $output_file..."
+    venv/bin/whitespace-stego encode -m "$message_file" -c "$carrier_file" -o "$output_file"
+    if [ ! -f "$output_file" ]; then
+        echo "Error: Encoded file was not created."
+        exit 1
+    fi
+    echo "Encoded file created: $output_file"
+}
+
+# Function to decode a message from an encoded file
+decode_message() {
+    local input_file="$1"
+    local output_file="$2"
+    echo "Decoding message from $input_file and output to $output_file..."
+    venv/bin/whitespace-stego decode -i "$input_file" -o "$output_file"
+    if [ ! -f "$output_file" ]; then
+        echo "Error: Decoded file was not created."
+        exit 1
+    fi
+    echo "Decoded file created: $output_file"
+}
+
+# Function to verify the decoded message matches the original
+verify_message() {
+    local original_message="$1"
+    local decoded_file="$2"
+    local decoded_message=$(cat "$decoded_file")
+    if [ "$decoded_message" = "$original_message" ]; then
+        echo "Test passed: Decoded message matches the original message."
+    else
+        echo "Test failed: Decoded message does not match the original message."
+        echo "Original message: $original_message"
+        echo "Decoded message: $decoded_message"
+        exit 1
+    fi
+}
+
+# Main script execution
+cleanup
+create_files
 
 # Test 1: Encode message from file into carrier file and output to file
-echo "Test 1: Encoding message from file into carrier file and output to file..."
-venv/bin/whitespace-stego encode -m "$MESSAGE_FILE" -c "$CARRIER_FILE" -o "$ENCODED_FILE"
-
-if [ ! -f "$ENCODED_FILE" ]; then
-    echo "Error: Encoded file was not created."
-    exit 1
-fi
-echo "Encoded file created: $ENCODED_FILE"
+encode_message "$MESSAGE_FILE" "$CARRIER_FILE" "$ENCODED_FILE"
 
 # Test 2: Decode message from encoded file and output to file
-echo "Test 2: Decoding message from encoded file and output to file..."
-venv/bin/whitespace-stego decode -i "$ENCODED_FILE" -o "$DECODED_FILE"
-
-if [ ! -f "$DECODED_FILE" ]; then
-    echo "Error: Decoded file was not created."
-    exit 1
-fi
-echo "Decoded file created: $DECODED_FILE"
-
-# Verify the decoded message matches the original
-DECODED_MESSAGE=$(cat "$DECODED_FILE")
-if [ "$DECODED_MESSAGE" = "$MESSAGE" ]; then
-    echo "Test 2 passed: Decoded message matches the original message."
-else
-    echo "Test 2 failed: Decoded message does not match the original message."
-    echo "Original message: $MESSAGE"
-    echo "Decoded message: $DECODED_MESSAGE"
-    exit 1
-fi
+decode_message "$ENCODED_FILE" "$DECODED_FILE"
+verify_message "$MESSAGE" "$DECODED_FILE"
 
 # Test 3: Encode message from file into plain text carrier and output to stdout
 echo "Test 3: Encoding message from file into plain text carrier and output to stdout..."
