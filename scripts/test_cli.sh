@@ -2,7 +2,7 @@
 
 # test_cli.sh
 # This script tests the command line functionality of whitespace-stego.
-# It encodes a message into a carrier file and then decodes it, verifying that the decoded message matches the original.
+# It demonstrates both file input and plain text input, and outputs to stdout.
 
 set -e
 
@@ -24,8 +24,8 @@ echo "$CARRIER" > "$CARRIER_FILE"
 echo "Created message file: $MESSAGE_FILE"
 echo "Created carrier file: $CARRIER_FILE"
 
-# Encode the message into the carrier
-echo "Encoding message into carrier..."
+# Test 1: Encode message from file into carrier file and output to file
+echo "Test 1: Encoding message from file into carrier file and output to file..."
 venv/bin/whitespace-stego encode -m "$MESSAGE_FILE" -c "$CARRIER_FILE" -o "$ENCODED_FILE"
 
 if [ ! -f "$ENCODED_FILE" ]; then
@@ -34,8 +34,8 @@ if [ ! -f "$ENCODED_FILE" ]; then
 fi
 echo "Encoded file created: $ENCODED_FILE"
 
-# Decode the message from the encoded file
-echo "Decoding message from encoded file..."
+# Test 2: Decode message from encoded file and output to file
+echo "Test 2: Decoding message from encoded file and output to file..."
 venv/bin/whitespace-stego decode -i "$ENCODED_FILE" -o "$DECODED_FILE"
 
 if [ ! -f "$DECODED_FILE" ]; then
@@ -47,11 +47,39 @@ echo "Decoded file created: $DECODED_FILE"
 # Verify the decoded message matches the original
 DECODED_MESSAGE=$(cat "$DECODED_FILE")
 if [ "$DECODED_MESSAGE" = "$MESSAGE" ]; then
-    echo "Test passed: Decoded message matches the original message."
+    echo "Test 2 passed: Decoded message matches the original message."
 else
-    echo "Test failed: Decoded message does not match the original message."
+    echo "Test 2 failed: Decoded message does not match the original message."
     echo "Original message: $MESSAGE"
     echo "Decoded message: $DECODED_MESSAGE"
+    exit 1
+fi
+
+# Test 3: Encode message from file into plain text carrier and output to stdout
+echo "Test 3: Encoding message from file into plain text carrier and output to stdout..."
+ENCODED_STDOUT=$(venv/bin/whitespace-stego encode -m "$MESSAGE_FILE" -c "Plain text carrier" -o -)
+if [ -z "$ENCODED_STDOUT" ]; then
+    echo "Error: No output to stdout."
+    exit 1
+fi
+echo "Encoded output to stdout: $ENCODED_STDOUT"
+
+# Test 4: Decode message from stdin (using the output from Test 3)
+echo "Test 4: Decoding message from stdin..."
+DECODED_STDOUT=$(echo "$ENCODED_STDOUT" | venv/bin/whitespace-stego decode -i - -o -)
+if [ -z "$DECODED_STDOUT" ]; then
+    echo "Error: No output to stdout."
+    exit 1
+fi
+echo "Decoded output to stdout: $DECODED_STDOUT"
+
+# Verify the decoded message matches the original
+if [ "$DECODED_STDOUT" = "$MESSAGE" ]; then
+    echo "Test 4 passed: Decoded message matches the original message."
+else
+    echo "Test 4 failed: Decoded message does not match the original message."
+    echo "Original message: $MESSAGE"
+    echo "Decoded message: $DECODED_STDOUT"
     exit 1
 fi
 
