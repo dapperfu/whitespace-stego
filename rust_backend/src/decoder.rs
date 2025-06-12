@@ -123,8 +123,10 @@ pub fn decode_message(text: &str, password: Option<&str>) -> Result<String, Stri
         let plaintext = cipher.decrypt(nonce, ciphertext).map_err(|e| e.to_string())?;
         Ok(String::from_utf8(plaintext).map_err(|e| e.to_string())?)
     } else {
-        // Just decode bytes to string
-        Ok(String::from_utf8(bytes).map_err(|e| e.to_string())?)
+        // Treat bytes as base64 string, decode, then decode as UTF-8
+        let base64_str = String::from_utf8(bytes).map_err(|e| e.to_string())?;
+        let decoded = BASE64.decode(base64_str).map_err(|e| e.to_string())?;
+        Ok(String::from_utf8(decoded).map_err(|e| e.to_string())?)
     }
 }
 
