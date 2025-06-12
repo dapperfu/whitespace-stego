@@ -31,7 +31,14 @@ whitespace-stego = "whitespace_stego.cli:main"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
-addopts = "-v --cov=whitespace_stego"
+addopts = "--cov=whitespace_stego --cov-report=term-missing"
 
 [tool.coverage.run]
-source = ["whitespace_stego"] 
+source = ["whitespace_stego"]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-benchmark>=4.0.0"
+] 

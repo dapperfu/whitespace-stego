@@ -3,28 +3,56 @@
 import pytest
 from whitespace_stego import encode, decode
 
-@pytest.mark.parametrize("message,password,carrier", [
-    # ASCII tests
-    ("hello", "secret", ""),              # password with empty carrier
-    ("hello", "", ""),                    # empty password
-    ("hello", None, ""),                  # None password
-    ("hello", "secret", "A"),             # one-character carrier
-    ("hello", "", "A"),                   # empty password, one-char carrier
-    ("hello", None, "A"),                 # None password, one-char carrier
-    ("hello", "secret", "AB"),            # two-char carrier
-    ("hello", "", "AB"),                  # empty password, two-char carrier
-    ("hello", None, "AB"),                # None password, two-char carrier
-    ("hello", "secret", "The quick brown fox jumps"), # long carrier
-    ("hello", "", "The quick brown fox jumps"),
-    ("hello", None, "The quick brown fox jumps"),
+# Test data sets
+MESSAGES = [
+    "hello",                    # ASCII
+    "こんにちは",               # Japanese
+    "👋🌍",                     # Emoji
+    "💡⚡🚀",                   # Multiple emoji
+    "Hello, 世界!",            # Mixed ASCII and Unicode
+    "Test\nwith\nnewlines",    # Special characters
+    "",                         # Empty string
+    "A" * 100,                 # Long string
+]
 
-    # Unicode and emoji tests
-    ("こんにちは", "秘密", "🌸"),                # Japanese with emoji carrier
-    ("👋🌍", "", "Hello World"),             # emoji message with ASCII carrier
-    ("💡⚡🚀", None, "Start here:"),         # emoji message with sentence carrier
-])
-def test_stego_encode_decode(message, password, carrier):
-    """Test encoding and decoding with various inputs."""
+PASSWORDS = [
+    "secret",                   # ASCII password
+    "秘密",                     # Unicode password
+    "",                         # Empty password
+    None,                       # No password
+    "A" * 32,                  # Long password
+]
+
+CARRIERS = [
+    "",                         # Empty carrier
+    "A",                        # Single character
+    "AB",                       # Two characters
+    "The quick brown fox jumps over the lazy dog",  # Long ASCII
+    "🌸",                       # Single emoji
+    "Hello, 世界!",            # Mixed ASCII and Unicode
+    "A" * 100,                 # Long carrier
+]
+
+@pytest.mark.parametrize("message", MESSAGES)
+@pytest.mark.parametrize("password", PASSWORDS)
+@pytest.mark.parametrize("carrier", CARRIERS)
+def test_stego_encode_decode(message: str, password: str | None, carrier: str) -> None:
+    """Test encoding and decoding with various inputs.
+    
+    This test creates a full matrix of all possible combinations of:
+    - Different message types (ASCII, Unicode, emoji, etc.)
+    - Different password types (ASCII, Unicode, empty, None)
+    - Different carrier types (empty, short, long, mixed)
+    
+    Parameters
+    ----------
+    message : str
+        The message to encode/decode
+    password : str | None
+        Optional password for encryption
+    carrier : str
+        The carrier text to hide the message in
+    """
     encoded = encode(message, carrier=carrier, password=password)
     decoded_message, _ = decode(encoded, password=password)
     assert decoded_message == message 
