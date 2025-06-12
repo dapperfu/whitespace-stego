@@ -8,6 +8,8 @@ echo "Test 1:"
 echo "Message: Hello, World!"
 echo "Carrier: This is a test message."
 echo "Encoding with C..."
+encoded="PLACEHOLDER_ENCODED_C_RUST"
+echo "Encoded: \\`$encoded\\`"
 # Encode using C
 echo "Decoding with Rust..."
 # Decode using Rust
@@ -19,6 +21,8 @@ echo "Test 2:"
 echo "Message: Hello, 世界!"
 echo "Carrier: This is a 测试 message."
 echo "Encoding with C..."
+encoded="PLACEHOLDER_ENCODED_C_RUST"
+echo "Encoded: \\`$encoded\\`"
 # Encode using C
 echo "Decoding with Rust..."
 # Decode using Rust
@@ -30,6 +34,8 @@ echo "Test 3:"
 echo "Message: Hello 👋 World 🌍!"
 echo "Carrier: This is a test 🎯 message."
 echo "Encoding with C..."
+encoded="PLACEHOLDER_ENCODED_C_RUST"
+echo "Encoded: \\`$encoded\\`"
 # Encode using C
 echo "Decoding with Rust..."
 # Decode using Rust
@@ -42,6 +48,8 @@ echo "Message: Secret message with password"
 echo "Carrier: Public text for secret message"
 echo "Password: password123"
 echo "Encoding with C..."
+encoded="PLACEHOLDER_ENCODED_C_RUST"
+echo "Encoded: \\`$encoded\\`"
 # Encode using C
 echo "Decoding with Rust..."
 # Decode using Rust

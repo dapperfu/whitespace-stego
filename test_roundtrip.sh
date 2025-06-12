@@ -53,6 +53,8 @@ print(encode('$message', '$carrier'${password:+, '$password'}))
         return 1
     fi
 
+    echo "Encoded: \`$encoded\`"
+
     # Decode the message
     echo "Decoding..."
     decoded=$(python3 -c "
