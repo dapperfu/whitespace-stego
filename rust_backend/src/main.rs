@@ -67,14 +67,16 @@ fn main() -> Result<()> {
                 String::new()
             };
 
-            let encoded = encode(&message, &carrier_text, password.as_deref())?;
+            let encoded = encode(&message, &carrier_text, password.as_deref(), None)
+                .map_err(|e| anyhow::anyhow!("{}", e))?;
             fs::write(&output, encoded)
                 .with_context(|| format!("Failed to write output file: {:?}", output))?;
         }
         Commands::Decode { input, password } => {
             let encoded = fs::read_to_string(&input)
                 .with_context(|| format!("Failed to read input file: {:?}", input))?;
-            let (decoded, _) = decode(&encoded, password.as_deref())?;
+            let (decoded, _) = decode(&encoded, password.as_deref())
+                .map_err(|e| anyhow::anyhow!("{}", e))?;
             println!("{}", decoded);
         }
     }
