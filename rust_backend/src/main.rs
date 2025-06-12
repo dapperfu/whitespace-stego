@@ -2,7 +2,8 @@ use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
 use std::fs;
 use std::path::PathBuf;
-use whitespace_stego_rs::{decode, encode};
+use whitespace_stego_rs::encoder::encode;
+use whitespace_stego_rs::decoder::decode;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
