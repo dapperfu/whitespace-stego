@@ -14,7 +14,9 @@ use pbkdf2::{
 const SALT_LENGTH: usize = 16;
 const IV_LENGTH: usize = 12;
 const TAG_LENGTH: usize = 16;
+#[allow(dead_code)]
 const KEY_LENGTH: usize = 32; // 256 bits
+#[allow(dead_code)]
 const ITERATIONS: u32 = 100_000;
 
 /// Derive an encryption key from a password using PBKDF2.
@@ -113,7 +115,7 @@ pub fn decode_message(text: &str, password: Option<&str>) -> Result<String, Stri
 
         let salt = &encrypted_data[..SALT_LENGTH];
         let iv = &encrypted_data[SALT_LENGTH..SALT_LENGTH + IV_LENGTH];
-        let tag = &encrypted_data[SALT_LENGTH + IV_LENGTH..SALT_LENGTH + IV_LENGTH + TAG_LENGTH];
+        let _tag = &encrypted_data[SALT_LENGTH + IV_LENGTH..SALT_LENGTH + IV_LENGTH + TAG_LENGTH];
         let ciphertext = &encrypted_data[SALT_LENGTH + IV_LENGTH + TAG_LENGTH..];
 
         // Derive key using the stored salt

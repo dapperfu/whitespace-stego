@@ -14,8 +14,11 @@ use rand::{Rng, rngs::OsRng};
 
 const SALT_LENGTH: usize = 16;
 const IV_LENGTH: usize = 12;
+#[allow(dead_code)]
 const TAG_LENGTH: usize = 16;
+#[allow(dead_code)]
 const KEY_LENGTH: usize = 32; // 256 bits
+#[allow(dead_code)]
 const ITERATIONS: u32 = 100_000;
 
 /// Derive an encryption key from a password using PBKDF2.

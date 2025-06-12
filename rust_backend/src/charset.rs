@@ -48,6 +48,7 @@ pub fn is_valid_carrier(text: &str) -> bool {
 /// # Returns
 ///
 /// * `(&str, &str)` - A tuple containing (start_marker, end_marker)
+#[allow(dead_code)]
 pub fn get_control_chars() -> (&'static str, &'static str) {
     (START_MARKER, END_MARKER)
 }
@@ -57,6 +58,7 @@ pub fn get_control_chars() -> (&'static str, &'static str) {
 /// # Returns
 ///
 /// * `(&str, &str)` - A tuple containing (zero_width_space, zero_width_non_joiner)
+#[allow(dead_code)]
 pub fn get_binary_chars() -> (&'static str, &'static str) {
     (ZWSP, ZWNJ)
 } 
