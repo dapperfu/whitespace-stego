@@ -4,13 +4,10 @@ use aes_gcm::{
     aead::{Aead, KeyInit, AeadInPlace},
     Aes256Gcm, Key, Nonce,
 };
-use pbkdf2::{
-    password_hash::{
-        PasswordHasher, SaltString,
-    },
-    Pbkdf2,
-};
+use pbkdf2::Pbkdf2;
+use pbkdf2::password_hash::PasswordHasher;
 use rand::{Rng, rngs::OsRng};
+use std::io::{self, Write};
 
 const SALT_LENGTH: usize = 16;
 const IV_LENGTH: usize = 12;
@@ -32,7 +29,7 @@ const ITERATIONS: u32 = 100_000;
 ///
 /// * `Vec<u8>` - The derived key
 fn derive_key(password: &str, salt: &[u8]) -> Vec<u8> {
-    let salt_str = SaltString::encode_b64(salt).unwrap();
+    let salt_str = BASE64.encode(salt);
     let password_hash = Pbkdf2.hash_password(
         password.as_bytes(),
         &salt_str,
