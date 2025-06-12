@@ -66,5 +66,5 @@ source = ["whitespace_stego"]
 
 [tool.maturin]
 python-source = "."
-module-name = "whitespace_stego.rust_backend"
+module-name = "whitespace_stego_rs"
 bindings = "pyo3" 
