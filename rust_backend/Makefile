@@ -1,4 +1,7 @@
-.PHONY: build-release
+.PHONY: build-release clean
 
 build-release:
 	cargo build --release 
+
+clean:
+	cargo clean 
