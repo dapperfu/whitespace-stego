@@ -1,5 +1,7 @@
+"""Tests for the whitespace steganography package."""
+
 import pytest
-from whitespace_stego import encode, decode  # Assuming encode/decode functions are in whitespace_stego module
+from whitespace_stego import encode, decode
 
 @pytest.mark.parametrize("message,password,carrier", [
     # ASCII tests
@@ -22,6 +24,7 @@ from whitespace_stego import encode, decode  # Assuming encode/decode functions 
     ("💡⚡🚀", None, "Start here:"),         # emoji message with sentence carrier
 ])
 def test_stego_encode_decode(message, password, carrier):
-    encoded = encode(message, password=password, carrier=carrier)
-    decoded = decode(encoded, password=password)
-    assert decoded == message
+    """Test encoding and decoding with various inputs."""
+    encoded = encode(message, carrier=carrier, password=password)
+    decoded_message, _ = decode(encoded, password=password)
+    assert decoded_message == message 

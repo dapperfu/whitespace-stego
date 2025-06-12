@@ -1,8 +1,8 @@
 """Tests for the core encoding and decoding functionality."""
 
 import pytest
-from python.encode import encode_and_insert
-from python.decode import decode_and_remove
+from whitespace_stego.encode import encode_and_insert
+from whitespace_stego.decode import decode_and_remove
 
 def test_basic_encode_decode() -> None:
     """Test basic encoding and decoding without password."""

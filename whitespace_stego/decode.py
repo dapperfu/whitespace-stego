@@ -6,7 +6,7 @@ hidden in text using zero-width Unicode characters.
 
 import base64
 from typing import Optional, Tuple
-from common.charset import (
+from .common.charset import (
     START_MARKER, END_MARKER, CHAR_TO_BINARY,
     is_valid_carrier
 )

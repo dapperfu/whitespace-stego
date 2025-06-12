@@ -6,7 +6,7 @@ Unicode characters and inserting them into carrier text.
 
 import base64
 from typing import Optional, Tuple
-from common.charset import (
+from .common.charset import (
     START_MARKER, END_MARKER, BINARY_TO_CHAR,
     is_valid_carrier
 )
