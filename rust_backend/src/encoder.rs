@@ -5,7 +5,7 @@ use aes_gcm::{
     Aes256Gcm, Key, Nonce,
 };
 use pbkdf2::Pbkdf2;
-use pbkdf2::password_hash::PasswordHasher;
+use pbkdf2::password_hash::{PasswordHasher, SaltString};
 use rand::{Rng, rngs::OsRng};
 use std::io::{self, Write};
 
@@ -30,9 +30,10 @@ const ITERATIONS: u32 = 100_000;
 /// * `Vec<u8>` - The derived key
 fn derive_key(password: &str, salt: &[u8]) -> Vec<u8> {
     let salt_str = BASE64.encode(salt);
+    let salt = SaltString::new(&salt_str).expect("Invalid salt");
     let password_hash = Pbkdf2.hash_password(
         password.as_bytes(),
-        &salt_str,
+        &salt,
     ).unwrap();
 
     password_hash.hash.unwrap().as_bytes().to_vec()
