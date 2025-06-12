@@ -13,9 +13,13 @@ from whitespace_stego.decode import (
 )
 from whitespace_stego.common.charset import START_MARKER, END_MARKER, ZWSP, ZWNJ
 from whitespace_stego.encode import encode_message
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 def test_extract_payload() -> None:
     """Test payload extraction."""
+    logging.debug(f"Running {__name__}.test_extract_payload")
     # Valid payload
     text = f"Hello{START_MARKER}{ZWSP}{ZWNJ}{END_MARKER}world"
     payload, start_pos, end_pos = extract_payload(text)
@@ -33,6 +37,7 @@ def test_extract_payload() -> None:
 
 def test_decode_binary() -> None:
     """Test binary decoding."""
+    logging.debug(f"Running {__name__}.test_decode_binary")
     # Valid binary
     encoded = f"{ZWSP}{ZWNJ}{ZWSP}"
     binary = decode_binary(encoded)
@@ -44,6 +49,7 @@ def test_decode_binary() -> None:
 
 def test_binary_to_base64() -> None:
     """Test binary to base64 conversion."""
+    logging.debug(f"Running {__name__}.test_binary_to_base64")
     # Valid binary (8 bits = 1 byte)
     binary = "01000001"  # ASCII 'A'
     base64_str = binary_to_base64(binary)
@@ -55,6 +61,7 @@ def test_binary_to_base64() -> None:
 
 def test_decode_message() -> None:
     """Test message decoding."""
+    logging.debug(f"Running {__name__}.test_decode_message")
     # Test with password
     message = "Hello, 世界! 👋"
     password = "secret"
@@ -73,6 +80,7 @@ def test_decode_message() -> None:
 
 def test_decode_and_remove() -> None:
     """Test decode and remove functionality."""
+    logging.debug(f"Running {__name__}.test_decode_and_remove")
     carrier = "Hello world"
     message = "Secret message"
     password = "secret"

@@ -9,9 +9,13 @@ from whitespace_stego.crypto import (
     encrypt_message,
     decrypt_message
 )
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 def test_derive_key() -> None:
     """Test key derivation."""
+    logging.debug(f"Running {__name__}.test_derive_key")
     # Test with new salt
     key1, salt1 = derive_key("password")
     assert len(key1) == 32  # 256 bits
@@ -28,6 +32,7 @@ def test_derive_key() -> None:
 
 def test_encrypt_message() -> None:
     """Test message encryption."""
+    logging.debug(f"Running {__name__}.test_encrypt_message")
     message = "Hello, 世界! 👋"
     
     # Test without password (base64 only)
@@ -48,6 +53,7 @@ def test_encrypt_message() -> None:
 
 def test_decrypt_message() -> None:
     """Test message decryption."""
+    logging.debug(f"Running {__name__}.test_decrypt_message")
     message = "Hello, 世界! 👋"
     
     # Test without password (base64 only)

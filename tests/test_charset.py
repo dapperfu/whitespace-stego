@@ -13,9 +13,13 @@ from whitespace_stego.common.charset import (
     get_control_chars,
     get_binary_chars
 )
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 def test_is_valid_carrier() -> None:
     """Test carrier text validation."""
+    logging.debug(f"Running {__name__}.test_is_valid_carrier")
     # Valid carrier text
     assert is_valid_carrier("Hello, world!")
     assert is_valid_carrier("こんにちは")
@@ -33,12 +37,14 @@ def test_is_valid_carrier() -> None:
 
 def test_get_control_chars() -> None:
     """Test getting control characters."""
+    logging.debug(f"Running {__name__}.test_get_control_chars")
     start, end = get_control_chars()
     assert start == START_MARKER
     assert end == END_MARKER
 
 def test_get_binary_chars() -> None:
     """Test getting binary encoding characters."""
+    logging.debug(f"Running {__name__}.test_get_binary_chars")
     zwsp, zwnj = get_binary_chars()
     assert zwsp == ZWSP
     assert zwnj == ZWNJ 

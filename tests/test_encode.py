@@ -11,9 +11,13 @@ from whitespace_stego.encode import (
     encode_and_insert
 )
 from whitespace_stego.common.charset import START_MARKER, END_MARKER, ZWSP, ZWNJ
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 def test_encode_binary() -> None:
     """Test binary encoding."""
+    logging.debug(f"Running {__name__}.test_encode_binary")
     # Test encoding
     binary = "0101"
     encoded = encode_binary(binary)
@@ -24,6 +28,7 @@ def test_encode_binary() -> None:
 
 def test_encode_message() -> None:
     """Test message encoding."""
+    logging.debug(f"Running {__name__}.test_encode_message")
     # Test with password
     message = "Hello, 世界! 👋"
     encoded = encode_message(message, "secret")
@@ -39,6 +44,7 @@ def test_encode_message() -> None:
 
 def test_insert_payload() -> None:
     """Test payload insertion."""
+    logging.debug(f"Running {__name__}.test_insert_payload")
     carrier = "Hello world"
     payload = f"{START_MARKER}{ZWSP}{ZWNJ}{END_MARKER}"
     
@@ -62,6 +68,7 @@ def test_insert_payload() -> None:
 
 def test_encode_and_insert() -> None:
     """Test encode and insert functionality."""
+    logging.debug(f"Running {__name__}.test_encode_and_insert")
     message = "Hello, 世界! 👋"
     carrier = "The quick brown fox"
     

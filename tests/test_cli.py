@@ -16,6 +16,9 @@ from whitespace_stego.cli import (
     decode_command,
     main
 )
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 @pytest.fixture
 def temp_dir(tmp_path: Path) -> Generator[Path, None, None]:
@@ -71,6 +74,7 @@ def carrier_file(temp_dir: Path) -> Path:
 
 def test_read_file_success(temp_dir: Path) -> None:
     """Test successful file reading."""
+    logging.debug(f"Running {__name__}.test_read_file_success")
     file_path = temp_dir / "test.txt"
     content = "Test content"
     file_path.write_text(content)
@@ -78,6 +82,7 @@ def test_read_file_success(temp_dir: Path) -> None:
 
 def test_read_file_not_found(temp_dir: Path) -> None:
     """Test file reading with non-existent file."""
+    logging.debug(f"Running {__name__}.test_read_file_not_found")
     file_path = temp_dir / "nonexistent.txt"
     with pytest.raises(SystemExit) as exc_info:
         read_file(file_path)
@@ -85,6 +90,7 @@ def test_read_file_not_found(temp_dir: Path) -> None:
 
 def test_write_file(temp_dir: Path) -> None:
     """Test file writing."""
+    logging.debug(f"Running {__name__}.test_write_file")
     file_path = temp_dir / "output.txt"
     content = "Test output"
     write_file(file_path, content)
@@ -96,6 +102,7 @@ def test_encode_command_with_files(
     temp_dir: Path
 ) -> None:
     """Test encode command with file inputs."""
+    logging.debug(f"Running {__name__}.test_encode_command_with_files")
     output_file = temp_dir / "encoded.txt"
     args = type("Args", (), {
         "message": message_file,
@@ -115,6 +122,7 @@ def test_encode_command_with_stdin(
     temp_dir: Path
 ) -> None:
     """Test encode command with stdin input."""
+    logging.debug(f"Running {__name__}.test_encode_command_with_stdin")
     output_file = temp_dir / "encoded.txt"
     args = type("Args", (), {
         "message": None,
@@ -138,6 +146,7 @@ def test_encode_command_with_stdout(
     carrier_file: Path
 ) -> None:
     """Test encode command with stdout output."""
+    logging.debug(f"Running {__name__}.test_encode_command_with_stdout")
     args = type("Args", (), {
         "message": message_file,
         "carrier": carrier_file,
@@ -160,6 +169,7 @@ def test_decode_command_with_files(
     temp_dir: Path
 ) -> None:
     """Test decode command with file inputs."""
+    logging.debug(f"Running {__name__}.test_decode_command_with_files")
     # First encode a message
     encoded_file = temp_dir / "encoded.txt"
     encode_args = type("Args", (), {
@@ -193,6 +203,7 @@ def test_decode_command_with_stdout(
     temp_dir: Path
 ) -> None:
     """Test decode command with stdout output."""
+    logging.debug(f"Running {__name__}.test_decode_command_with_stdout")
     # First encode a message
     encoded_file = temp_dir / "encoded.txt"
     encode_args = type("Args", (), {
@@ -227,6 +238,7 @@ def test_encode_command_invalid_position(
     carrier_file: Path
 ) -> None:
     """Test encode command with invalid position."""
+    logging.debug(f"Running {__name__}.test_encode_command_invalid_position")
     args = type("Args", (), {
         "message": message_file,
         "carrier": carrier_file,
@@ -245,6 +257,7 @@ def test_decode_command_invalid_password(
     temp_dir: Path
 ) -> None:
     """Test decode command with invalid password."""
+    logging.debug(f"Running {__name__}.test_decode_command_invalid_password")
     # First encode a message
     encoded_file = temp_dir / "encoded.txt"
     encode_args = type("Args", (), {
@@ -274,6 +287,7 @@ def test_main_encode_command(
     temp_dir: Path
 ) -> None:
     """Test main function with encode command."""
+    logging.debug(f"Running {__name__}.test_main_encode_command")
     output_file = temp_dir / "encoded.txt"
     sys.argv = [
         "whitespace-stego",
@@ -294,6 +308,7 @@ def test_main_decode_command(
     temp_dir: Path
 ) -> None:
     """Test main function with decode command."""
+    logging.debug(f"Running {__name__}.test_main_decode_command")
     # First encode a message
     encoded_file = temp_dir / "encoded.txt"
     encode_args = type("Args", (), {

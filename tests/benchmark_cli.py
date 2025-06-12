@@ -1,5 +1,8 @@
 import pytest
 from whitespace_stego import cli
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 def test_main_encode_benchmark(benchmark, tmp_path):
     message_file = tmp_path / "message.txt"
@@ -15,6 +18,7 @@ def test_main_encode_benchmark(benchmark, tmp_path):
         "-c", str(carrier_file),
         "-o", str(output_file)
     ]
+    logging.debug(f"Running {__name__}.test_main_encode_benchmark")
     benchmark(lambda: cli.main(args))
     assert output_file.exists()
 
@@ -31,5 +35,6 @@ def test_main_decode_benchmark(benchmark, tmp_path):
         "-c", str(encoded_file),
         "-o", str(output_file)
     ]
+    logging.debug(f"Running {__name__}.test_main_decode_benchmark")
     benchmark(lambda: cli.main(args))
     assert output_file.exists() 

@@ -2,6 +2,9 @@
 
 import pytest
 from whitespace_stego import encode, decode
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 # Test data sets
 MESSAGES = [
@@ -53,6 +56,7 @@ def test_stego_encode_decode(message: str, password: str | None, carrier: str) -
     carrier : str
         The carrier text to hide the message in
     """
+    logging.debug(f"Testing with message={message!r}, carrier={carrier!r}, password={password!r}")
     encoded = encode(message, carrier=carrier, password=password)
     decoded_message, _ = decode(encoded, password=password)
     assert decoded_message == message 
