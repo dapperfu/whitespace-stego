@@ -10,8 +10,8 @@
 #include <string.h>
 
 // Start and stop markers for encoded messages
-static const char START_MARKER[] = "\u200B";  // Zero-width space
-static const char STOP_MARKER[] = "\uFEFF";   // Zero-width no-break space
+static const char START_MARKER[] = "\u2060";  // Word Joiner
+static const char STOP_MARKER[] = "\u2061";   // Function Application
 
 size_t calculate_decoded_size(size_t input_len) {
     // Each 8 zero-width characters represent 1 byte

@@ -200,10 +200,10 @@ bool write_file(const char* filename, const uint8_t* data, size_t size) {
         return false;
     }
 
-    size_t bytes_written = fwrite(data, 1, size, file);
+    size_t written = fwrite(data, 1, size, file);
     fclose(file);
 
-    return bytes_written == size;
+    return written == size;
 }
 
 void strip_zero_width_and_control(const char* input, char* output) {

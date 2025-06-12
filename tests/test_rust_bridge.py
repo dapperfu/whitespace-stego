@@ -24,15 +24,17 @@ def test_encode_decode_binary():
 def test_encode_decode_message():
     """Test message encoding and decoding."""
     message = "Hello, World!"
-    encoded = encode_message(message)
+    carrier = "A" * 10000
+    encoded = encode_message(message, carrier)
     decoded = decode_message(encoded)
     assert decoded == message
 
 def test_encode_decode_message_with_password():
     """Test message encoding and decoding with password."""
     message = "Secret message"
+    carrier = "A" * 10000
     password = "test123"
-    encoded = encode_message(message, password)
+    encoded = encode_message(message, carrier, password)
     decoded = decode_message(encoded, password)
     assert decoded == message
 

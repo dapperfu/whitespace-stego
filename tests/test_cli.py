@@ -105,10 +105,12 @@ def test_encode_command_with_files(
     logging.debug(f"Running {__name__}.test_encode_command_with_files")
     output_file = temp_dir / "encoded.txt"
     args = type("Args", (), {
-        "message": message_file,
-        "carrier": carrier_file,
+        "message": None,
+        "message_file": message_file,
+        "carrier": None,
+        "carrier_file": carrier_file,
         "password": "secret",
-        "output": output_file,
+        "output_file": output_file,
         "position": None
     })
     
@@ -126,9 +128,11 @@ def test_encode_command_with_stdin(
     output_file = temp_dir / "encoded.txt"
     args = type("Args", (), {
         "message": None,
-        "carrier": carrier_file,
+        "message_file": None,
+        "carrier": None,
+        "carrier_file": carrier_file,
         "password": "secret",
-        "output": output_file,
+        "output_file": output_file,
         "position": None
     })
     
@@ -148,10 +152,12 @@ def test_encode_command_with_stdout(
     """Test encode command with stdout output."""
     logging.debug(f"Running {__name__}.test_encode_command_with_stdout")
     args = type("Args", (), {
-        "message": message_file,
-        "carrier": carrier_file,
+        "message": None,
+        "message_file": message_file,
+        "carrier": None,
+        "carrier_file": carrier_file,
         "password": "secret",
-        "output": None,
+        "output_file": None,
         "position": None
     })
     
@@ -173,10 +179,12 @@ def test_decode_command_with_files(
     # First encode a message
     encoded_file = temp_dir / "encoded.txt"
     encode_args = type("Args", (), {
-        "message": message_file,
-        "carrier": carrier_file,
+        "message": None,
+        "message_file": message_file,
+        "carrier": None,
+        "carrier_file": carrier_file,
         "password": "secret",
-        "output": encoded_file,
+        "output_file": encoded_file,
         "position": None
     })
     encode_command(encode_args)
@@ -185,10 +193,11 @@ def test_decode_command_with_files(
     output_file = temp_dir / "decoded.txt"
     carrier_output_file = temp_dir / "carrier_output.txt"
     decode_args = type("Args", (), {
-        "input": encoded_file,
+        "input": None,
+        "input_file": encoded_file,
         "password": "secret",
-        "output": output_file,
-        "carrier_output": carrier_output_file
+        "output_file": output_file,
+        "carrier_output_file": carrier_output_file
     })
     
     decode_command(decode_args)
@@ -207,20 +216,23 @@ def test_decode_command_with_stdout(
     # First encode a message
     encoded_file = temp_dir / "encoded.txt"
     encode_args = type("Args", (), {
-        "message": message_file,
-        "carrier": carrier_file,
+        "message": None,
+        "message_file": message_file,
+        "carrier": None,
+        "carrier_file": carrier_file,
         "password": "secret",
-        "output": encoded_file,
+        "output_file": encoded_file,
         "position": None
     })
     encode_command(encode_args)
     
     # Then decode it
     decode_args = type("Args", (), {
-        "input": encoded_file,
+        "input": None,
+        "input_file": encoded_file,
         "password": "secret",
-        "output": None,
-        "carrier_output": None
+        "output_file": None,
+        "carrier_output_file": None
     })
     
     # Capture stdout
@@ -230,7 +242,6 @@ def test_decode_command_with_stdout(
     sys.stdout = sys.__stdout__
     
     output = captured_output.getvalue()
-    assert "Decoded message:" in output
     assert message_file.read_text() in output
 
 def test_encode_command_invalid_position(
@@ -240,10 +251,12 @@ def test_encode_command_invalid_position(
     """Test encode command with invalid position."""
     logging.debug(f"Running {__name__}.test_encode_command_invalid_position")
     args = type("Args", (), {
-        "message": message_file,
-        "carrier": carrier_file,
+        "message": None,
+        "message_file": message_file,
+        "carrier": None,
+        "carrier_file": carrier_file,
         "password": "secret",
-        "output": None,
+        "output_file": None,
         "position": 999  # Invalid position
     })
     
@@ -261,20 +274,23 @@ def test_decode_command_invalid_password(
     # First encode a message
     encoded_file = temp_dir / "encoded.txt"
     encode_args = type("Args", (), {
-        "message": message_file,
-        "carrier": carrier_file,
+        "message": None,
+        "message_file": message_file,
+        "carrier": None,
+        "carrier_file": carrier_file,
         "password": "secret",
-        "output": encoded_file,
+        "output_file": encoded_file,
         "position": None
     })
     encode_command(encode_args)
     
     # Then try to decode with wrong password
     decode_args = type("Args", (), {
-        "input": encoded_file,
+        "input": None,
+        "input_file": encoded_file,
         "password": "wrong",
-        "output": None,
-        "carrier_output": None
+        "output_file": None,
+        "carrier_output_file": None
     })
     
     with pytest.raises(SystemExit) as exc_info:

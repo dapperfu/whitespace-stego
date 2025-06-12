@@ -29,22 +29,93 @@ void print_usage(const char* program_name) {
     fprintf(stderr, "  -p <pass>     Optional password\n");
 }
 
-// Helper to read from file or stdin
-char* read_text(const char* filename, size_t* out_size) {
-    if (!filename || strcmp(filename, "-") == 0) {
-        // Read from stdin
-        char* buffer = malloc(MAX_BUFFER_SIZE);
-        if (!buffer) return NULL;
-        size_t len = fread(buffer, 1, MAX_BUFFER_SIZE, stdin);
-        if (out_size) *out_size = len;
-        return buffer;
-    } else {
-        uint8_t* file_data;
-        size_t file_size;
-        if (!read_file(filename, &file_data, &file_size)) return NULL;
-        if (out_size) *out_size = file_size;
-        return (char*)file_data;
+bool read_text(const char* filename, char** text, size_t* size) {
+    if (!text || !size) {
+        return false;
     }
+
+    FILE* file = filename ? fopen(filename, "r") : stdin;
+    if (!file) {
+        return false;
+    }
+
+    // Get file size
+    if (filename) {
+        fseek(file, 0, SEEK_END);
+        long file_size = ftell(file);
+        fseek(file, 0, SEEK_SET);
+
+        if (file_size < 0) {
+            if (filename) fclose(file);
+            return false;
+        }
+
+        *size = file_size;
+    } else {
+        // For stdin, we'll read in chunks
+        *size = 0;
+        size_t capacity = 1024;
+        *text = malloc(capacity);
+        if (!*text) {
+            return false;
+        }
+
+        char buffer[1024];
+        size_t bytes_read;
+        while ((bytes_read = fread(buffer, 1, sizeof(buffer), file)) > 0) {
+            if (*size + bytes_read > capacity) {
+                capacity *= 2;
+                char* new_text = realloc(*text, capacity);
+                if (!new_text) {
+                    free(*text);
+                    *text = NULL;
+                    return false;
+                }
+                *text = new_text;
+            }
+            memcpy(*text + *size, buffer, bytes_read);
+            *size += bytes_read;
+        }
+
+        if (filename) fclose(file);
+        return true;
+    }
+
+    // Allocate memory
+    *text = malloc(*size + 1);
+    if (!*text) {
+        if (filename) fclose(file);
+        return false;
+    }
+
+    // Read file
+    size_t bytes_read = fread(*text, 1, *size, file);
+    if (filename) fclose(file);
+
+    if (bytes_read != *size) {
+        free(*text);
+        *text = NULL;
+        return false;
+    }
+
+    (*text)[*size] = '\0';
+    return true;
+}
+
+bool write_text(const char* filename, const char* text, size_t size) {
+    if (!text) {
+        return false;
+    }
+
+    FILE* file = filename ? fopen(filename, "w") : stdout;
+    if (!file) {
+        return false;
+    }
+
+    size_t written = fwrite(text, 1, size, file);
+    if (filename) fclose(file);
+
+    return written == size;
 }
 
 int main(int argc, char* argv[]) {
@@ -104,8 +175,7 @@ int main(int argc, char* argv[]) {
         char* msg_buf = NULL;
         size_t msg_len = 0;
         if (message_file) {
-            msg_buf = read_text(message_file, &msg_len);
-            if (!msg_buf) {
+            if (!read_text(message_file, &msg_buf, &msg_len)) {
                 fprintf(stderr, "Error: Failed to read message file\n");
                 result = 1;
                 goto cleanup;
@@ -123,8 +193,7 @@ int main(int argc, char* argv[]) {
         char* carrier_buf = NULL;
         size_t carrier_len = 0;
         if (carrier_file) {
-            carrier_buf = read_text(carrier_file, &carrier_len);
-            if (!carrier_buf) {
+            if (!read_text(carrier_file, &carrier_buf, &carrier_len)) {
                 fprintf(stderr, "Error: Failed to read carrier file\n");
                 result = 1;
                 goto cleanup;
@@ -162,14 +231,10 @@ int main(int argc, char* argv[]) {
         }
 
         // Write output
-        if (output_file && strcmp(output_file, "-") != 0) {
-            if (!write_file(output_file, (uint8_t*)buffer, encoded_len)) {
-                fprintf(stderr, "Error: Failed to write output file\n");
-                result = 1;
-                goto cleanup;
-            }
-        } else {
-            fwrite(buffer, 1, encoded_len, stdout);
+        if (!write_text(output_file, buffer, encoded_len)) {
+            fprintf(stderr, "Error: Failed to write output\n");
+            result = 1;
+            goto cleanup;
         }
 
     } else if (strcmp(command, "decode") == 0) {
@@ -177,8 +242,7 @@ int main(int argc, char* argv[]) {
         char* input_buf = NULL;
         size_t input_len = 0;
         if (input_file) {
-            input_buf = read_text(input_file, &input_len);
-            if (!input_buf) {
+            if (!read_text(input_file, &input_buf, &input_len)) {
                 fprintf(stderr, "Error: Failed to read input file\n");
                 result = 1;
                 goto cleanup;
@@ -205,19 +269,13 @@ int main(int argc, char* argv[]) {
         }
 
         // Write output
-        if (output_file && strcmp(output_file, "-") != 0) {
-            if (!write_file(output_file, (uint8_t*)buffer, decoded_len)) {
-                fprintf(stderr, "Error: Failed to write output file\n");
-                result = 1;
-                goto cleanup;
-            }
-        } else {
-            fwrite(buffer, 1, decoded_len, stdout);
+        if (!write_text(output_file, buffer, decoded_len)) {
+            fprintf(stderr, "Error: Failed to write output\n");
+            result = 1;
+            goto cleanup;
         }
-
     } else {
         fprintf(stderr, "Error: Unknown command '%s'\n", command);
-        print_usage(argv[0]);
         result = 1;
     }
 

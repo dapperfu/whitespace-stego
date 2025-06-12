@@ -31,6 +31,9 @@ def read_text_source(source: Optional[Path], stdin: Optional[TextIO] = None) -> 
         return (stdin or sys.stdin).read()
     return source.read_text()
 
+# Re-export read_text_source as read_file for compatibility with tests
+read_file = read_text_source
+
 def write_text_sink(sink: Optional[Path], content: str, stdout: Optional[TextIO] = None) -> None:
     """Write text to a file or stdout.
     
@@ -50,6 +53,9 @@ def write_text_sink(sink: Optional[Path], content: str, stdout: Optional[TextIO]
     else:
         sink.write_text(content)
 
+# Re-export write_text_sink as write_file for compatibility with tests
+write_file = write_text_sink
+
 def encode_command(args: argparse.Namespace) -> None:
     """Handle the encode command.
     
@@ -58,8 +64,8 @@ def encode_command(args: argparse.Namespace) -> None:
     args : argparse.Namespace
         Command-line arguments.
     """
-    message = read_text_source(args.message_file, sys.stdin) if args.message_file else args.message or ""
-    carrier = read_text_source(args.carrier_file, sys.stdin) if args.carrier_file else args.carrier or ""
+    message = read_text_source(getattr(args, "message_file", None), sys.stdin) if getattr(args, "message_file", None) else getattr(args, "message", "")
+    carrier = read_text_source(getattr(args, "carrier_file", None), sys.stdin) if getattr(args, "carrier_file", None) else getattr(args, "carrier", "")
     backend = getattr(args, "backend", "python")
     try:
         if backend == "rust":
@@ -69,17 +75,17 @@ def encode_command(args: argparse.Namespace) -> None:
             result = rust_bridge.encode_and_insert(
                 message=message,
                 carrier=carrier,
-                password=args.password,
-                position=args.position
+                password=getattr(args, "password", None),
+                position=getattr(args, "position", None)
             )
         else:
             result = py_encode_and_insert(
                 message=message,
                 carrier=carrier,
-                password=args.password,
-                position=args.position
+                password=getattr(args, "password", None),
+                position=getattr(args, "position", None)
             )
-        write_text_sink(args.output_file, result, sys.stdout)
+        write_text_sink(getattr(args, "output_file", None), result, sys.stdout)
     except ValueError as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
@@ -92,19 +98,19 @@ def decode_command(args: argparse.Namespace) -> None:
     args : argparse.Namespace
         Command-line arguments.
     """
-    text = read_text_source(args.input_file, sys.stdin) if args.input_file else args.input or ""
+    text = read_text_source(getattr(args, "input_file", None), sys.stdin) if getattr(args, "input_file", None) else getattr(args, "input", "")
     backend = getattr(args, "backend", "python")
     try:
         if backend == "rust":
             if not rust_bridge.RUST_AVAILABLE:
                 print("Error: Rust backend is not available.", file=sys.stderr)
                 sys.exit(1)
-            message, carrier = rust_bridge.decode_and_remove(text, args.password)
+            message, carrier = rust_bridge.decode_and_remove(text, getattr(args, "password", None))
         else:
-            message, carrier = py_decode_and_remove(text, args.password)
-        write_text_sink(args.output_file, message, sys.stdout)
-        if args.carrier_output_file:
-            write_text_sink(args.carrier_output_file, carrier, sys.stdout)
+            message, carrier = py_decode_and_remove(text, getattr(args, "password", None))
+        write_text_sink(getattr(args, "output_file", None), message, sys.stdout)
+        if getattr(args, "carrier_output_file", None):
+            write_text_sink(getattr(args, "carrier_output_file", None), carrier, sys.stdout)
     except ValueError as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
@@ -145,16 +151,14 @@ def main() -> None:
     decode_parser.add_argument("-p", "--password", help="Decryption password")
     decode_parser.add_argument("-o", "--output", dest="output_file", type=Path, help="Output file ('-' for stdout)")
     decode_parser.add_argument("--output-file", dest="output_file_long", type=Path, help="Output file (long option, '-' for stdout)")
-    decode_parser.add_argument(
-        "--carrier-output", dest="carrier_output_file", type=Path,
-        help="Output file for carrier text without the message ('-' for stdout)"
-    )
+    decode_parser.add_argument("--carrier-output", dest="carrier_output_file", type=Path, help="Output file for carrier text ('-' for stdout)")
     decode_parser.set_defaults(func=decode_command)
-    # Parse arguments and run command
+    # Parse arguments
     args = parser.parse_args()
-    # Prefer long output_file if both are set
+    # Handle output file aliases
     if hasattr(args, "output_file_long") and args.output_file_long is not None:
         args.output_file = args.output_file_long
+    # Execute command
     args.func(args)
 
 if __name__ == "__main__":

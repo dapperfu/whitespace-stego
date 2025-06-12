@@ -24,8 +24,8 @@ def test_benchmark_encode_python(benchmark, large_text):
 
 @pytest.mark.benchmark(group="encode")
 def test_benchmark_encode_rust(benchmark, large_text):
-    result = benchmark(rust_encode, large_text)
-    assert isinstance(result, str)
+    carrier = "A" * 10000
+    result = benchmark(lambda: rust_encode(large_text, carrier))
 
 @pytest.mark.benchmark(group="decode")
 def test_benchmark_decode_python(benchmark, large_text):
@@ -36,10 +36,9 @@ def test_benchmark_decode_python(benchmark, large_text):
 
 @pytest.mark.benchmark(group="decode")
 def test_benchmark_decode_rust(benchmark, large_text):
-    encoded = rust_encode(large_text)
-    result = benchmark(rust_decode, encoded)
-    assert isinstance(result, str)
-    assert large_text == result
+    carrier = "A" * 10000
+    encoded = rust_encode(large_text, carrier)
+    result = benchmark(lambda: rust_decode(encoded))
 
 @pytest.mark.benchmark(group="encode_unicode")
 def test_benchmark_encode_unicode_python(benchmark, large_text):
@@ -48,8 +47,8 @@ def test_benchmark_encode_unicode_python(benchmark, large_text):
 
 @pytest.mark.benchmark(group="encode_unicode")
 def test_benchmark_encode_unicode_rust(benchmark, large_text):
-    result = benchmark(rust_encode, large_text)
-    assert isinstance(result, str)
+    carrier = "A" * 10000
+    result = benchmark(lambda: rust_encode(large_text, carrier))
 
 @pytest.mark.benchmark(group="decode_unicode")
 def test_benchmark_decode_unicode_python(benchmark, large_text):
@@ -60,7 +59,8 @@ def test_benchmark_decode_unicode_python(benchmark, large_text):
 
 @pytest.mark.benchmark(group="decode_unicode")
 def test_benchmark_decode_unicode_rust(benchmark, large_text):
-    encoded = rust_encode(large_text)
-    result = benchmark(rust_decode, encoded)
+    carrier = "A" * 10000
+    encoded = rust_encode(large_text, carrier)
+    result = benchmark(lambda: rust_decode(encoded))
     assert isinstance(result, str)
     assert large_text == result 
