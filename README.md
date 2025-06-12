@@ -1,5 +1,7 @@
 # whitespace-stego
 
+![Project Logo](39e228c0-fefd-4bc1-82bf-fe581329754b.png)
+
 **Steganography, but invisible.**  
 An experimental playground in *Vibe Coding* — where the journey is the architecture and the destination is just noise hidden in whitespace.
 
