@@ -1,5 +1,5 @@
 use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
-use crate::charset::{BINARY_TO_CHAR, START_MARKER, END_MARKER, is_valid_carrier};
+use crate::charset::{binary_to_char, START_MARKER, END_MARKER, is_valid_carrier};
 
 /// Encode a binary string using zero-width characters.
 ///
@@ -13,7 +13,7 @@ use crate::charset::{BINARY_TO_CHAR, START_MARKER, END_MARKER, is_valid_carrier}
 pub fn encode_binary(binary_str: &str) -> String {
     binary_str
         .chars()
-        .map(|c| BINARY_TO_CHAR.get(&(c.to_digit(10).unwrap() as u8)).unwrap())
+        .map(|c| binary_to_char(c.to_digit(10).unwrap() as u8))
         .collect()
 }
 
@@ -29,7 +29,7 @@ pub fn encode_binary(binary_str: &str) -> String {
 /// * `String` - The encoded steganographic payload
 pub fn encode_message(message: &str, password: Option<&str>) -> String {
     // First encrypt/encode the message
-    let encrypted = if let Some(pwd) = password {
+    let encrypted = if let Some(_pwd) = password {
         // TODO: Implement encryption with password
         BASE64.encode(message.as_bytes())
     } else {

@@ -1,6 +1,3 @@
-use std::collections::HashMap;
-use lazy_static::lazy_static;
-
 /// Unicode control characters for message framing
 pub const START_MARKER: &str = "\u{2060}"; // Word Joiner
 pub const END_MARKER: &str = "\u{2061}";   // Function Application
@@ -9,22 +6,22 @@ pub const END_MARKER: &str = "\u{2061}";   // Function Application
 pub const ZWSP: &str = "\u{200B}"; // Zero-Width Space (bit 0)
 pub const ZWNJ: &str = "\u{200C}"; // Zero-Width Non-Joiner (bit 1)
 
-lazy_static! {
-    /// Mapping between binary values and zero-width characters
-    pub static ref BINARY_TO_CHAR: HashMap<u8, &'static str> = {
-        let mut m = HashMap::new();
-        m.insert(0, ZWSP);
-        m.insert(1, ZWNJ);
-        m
-    };
+/// Convert a binary value to a zero-width character.
+pub fn binary_to_char(bit: u8) -> &'static str {
+    match bit {
+        0 => ZWSP,
+        1 => ZWNJ,
+        _ => panic!("Invalid bit: {}", bit),
+    }
+}
 
-    /// Reverse mapping for decoding
-    pub static ref CHAR_TO_BINARY: HashMap<&'static str, u8> = {
-        let mut m = HashMap::new();
-        m.insert(ZWSP, 0);
-        m.insert(ZWNJ, 1);
-        m
-    };
+/// Convert a zero-width character to a binary value.
+pub fn char_to_binary(c: char) -> Option<u8> {
+    match c {
+        '\u{200B}' => Some(0),
+        '\u{200C}' => Some(1),
+        _ => None,
+    }
 }
 
 /// Check if the carrier text is valid for steganography.

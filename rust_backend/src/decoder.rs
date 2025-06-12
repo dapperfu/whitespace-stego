@@ -1,5 +1,5 @@
 use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
-use crate::charset::{CHAR_TO_BINARY, START_MARKER, END_MARKER};
+use crate::charset::{char_to_binary, START_MARKER, END_MARKER};
 
 /// Extract the steganographic payload from text.
 ///
@@ -32,16 +32,30 @@ pub fn extract_payload(text: &str) -> Result<(String, usize, usize), String> {
 pub fn decode_binary(encoded: &str) -> Result<String, String> {
     let mut binary = String::new();
     for c in encoded.chars() {
-        let char_str = c.to_string();
-        let bit = CHAR_TO_BINARY
-            .get(char_str.as_str())
+        let bit = char_to_binary(c)
             .ok_or_else(|| format!("Invalid character in encoded string: {}", c))?;
         binary.push_str(&bit.to_string());
     }
     Ok(binary)
 }
 
-/// Convert a binary string to base64.
+/// Convert a binary string to bytes.
+pub fn binary_to_bytes(binary: &str) -> Result<Vec<u8>, String> {
+    if binary.len() % 8 != 0 {
+        return Err("Binary string length must be a multiple of 8".to_string());
+    }
+    let bytes: Vec<u8> = binary
+        .as_bytes()
+        .chunks(8)
+        .map(|chunk| {
+            let byte_str = std::str::from_utf8(chunk).unwrap();
+            u8::from_str_radix(byte_str, 2).unwrap()
+        })
+        .collect();
+    Ok(bytes)
+}
+
+/// Convert a binary string to the original message string via base64 decode.
 ///
 /// # Arguments
 ///
@@ -51,20 +65,9 @@ pub fn decode_binary(encoded: &str) -> Result<String, String> {
 ///
 /// * `Result<String, String>` - The decoded base64 string, or an error message
 pub fn binary_to_base64(binary: &str) -> Result<String, String> {
-    if binary.len() % 8 != 0 {
-        return Err("Binary string length must be a multiple of 8".to_string());
-    }
-
-    let bytes: Vec<u8> = binary
-        .as_bytes()
-        .chunks(8)
-        .map(|chunk| {
-            let byte_str = std::str::from_utf8(chunk).unwrap();
-            u8::from_str_radix(byte_str, 2).unwrap()
-        })
-        .collect();
-
-    Ok(BASE64.decode(bytes).unwrap().into_iter().map(|b| b as char).collect())
+    let bytes = binary_to_bytes(binary)?;
+    let base64_decoded = BASE64.decode(&bytes).map_err(|e| format!("Base64 decode error: {}", e))?;
+    String::from_utf8(base64_decoded).map_err(|e| format!("UTF-8 decode error: {}", e))
 }
 
 /// Decode a hidden message from text.
@@ -84,15 +87,12 @@ pub fn decode_message(text: &str, password: Option<&str>) -> Result<String, Stri
     // Decode binary
     let binary = decode_binary(&payload)?;
 
-    // Convert to base64
-    let base64_str = binary_to_base64(&binary)?;
-
-    // Decrypt/Decode the message
-    if let Some(pwd) = password {
+    // Convert to base64 (actually, to the original message)
+    if let Some(_pwd) = password {
         // TODO: Implement decryption with password
-        Ok(String::from_utf8(BASE64.decode(base64_str).unwrap()).unwrap())
+        binary_to_base64(&binary)
     } else {
-        Ok(String::from_utf8(BASE64.decode(base64_str).unwrap()).unwrap())
+        binary_to_base64(&binary)
     }
 }
 
