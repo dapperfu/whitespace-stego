@@ -51,9 +51,13 @@ run_test() {
         echo "Password: $password"
     fi
     
+    # Write message and carrier to temporary files
+    echo "$msg" > "$TEMP_DIR/message.txt"
+    echo "$carrier" > "$TEMP_DIR/carrier.txt"
+    
     # Python encode -> Rust decode
     echo "Testing Python encode -> Rust decode..."
-    python3 -m whitespace_stego.cli encode -m "$msg" -c "$carrier" -o "$TEMP_DIR/py_encoded.txt" ${password:+-p "$password"}
+    python3 -m whitespace_stego.cli encode -m "$TEMP_DIR/message.txt" -c "$TEMP_DIR/carrier.txt" -o "$TEMP_DIR/py_encoded.txt" ${password:+-p "$password"}
     ./rust_backend/target/release/whitespace_stego_rs decode -i "$TEMP_DIR/py_encoded.txt" ${password:+-p "$password"} > "$TEMP_DIR/rust_decoded.txt"
     
     if [ "$(cat "$TEMP_DIR/rust_decoded.txt")" = "$msg" ]; then
