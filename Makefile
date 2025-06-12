@@ -4,7 +4,7 @@ install:
 	pip install -e .[dev]
 
 test:
-	pytest tests/ --cov=python --cov-report=term-missing
+	.venv/bin/pytest tests/ --cov=python --cov-report=term-missing
 
 lint:
 	mypy python/ tests/
