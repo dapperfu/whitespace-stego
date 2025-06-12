@@ -17,6 +17,14 @@ def large_text():
     # Generate a very large body of text (e.g., 100,000 characters)
     return fake.text(max_nb_chars=100000)
 
+@pytest.fixture
+def benchmark_encryption():
+    """Fixture to provide encryption benchmark data."""
+    fake = Faker()
+    message = fake.text(max_nb_chars=1000)
+    carrier = "A" * 10000
+    return message, carrier
+
 @pytest.mark.benchmark(group="encode")
 def test_benchmark_encode_python(benchmark, large_text):
     result = benchmark(py_encode, large_text, "A carrier message" * 1000)
