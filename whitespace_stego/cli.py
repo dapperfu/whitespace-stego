@@ -72,7 +72,12 @@ def encode_command(args: argparse.Namespace) -> None:
         # If neither message nor message_file is provided, read from stdin
         message = sys.stdin.read()
     print(f"Debug: Message received: '{message}'", file=sys.stderr)
-    carrier = read_text_source(getattr(args, "carrier_file", None), sys.stdin) if getattr(args, "carrier_file", None) else getattr(args, "carrier", "")
+    if getattr(args, "carrier_file", None):
+        carrier = read_text_source(getattr(args, "carrier_file", None), sys.stdin)
+    elif getattr(args, "carrier", None):
+        carrier = getattr(args, "carrier")
+    else:
+        carrier = ""
     backend = getattr(args, "backend", "python")
     try:
         if backend == "rust":
