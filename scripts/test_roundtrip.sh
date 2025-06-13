@@ -44,8 +44,8 @@ run_test() {
     # Encode the message
     echo "Encoding..."
     encoded=$(python3 -c "
-from whitespace_stego import encode
-print(encode('$message', '$carrier'${password:+, '$password'}))
+from whitespace_stego.encode import encode_and_insert
+print(encode_and_insert('$message', '$carrier'${password:+, '$password'}))
 ")
 
     if [ $? -ne 0 ]; then
@@ -58,8 +58,8 @@ print(encode('$message', '$carrier'${password:+, '$password'}))
     # Decode the message
     echo "Decoding..."
     decoded=$(python3 -c "
-from whitespace_stego import decode
-decoded, _ = decode('$encoded'${password:+, '$password'})
+from whitespace_stego.decode import decode_and_remove
+decoded, _ = decode_and_remove('$encoded'${password:+, '$password'})
 print(decoded)
 ")
 
