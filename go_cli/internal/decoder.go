@@ -26,10 +26,11 @@ func (d *Decoder) Decode(encoded string) (string, error) {
 		return "", fmt.Errorf("start delimiter not found")
 	}
 
-	endIdx := strings.Index(encoded, InvisiblePlus)
+	endIdx := strings.Index(encoded[startIdx:], InvisiblePlus)
 	if endIdx == -1 {
 		return "", fmt.Errorf("end delimiter not found")
 	}
+	endIdx += startIdx
 
 	// Extract the encoded message
 	encodedMsg := encoded[startIdx+len(WordJoiner) : endIdx]
