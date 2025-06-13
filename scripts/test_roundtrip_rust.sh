@@ -24,9 +24,9 @@ run_test_backend() {
 
     # Encode
     if [ -n "$password" ]; then
-        python -m whitespace_stego.cli encode --backend "$backend" -mf "$msgfile" -cf "$carrierfile" -p "$password" -o "$encodedfile"
+        venv/bin/whitespace-stego encode --backend "$backend" -mf "$msgfile" -cf "$carrierfile" -p "$password" -o "$encodedfile"
     else
-        python -m whitespace_stego.cli encode --backend "$backend" -mf "$msgfile" -cf "$carrierfile" -o "$encodedfile"
+        venv/bin/whitespace-stego encode --backend "$backend" -mf "$msgfile" -cf "$carrierfile" -o "$encodedfile"
     fi
     if [ $? -ne 0 ]; then
         echo -e "${RED}    Encoding failed${NC}"
@@ -38,9 +38,9 @@ run_test_backend() {
 
     # Decode
     if [ -n "$password" ]; then
-        python -m whitespace_stego.cli decode --backend "$backend" -if "$encodedfile" -p "$password" -o "$decodedfile"
+        venv/bin/whitespace-stego decode --backend "$backend" -if "$encodedfile" -p "$password" -o "$decodedfile"
     else
-        python -m whitespace_stego.cli decode --backend "$backend" -if "$encodedfile" -o "$decodedfile"
+        venv/bin/whitespace-stego decode --backend "$backend" -if "$encodedfile" -o "$decodedfile"
     fi
     if [ $? -ne 0 ]; then
         echo -e "${RED}    Decoding failed${NC}"
