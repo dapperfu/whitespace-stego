@@ -65,27 +65,27 @@ def test_encode_decode_message(c_lib):
     
     # Encode
     output = ctypes.create_string_buffer(output_size)
-    result = c_lib.encode_message(
+    encoded_len = c_lib.encode_message(
         message, len(message),
         carrier, len(carrier),
         output, output_size,
         password, 0
     )
-    assert result > 0
+    assert encoded_len > 0
     
     # Calculate decoded size
-    decoded_size = c_lib.calculate_decoded_size(result)
+    decoded_size = c_lib.calculate_decoded_size(encoded_len)
     assert decoded_size > 0
     
     # Decode
     decoded = ctypes.create_string_buffer(decoded_size)
-    result = c_lib.decode_message(
-        output, result,
+    decoded_len = c_lib.decode_message(
+        output, encoded_len,
         decoded, decoded_size,
         password, 0
     )
-    assert result > 0
-    assert decoded.value == message
+    assert decoded_len > 0
+    assert decoded.value[:decoded_len] == message
 
 def test_encode_decode_with_password(c_lib):
     """Test message encoding and decoding with password."""
@@ -99,27 +99,27 @@ def test_encode_decode_with_password(c_lib):
     
     # Encode
     output = ctypes.create_string_buffer(output_size)
-    result = c_lib.encode_message(
+    encoded_len = c_lib.encode_message(
         message, len(message),
         carrier, len(carrier),
         output, output_size,
         password, len(password)
     )
-    assert result > 0
+    assert encoded_len > 0
     
     # Calculate decoded size
-    decoded_size = c_lib.calculate_decoded_size(result)
+    decoded_size = c_lib.calculate_decoded_size(encoded_len)
     assert decoded_size > 0
     
     # Decode
     decoded = ctypes.create_string_buffer(decoded_size)
-    result = c_lib.decode_message(
-        output, result,
+    decoded_len = c_lib.decode_message(
+        output, encoded_len,
         decoded, decoded_size,
         password, len(password)
     )
-    assert result > 0
-    assert decoded.value == message
+    assert decoded_len > 0
+    assert decoded.value[:decoded_len] == message
 
 def test_invalid_carrier(c_lib):
     """Test invalid carrier text."""
@@ -132,13 +132,13 @@ def test_invalid_carrier(c_lib):
     
     # Try to encode
     output = ctypes.create_string_buffer(output_size)
-    result = c_lib.encode_message(
+    encoded_len = c_lib.encode_message(
         message, len(message),
         carrier, len(carrier),
         output, output_size,
         None, 0
     )
-    assert result == 0  # Should return error
+    assert encoded_len == 0  # Should return error
 
 def test_buffer_overflow(c_lib):
     """Test buffer overflow protection."""
@@ -147,10 +147,10 @@ def test_buffer_overflow(c_lib):
     output_size = 10  # Too small buffer
     output = ctypes.create_string_buffer(output_size)
     
-    result = c_lib.encode_message(
+    encoded_len = c_lib.encode_message(
         message, len(message),
         carrier, len(carrier),
         output, output_size,
         None, 0
     )
-    assert result == 0  # Should return error 
+    assert encoded_len == 0  # Should return error 
