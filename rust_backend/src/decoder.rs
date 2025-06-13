@@ -118,6 +118,10 @@ pub fn decode_message(text: &str, password: Option<&str>) -> Result<String, Stri
         let iv = &encrypted_data[SALT_LENGTH..SALT_LENGTH + IV_LENGTH];
         let tag = &encrypted_data[SALT_LENGTH + IV_LENGTH..SALT_LENGTH + IV_LENGTH + TAG_LENGTH];
         let ciphertext = &encrypted_data[SALT_LENGTH + IV_LENGTH + TAG_LENGTH..];
+        println!("Rust Debug - Salt (hex): {}", hex::encode(salt));
+        println!("Rust Debug - IV (hex): {}", hex::encode(iv));
+        println!("Rust Debug - Tag (hex): {}", hex::encode(tag));
+        println!("Rust Debug - Ciphertext (hex): {}", hex::encode(ciphertext));
         let key = derive_key(password, salt);
         let cipher = Aes256Gcm::new(Key::<Aes256Gcm>::from_slice(&key));
         let nonce = Nonce::from_slice(iv);
