@@ -33,7 +33,7 @@ encode_message() {
     local carrier_file="$2"
     local output_file="$3"
     echo "Encoding message from $message_file into carrier $carrier_file and output to $output_file..."
-    venv/bin/whitespace-stego encode -m "$message_file" -c "$carrier_file" -o "$output_file"
+    venv/bin/whitespace-stego encode -mf "$message_file" -cf "$carrier_file" -o "$output_file"
     if [ ! -f "$output_file" ]; then
         echo "Error: Encoded file was not created."
         exit 1
@@ -46,7 +46,7 @@ decode_message() {
     local input_file="$1"
     local output_file="$2"
     echo "Decoding message from $input_file and output to $output_file..."
-    venv/bin/whitespace-stego decode -i "$input_file" -o "$output_file"
+    venv/bin/whitespace-stego decode -if "$input_file" -o "$output_file"
     if [ ! -f "$output_file" ]; then
         echo "Error: Decoded file was not created."
         exit 1
@@ -82,7 +82,7 @@ verify_message "$MESSAGE" "$DECODED_FILE"
 
 # Test 3: Encode message from file into plain text carrier and output to stdout
 echo "Test 3: Encoding message from file into plain text carrier and output to stdout..."
-ENCODED_STDOUT=$(venv/bin/whitespace-stego encode -m "$MESSAGE_FILE" -c "Plain text carrier" -o -)
+ENCODED_STDOUT=$(venv/bin/whitespace-stego encode -mf "$MESSAGE_FILE" -c "Plain text carrier" -o -)
 if [ -z "$ENCODED_STDOUT" ]; then
     echo "Error: No output to stdout."
     exit 1
@@ -91,7 +91,7 @@ echo "Encoded output to stdout: $ENCODED_STDOUT"
 
 # Test 4: Decode message from stdin (using the output from Test 3)
 echo "Test 4: Decoding message from stdin..."
-DECODED_STDOUT=$(echo "$ENCODED_STDOUT" | venv/bin/whitespace-stego decode -i - -o -)
+DECODED_STDOUT=$(echo "$ENCODED_STDOUT" | venv/bin/whitespace-stego decode -if - -o -)
 if [ -z "$DECODED_STDOUT" ]; then
     echo "Error: No output to stdout."
     exit 1
