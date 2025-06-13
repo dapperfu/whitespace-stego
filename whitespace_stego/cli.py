@@ -77,7 +77,7 @@ def encode_command(args: argparse.Namespace) -> None:
     elif getattr(args, "carrier", None):
         carrier = getattr(args, "carrier")
     else:
-        carrier = message
+        carrier = ""
     backend = getattr(args, "backend", "python")
     try:
         if backend == "rust":
