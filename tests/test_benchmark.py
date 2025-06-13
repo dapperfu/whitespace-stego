@@ -2,7 +2,7 @@
 
 import pytest
 from faker import Faker
-from whitespace_stego.encode import encode_message as py_encode, encode_and_insert as py_encode_and_insert
+from whitespace_stego.encode import encode as py_encode, encode_and_insert as py_encode_and_insert
 from whitespace_stego.decode import decode_message as py_decode, decode_and_remove as py_decode_and_remove
 from whitespace_stego.rust_bridge import (
     encode_message as rust_encode,
@@ -11,7 +11,7 @@ from whitespace_stego.rust_bridge import (
 )
 import tempfile
 import os
-from whitespace_stego import benchmark
+from whitespace_stego.benchmark import benchmark_encryption, benchmark_compression
 
 pytestmark = pytest.mark.skipif(not RUST_AVAILABLE, reason="Rust module not available")
 
@@ -21,27 +21,22 @@ def large_text():
     # Generate a very large body of text (e.g., 100,000 characters)
     return fake.text(max_nb_chars=100000)
 
-@pytest.fixture
-def benchmark_encryption():
-    """Fixture to provide encryption benchmark data."""
-    fake = Faker()
-    message = fake.text(max_nb_chars=1000)
-    carrier = "A" * 10000
-    return message, carrier
-
 @pytest.mark.benchmark(group="encode")
 def test_benchmark_encode_python(benchmark, large_text):
-    result = benchmark(py_encode, large_text, "A carrier message" * 1000)
+    carrier = "A carrier message" * 1000
+    result = benchmark(py_encode, large_text, carrier)
     assert isinstance(result, str)
 
 @pytest.mark.benchmark(group="encode")
 def test_benchmark_encode_rust(benchmark, large_text):
     carrier = "A" * 10000
     result = benchmark(lambda: rust_encode(large_text, carrier))
+    assert isinstance(result, str)
 
 @pytest.mark.benchmark(group="decode")
 def test_benchmark_decode_python(benchmark, large_text):
-    encoded = py_encode(large_text, "A carrier message" * 1000)
+    carrier = "A carrier message" * 1000
+    encoded = py_encode(large_text, carrier)
     result = benchmark(py_decode, encoded)
     assert isinstance(result, str)
     assert large_text in result
@@ -51,6 +46,8 @@ def test_benchmark_decode_rust(benchmark, large_text):
     carrier = "A" * 10000
     encoded = rust_encode(large_text, carrier)
     result = benchmark(lambda: rust_decode(encoded))
+    assert isinstance(result, str)
+    assert large_text == result
 
 @pytest.mark.benchmark(group="encode_unicode")
 def test_benchmark_encode_unicode_python(benchmark, large_text):
@@ -87,7 +84,7 @@ def test_benchmark_encryption(benchmark):
 
     try:
         # Run benchmark
-        result = benchmark(benchmark.benchmark_encryption, temp_file_path)
+        result = benchmark(benchmark_encryption, temp_file_path)
         
         # Verify result structure
         assert isinstance(result, dict)
@@ -125,7 +122,7 @@ def test_benchmark_compression():
 
     try:
         # Run benchmark
-        result = benchmark.benchmark_compression(temp_file_path)
+        result = benchmark_compression(temp_file_path)
         
         # Verify result structure
         assert isinstance(result, dict)
