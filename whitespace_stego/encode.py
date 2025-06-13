@@ -41,20 +41,29 @@ def encode_message(message: str, password: Optional[str] = None) -> str:
     -------
     str
         The encoded steganographic payload.
+        
+    Raises
+    ------
+    ValueError
+        If encoding fails.
     """
     if not message:
         raise ValueError("Message must not be empty")
-    # First encrypt/encode the message
-    encrypted = encrypt_message(message, password)
-    
-    # Convert to binary
-    binary = ''.join(format(ord(c), '08b') for c in encrypted)
-    
-    # Encode binary using zero-width characters
-    encoded = encode_binary(binary)
-    
-    # Wrap with control characters
-    return f"{START_MARKER}{encoded}{END_MARKER}"
+        
+    try:
+        # First encrypt/encode the message
+        encrypted = encrypt_message(message, password)
+        
+        # Convert to binary
+        binary = ''.join(format(ord(c), '08b') for c in encrypted)
+        
+        # Encode binary using zero-width characters
+        encoded = encode_binary(binary)
+        
+        # Wrap with control characters
+        return f"{START_MARKER}{encoded}{END_MARKER}"
+    except Exception as e:
+        raise ValueError(f"Failed to encode message: {str(e)}")
 
 def insert_payload(carrier: str, payload: str, position: Optional[int] = None) -> str:
     """Insert a steganographic payload into carrier text.
@@ -120,4 +129,29 @@ def encode_and_insert(
         if the position is invalid.
     """
     payload = encode_message(message, password)
-    return insert_payload(carrier, payload, position) 
+    return insert_payload(carrier, payload, position)
+
+def encode(message: str, carrier: str, password: Optional[str] = None) -> str:
+    """Encode a message into carrier text.
+    
+    Parameters
+    ----------
+    message : str
+        The message to encode.
+    carrier : str
+        The carrier text to insert the encoded message into.
+    password : Optional[str]
+        Optional password for encryption.
+        
+    Returns
+    -------
+    str
+        The carrier text with the encoded message inserted.
+        
+    Raises
+    ------
+    ValueError
+        If the carrier text contains control characters or
+        if the position is invalid.
+    """
+    return encode_and_insert(message, carrier, password) 

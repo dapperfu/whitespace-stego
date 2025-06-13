@@ -89,7 +89,7 @@ def binary_to_base64(binary: str) -> str:
     bytes_data = bytes(int(binary[i:i+8], 2) for i in range(0, len(binary), 8))
     
     # Convert bytes to base64 string
-    return base64.b64encode(bytes_data).decode()
+    return base64.b64encode(bytes_data).decode('utf-8')
 
 def decode_message(text: str, password: Optional[str] = None) -> str:
     """Decode a hidden message from text.
@@ -121,7 +121,10 @@ def decode_message(text: str, password: Optional[str] = None) -> str:
     base64_str = binary_to_base64(binary)
     
     # Decrypt/Decode the message
-    return decrypt_message(base64_str, password)
+    try:
+        return decrypt_message(base64_str, password)
+    except ValueError as e:
+        raise ValueError(f"Failed to decode message: {str(e)}")
 
 def decode_and_remove(text: str, password: Optional[str] = None) -> Tuple[str, str]:
     """Decode a hidden message and remove it from the carrier text.
