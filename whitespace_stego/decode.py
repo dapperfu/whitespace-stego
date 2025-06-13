@@ -64,8 +64,8 @@ def decode_binary(encoded: str) -> str:
     except KeyError as e:
         raise ValueError(f"Invalid character in encoded string: {e}")
 
-def binary_to_base64(binary: str) -> str:
-    """Convert a binary string to the base64-encoded string.
+def binary_to_base64(binary: str) -> bytes:
+    """Convert a binary string to the original base64-encoded bytes.
     
     Parameters
     ----------
@@ -74,8 +74,8 @@ def binary_to_base64(binary: str) -> str:
         
     Returns
     -------
-    str
-        The base64-encoded string.
+    bytes
+        The base64-encoded bytes.
         
     Raises
     ------
@@ -84,8 +84,7 @@ def binary_to_base64(binary: str) -> str:
     """
     if len(binary) % 8 != 0:
         raise ValueError("Binary string length must be a multiple of 8")
-    bytes_data = bytes(int(binary[i:i+8], 2) for i in range(0, len(binary), 8))
-    return bytes_data.decode('ascii')
+    return bytes(int(binary[i:i+8], 2) for i in range(0, len(binary), 8))
 
 def decode_message(text: str, password: Optional[str] = None) -> str:
     """Decode a hidden message from text.
@@ -109,13 +108,12 @@ def decode_message(text: str, password: Optional[str] = None) -> str:
     """
     # Extract the payload
     payload, _, _ = extract_payload(text)
-    
     # Decode binary
     binary = decode_binary(payload)
-    
-    # Convert to base64
-    base64_str = binary_to_base64(binary)
-    
+    # Convert to base64 bytes
+    base64_bytes = binary_to_base64(binary)
+    # Convert base64 bytes to string
+    base64_str = base64_bytes.decode('ascii')
     # Decrypt/Decode the message
     try:
         return decrypt_message(base64_str, password)

@@ -49,17 +49,15 @@ def encode_message(message: str, password: Optional[str] = None) -> str:
     """
     if not message:
         raise ValueError("Message must not be empty")
-        
     try:
         # First encrypt/encode the message
         encrypted = encrypt_message(message, password)
-        
-        # Convert to binary
-        binary = ''.join(format(ord(c), '08b') for c in encrypted)
-        
+        # Convert to base64 bytes
+        base64_bytes = encrypted.encode('ascii')
+        # Convert bytes to binary string
+        binary = ''.join(format(b, '08b') for b in base64_bytes)
         # Encode binary using zero-width characters
         encoded = encode_binary(binary)
-        
         # Wrap with control characters
         return f"{START_MARKER}{encoded}{END_MARKER}"
     except Exception as e:
