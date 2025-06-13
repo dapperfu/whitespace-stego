@@ -44,10 +44,10 @@ func (d *Decoder) Decode(encoded string) (string, error) {
 	for _, char := range encodedMsg {
 		switch char {
 		case '\u200B': // Zero-width space
-			currentByte = (currentByte << 1) | 1
+			currentByte = (currentByte << 1) | 0
 			bitCount++
 		case '\u200C': // Zero-width non-joiner
-			currentByte = (currentByte << 1)
+			currentByte = (currentByte << 1) | 1
 			bitCount++
 		default:
 			continue
@@ -70,6 +70,7 @@ func (d *Decoder) Decode(encoded string) (string, error) {
 	}
 
 	// Try to decode as base64 first
+	fmt.Printf("[DEBUG] Reconstructed base64: %q\n", string(bytes))
 	decoded, err := base64.StdEncoding.DecodeString(string(bytes))
 	if err == nil {
 		return string(decoded), nil
