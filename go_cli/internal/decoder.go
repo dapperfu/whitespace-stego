@@ -73,7 +73,7 @@ func (d *Decoder) Decode(encoded string) (string, error) {
 	fmt.Printf("[DEBUG] Reconstructed base64: %q\n", string(bytes))
 	decoded, err := base64.StdEncoding.DecodeString(string(bytes))
 	if err == nil {
-		return strings.TrimSpace(string(decoded)), nil
+		return strings.TrimRight(string(decoded), "\n"), nil
 	}
 
 	// If base64 decoding fails, return raw bytes
