@@ -121,10 +121,6 @@ def decrypt_message(encrypted_message: str, password: Optional[str] = None) -> s
         iv = encrypted_data[SALT_LENGTH:SALT_LENGTH + 12]
         tag = encrypted_data[SALT_LENGTH + 12:SALT_LENGTH + 28]
         ciphertext = encrypted_data[SALT_LENGTH + 28:]
-        print("Python Debug - Salt (hex):", salt.hex())
-        print("Python Debug - IV (hex):", iv.hex())
-        print("Python Debug - Tag (hex):", tag.hex())
-        print("Python Debug - Ciphertext (hex):", ciphertext.hex())
         # Derive key using the stored salt
         key, _ = derive_key(password, salt)
         # Create cipher
