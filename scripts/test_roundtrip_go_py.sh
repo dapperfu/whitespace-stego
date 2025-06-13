@@ -56,6 +56,7 @@ test_roundtrip() {
     # Test Python (pure) -> Go
     echo "Testing Python (pure) -> Go..."
     encoded=$(echo "$message" | python3 -m whitespace_stego.cli encode $py_opts --backend python)
+    echo "Encoded output: [$encoded]"
     decoded=$(echo "$encoded" | ./bin/whitespace-stego-go decode $go_opts)
     if [ "$decoded" = "$message" ]; then
         echo -e "${GREEN}✓ Python (pure) -> Go passed${NC}"
