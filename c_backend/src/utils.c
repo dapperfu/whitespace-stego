@@ -34,7 +34,7 @@ bool is_valid_carrier(const char* text, size_t len) {
     // Check for invalid characters
     for (size_t i = 0; i < len; i++) {
         for (size_t j = 0; j < sizeof(INVALID_CHARS) / sizeof(INVALID_CHARS[0]); j++) {
-            if (text[i] == INVALID_CHARS[j]) {
+            if (memcmp(&text[i], INVALID_CHARS[j], 1) == 0) {
                 return false;
             }
         }
