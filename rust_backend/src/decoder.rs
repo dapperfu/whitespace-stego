@@ -123,7 +123,7 @@ pub fn decode_message(text: &str, password: Option<&str>) -> Result<String, Stri
         let cipher = Aes256Gcm::new(Key::<Aes256Gcm>::from_slice(&key));
         let nonce = Nonce::from_slice(iv);
         let mut buffer = ciphertext.to_vec();
-        cipher.decrypt_in_place_detached(nonce, b"", &mut buffer, tag.into()).map_err(|e| e.to_string())?;
+        cipher.decrypt_in_place_detached(nonce, b"", &mut buffer, aes_gcm::Tag::from_slice(tag)).map_err(|e| e.to_string())?;
         Ok(String::from_utf8(buffer).map_err(|e| e.to_string())?)
     } else {
         // Treat bytes as base64 string, decode, then decode as UTF-8
