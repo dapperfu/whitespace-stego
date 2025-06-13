@@ -5,6 +5,7 @@ This package provides functionality for hiding messages in text using zero-width
 
 from . import encode, decode, crypto, common
 from .benchmark import benchmark_encryption, benchmark_compression
+from .cli import main
 
 __version__ = "0.1.0"
 __all__ = [
@@ -13,5 +14,6 @@ __all__ = [
     'crypto',
     'common',
     'benchmark_encryption',
-    'benchmark_compression'
+    'benchmark_compression',
+    'main'
 ] 
