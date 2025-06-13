@@ -85,7 +85,7 @@ def binary_to_base64(binary: str) -> str:
     if len(binary) % 8 != 0:
         raise ValueError("Binary string length must be a multiple of 8")
     bytes_data = bytes(int(binary[i:i+8], 2) for i in range(0, len(binary), 8))
-    return bytes_data.decode('utf-8')
+    return bytes_data.decode('ascii')
 
 def decode_message(text: str, password: Optional[str] = None) -> str:
     """Decode a hidden message from text.
