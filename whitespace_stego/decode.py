@@ -113,7 +113,7 @@ def decode_message(text: str, password: Optional[str] = None) -> str:
     # Convert to base64 bytes
     base64_bytes = binary_to_base64(binary)
     # Convert base64 bytes to string
-    base64_str = base64_bytes.decode('ascii')
+    base64_str = base64_bytes.decode('utf-8')
     # Decrypt/Decode the message
     try:
         return decrypt_message(base64_str, password)
