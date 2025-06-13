@@ -16,6 +16,41 @@ static const char base64_table[] =
 static const char ZERO_WIDTH_NON_JOINER[] = "\xE2\x80\x8C";  // U+200C
 static const char ZERO_WIDTH_JOINER[] = "\xE2\x80\x8D";      // U+200D
 
+// Invalid characters that should not be in carrier text
+static const char* INVALID_CHARS[] = {
+    "\xE2\x80\x8C",  // U+200C ZWNJ
+    "\xE2\x80\x8B",  // U+200B ZWSP
+    "\xE2\x80\x8D",  // U+200D ZWJ
+    "\xE2\x81\xA0",  // U+2060 WJ
+    "\xE2\x81\xA1",  // U+2061 FUNCTION APPLICATION
+    "\xEF\xBB\xBF",  // U+FEFF ZWNBSP
+};
+
+bool is_valid_carrier(const char* text, size_t len) {
+    if (!text) {
+        return false;
+    }
+
+    for (size_t i = 0; i < len;) {
+        int matched = 0;
+        for (size_t j = 0; j < sizeof(INVALID_CHARS) / sizeof(INVALID_CHARS[0]); ++j) {
+            size_t invalid_len = strlen(INVALID_CHARS[j]);
+            if (i + invalid_len <= len && memcmp(text + i, INVALID_CHARS[j], invalid_len) == 0) {
+                return false;
+            }
+        }
+        if (text[i] & 0x80) {  // UTF-8 continuation byte
+            i++;
+            while (i < len && (text[i] & 0xC0) == 0x80) {
+                i++;
+            }
+        } else {
+            i++;
+        }
+    }
+    return true;
+}
+
 size_t base64_encode(const uint8_t* input, size_t input_len, char* output, size_t output_len) {
     if (!input || !output || output_len < ((input_len + 2) / 3) * 4) {
         return 0;

@@ -35,6 +35,11 @@ size_t encode_message(const char* message,
         return 0;
     }
 
+    // Validate carrier text
+    if (!is_valid_carrier(carrier, carrier_len)) {
+        return 0;
+    }
+
     // Calculate required buffer sizes
     size_t base64_len = ((message_len + 2) / 3) * 4;
     size_t zerowidth_len = base64_len * 8 * 3;
