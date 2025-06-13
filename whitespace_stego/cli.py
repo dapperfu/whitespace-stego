@@ -5,12 +5,21 @@ from typing import Optional
 
 import click
 
-from whitespace_stego.core import decode, encode
+from whitespace_stego.core import decode as py_decode, encode as py_encode
+from whitespace_stego.rust_bridge import decode as rs_decode, encode as rs_encode
 
 @click.group()
-def cli() -> None:
+@click.option(
+    "--backend",
+    type=click.Choice(["python", "rust"]),
+    default="python",
+    help="Backend to use for encoding/decoding",
+)
+@click.pass_context
+def cli(ctx: click.Context, backend: str) -> None:
     """Zero-width whitespace steganography tool."""
-    pass
+    ctx.ensure_object(dict)
+    ctx.obj["backend"] = backend
 
 @cli.command()
 @click.option("-m", "--message", help="Message to encode")
@@ -20,7 +29,9 @@ def cli() -> None:
 @click.option("-p", "--password", help="Password for encryption")
 @click.option("-pf", "--password-file", type=click.Path(exists=True), help="File containing password")
 @click.option("-o", "--output", type=click.Path(), help="Output file (default: stdout)")
+@click.pass_context
 def encode_cmd(
+    ctx: click.Context,
     message: Optional[str],
     message_file: Optional[str],
     carrier: Optional[str],
@@ -50,7 +61,8 @@ def encode_cmd(
             password = f.read().strip()
 
     # Encode message
-    result = encode(message, carrier, password)
+    encode_fn = rs_encode if ctx.obj["backend"] == "rust" else py_encode
+    result = encode_fn(message, carrier, password)
 
     # Write output
     if output:
@@ -65,7 +77,9 @@ def encode_cmd(
 @click.option("-p", "--password", help="Password for decryption")
 @click.option("-pf", "--password-file", type=click.Path(exists=True), help="File containing password")
 @click.option("-o", "--output", type=click.Path(), help="Output file (default: stdout)")
+@click.pass_context
 def decode_cmd(
+    ctx: click.Context,
     carrier: Optional[str],
     carrier_file: Optional[str],
     password: Optional[str],
@@ -87,7 +101,8 @@ def decode_cmd(
 
     try:
         # Decode message
-        result = decode(carrier, password)
+        decode_fn = rs_decode if ctx.obj["backend"] == "rust" else py_decode
+        result = decode_fn(carrier, password)
 
         # Write output
         if output:

@@ -1,4 +1,4 @@
-.PHONY: venv test clean
+.PHONY: venv test clean rust-py rust-cli rust-test
 
 venv:
 	python3 -m venv .venv
@@ -7,6 +7,15 @@ venv:
 
 test:
 	.venv/bin/pytest --html=report.html --cov=whitespace_stego
+
+rust-py:
+	cd rust_py_backend && maturin develop
+
+rust-cli:
+	cd rust_backend && cargo build --release
+
+rust-test:
+	cd rust_backend && cargo test
 
 clean:
 	rm -rf .venv
@@ -23,4 +32,6 @@ clean:
 	find . -type d -name ".pytest_cache" -exec rm -rf {} +
 	find . -type d -name ".coverage" -exec rm -rf {} +
 	find . -type d -name "htmlcov" -exec rm -rf {} +
-	find . -type f -name "report.html" -delete 
+	find . -type f -name "report.html" -delete
+	cd rust_py_backend && cargo clean
+	cd rust_backend && cargo clean 
