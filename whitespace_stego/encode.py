@@ -52,9 +52,13 @@ def encode_message(message: str, password: Optional[str] = None) -> str:
     try:
         # First encrypt/encode the message
         encrypted = encrypt_message(message, password)
-        # Encode message as UTF-8 bytes, then base64-encode
-        message_bytes = encrypted.encode('utf-8')
-        base64_bytes = base64.b64encode(message_bytes)
+        if password is None:
+            # Encode message as UTF-8 bytes, then base64-encode
+            message_bytes = message.encode('utf-8')
+            base64_bytes = base64.b64encode(message_bytes)
+        else:
+            # Already base64-encoded by encrypt_message
+            base64_bytes = encrypted.encode('utf-8')
         # Convert bytes to binary string
         binary = ''.join(format(b, '08b') for b in base64_bytes)
         # Encode binary using zero-width characters
