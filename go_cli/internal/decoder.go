@@ -73,7 +73,7 @@ func (d *Decoder) Decode(encoded string) (string, error) {
 
 // DecodeWithLength decodes a message that includes its length
 func (d *Decoder) DecodeWithLength(encoded string) (string, error) {
-	// Find the first block (length)
+	// Try to find the first block (length)
 	startIdx := strings.Index(encoded, WordJoiner)
 	if startIdx == -1 {
 		return "", fmt.Errorf("start delimiter for length not found")
@@ -82,8 +82,17 @@ func (d *Decoder) DecodeWithLength(encoded string) (string, error) {
 	if endIdx == -1 {
 		return "", fmt.Errorf("end delimiter for length not found")
 	}
-	lengthBlock := encoded[startIdx : endIdx+len(InvisiblePlus)]
 
+	// Check if this is a single-block format (no length prefix)
+	remaining := encoded[endIdx+len(InvisiblePlus):]
+	if !strings.Contains(remaining, WordJoiner) {
+		// Single-block format - decode directly
+		messageBlock := encoded[startIdx : endIdx+len(InvisiblePlus)]
+		return d.Decode(messageBlock)
+	}
+
+	// Two-block format - decode length first
+	lengthBlock := encoded[startIdx : endIdx+len(InvisiblePlus)]
 	lengthDecoded, err := d.Decode(lengthBlock)
 	if err != nil {
 		return "", fmt.Errorf("failed to decode length: %w", err)
@@ -93,8 +102,7 @@ func (d *Decoder) DecodeWithLength(encoded string) (string, error) {
 	}
 	length := binary.BigEndian.Uint32([]byte(lengthDecoded[:4]))
 
-	// Remove the first block and decode the next block (message)
-	remaining := encoded[endIdx+len(InvisiblePlus):]
+	// Decode the message block
 	startIdx2 := strings.Index(remaining, WordJoiner)
 	if startIdx2 == -1 {
 		return "", fmt.Errorf("start delimiter for message not found")
