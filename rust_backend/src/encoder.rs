@@ -51,14 +51,9 @@ fn generate_phc_salt(len: usize) -> String {
 ///
 /// * `Vec<u8>` - The generated salt bytes
 fn generate_phc_salt_bytes(len: usize) -> Vec<u8> {
-    const PHC_CHARS: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789./";
-    let mut rng = OsRng;
-    (0..len)
-        .map(|_| {
-            let idx = rng.gen_range(0..PHC_CHARS.len());
-            PHC_CHARS[idx]
-        })
-        .collect()
+    let mut salt = vec![0u8; len];
+    OsRng.fill(&mut salt);
+    salt
 }
 
 /// Derive an encryption key from a password using PBKDF2.
