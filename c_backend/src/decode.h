@@ -10,6 +10,16 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#ifdef _WIN32
+    #ifdef WHITESPACE_STEGO_EXPORTS
+        #define WHITESPACE_STEGO_API __declspec(dllexport)
+    #else
+        #define WHITESPACE_STEGO_API __declspec(dllimport)
+    #endif
+#else
+    #define WHITESPACE_STEGO_API __attribute__((visibility("default")))
+#endif
+
 /**
  * @brief Decode a message from carrier text containing zero-width whitespace
  * 
@@ -21,7 +31,7 @@
  * @param password_len Length of password
  * @return size_t Length of decoded message, or 0 on error
  */
-size_t decode_message(
+WHITESPACE_STEGO_API size_t decode_message(
     const char* input,
     size_t input_len,
     char* output,
@@ -36,6 +46,6 @@ size_t decode_message(
  * @param input_len Length of input text
  * @return size_t Required buffer size
  */
-size_t calculate_decoded_size(size_t input_len);
+WHITESPACE_STEGO_API size_t calculate_decoded_size(size_t input_len);
 
 #endif /* WHITESPACE_STEGO_DECODE_H */ 

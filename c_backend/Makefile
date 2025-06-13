@@ -34,7 +34,7 @@ $(TARGET): $(OBJS)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(OBJ_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -DWHITESPACE_STEGO_EXPORTS -c $< -o $@
 
 test: $(TEST_TARGET)
 	@echo "Running tests..."
