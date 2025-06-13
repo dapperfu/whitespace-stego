@@ -2,7 +2,8 @@
 
 import pytest
 from faker import Faker
-from whitespace_stego import encode as py_encode, decode as py_decode
+from whitespace_stego.encode import encode_message as py_encode, encode_and_insert as py_encode_and_insert
+from whitespace_stego.decode import decode_message as py_decode, decode_and_remove as py_decode_and_remove
 from whitespace_stego.rust_bridge import (
     encode_message as rust_encode,
     decode_message as rust_decode,
@@ -10,6 +11,7 @@ from whitespace_stego.rust_bridge import (
 )
 import tempfile
 import os
+from whitespace_stego import benchmark
 
 pytestmark = pytest.mark.skipif(not RUST_AVAILABLE, reason="Rust module not available")
 
@@ -76,7 +78,7 @@ def test_benchmark_decode_unicode_rust(benchmark, large_text):
     assert large_text == result
 
 @pytest.mark.benchmark(group="encryption")
-def test_benchmark_encryption():
+def test_benchmark_encryption(benchmark):
     """Test benchmark encryption functionality."""
     # Create a temporary file for testing
     with tempfile.NamedTemporaryFile(suffix='.txt', delete=False) as temp_file:
@@ -85,7 +87,7 @@ def test_benchmark_encryption():
 
     try:
         # Run benchmark
-        result = benchmark.benchmark_encryption(temp_file_path)
+        result = benchmark(benchmark.benchmark_encryption, temp_file_path)
         
         # Verify result structure
         assert isinstance(result, dict)
