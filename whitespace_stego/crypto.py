@@ -113,7 +113,7 @@ def decrypt_message(encrypted_message: str, password: Optional[str] = None) -> s
     """
     try:
         if password is None:
-            return base64.b64decode(encrypted_message.encode()).decode()
+            return base64.b64decode(encrypted_message.encode()).decode('utf-8')
             
         # Decode the base64 message
         encrypted_data = base64.b64decode(encrypted_message.encode())
