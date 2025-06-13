@@ -123,15 +123,15 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="Hide messages in text using zero-width Unicode characters"
     )
-    parser.add_argument(
+    subparsers = parser.add_subparsers(dest="command", required=True)
+    # Encode command
+    encode_parser = subparsers.add_parser("encode", help="Encode a message")
+    encode_parser.add_argument(
         "--backend",
         choices=["python", "rust"],
         default="python",
         help="Backend to use for encoding/decoding (default: python)"
     )
-    subparsers = parser.add_subparsers(dest="command", required=True)
-    # Encode command
-    encode_parser = subparsers.add_parser("encode", help="Encode a message")
     encode_parser.add_argument("-m", "--message", type=str, help="Message as a string")
     encode_parser.add_argument("-mf", "--message-file", type=Path, help="Message file ('-' for stdin)")
     encode_parser.add_argument("-c", "--carrier", type=str, help="Carrier text as a string")
@@ -146,6 +146,12 @@ def main() -> None:
     encode_parser.set_defaults(func=encode_command)
     # Decode command
     decode_parser = subparsers.add_parser("decode", help="Decode a message")
+    decode_parser.add_argument(
+        "--backend",
+        choices=["python", "rust"],
+        default="python",
+        help="Backend to use for encoding/decoding (default: python)"
+    )
     decode_parser.add_argument("-i", "--input", type=str, help="Input as a string")
     decode_parser.add_argument("-if", "--input-file", type=Path, help="Input file ('-' for stdin)")
     decode_parser.add_argument("-p", "--password", help="Decryption password")
