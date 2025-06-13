@@ -22,7 +22,7 @@ run_test() {
     # Encode the message using Rust backend
     echo "Encoding..."
     encoded=$(python3 -c "
-from whitespace_stego import encode_and_insert
+from whitespace_stego.encode import encode_and_insert
 print(encode_and_insert('$message', '$carrier'${password:+, '$password'}))
 ")
 
@@ -36,7 +36,7 @@ print(encode_and_insert('$message', '$carrier'${password:+, '$password'}))
     # Decode the message using Rust backend
     echo "Decoding..."
     decoded=$(python3 -c "
-from whitespace_stego import decode_and_remove
+from whitespace_stego.decode import decode_and_remove
 decoded, _ = decode_and_remove('$encoded'${password:+, '$password'})
 print(decoded)
 ")
