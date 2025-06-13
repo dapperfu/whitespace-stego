@@ -27,27 +27,19 @@ static const char* INVALID_CHARS[] = {
 };
 
 bool is_valid_carrier(const char* text, size_t len) {
-    if (!text) {
+    if (!text || len == 0) {
         return false;
     }
 
-    for (size_t i = 0; i < len;) {
-        int matched = 0;
-        for (size_t j = 0; j < sizeof(INVALID_CHARS) / sizeof(INVALID_CHARS[0]); ++j) {
-            size_t invalid_len = strlen(INVALID_CHARS[j]);
-            if (i + invalid_len <= len && memcmp(text + i, INVALID_CHARS[j], invalid_len) == 0) {
+    // Check for invalid characters
+    for (size_t i = 0; i < len; i++) {
+        for (size_t j = 0; j < sizeof(INVALID_CHARS) / sizeof(INVALID_CHARS[0]); j++) {
+            if (text[i] == INVALID_CHARS[j]) {
                 return false;
             }
         }
-        if (text[i] & 0x80) {  // UTF-8 continuation byte
-            i++;
-            while (i < len && (text[i] & 0xC0) == 0x80) {
-                i++;
-            }
-        } else {
-            i++;
-        }
     }
+
     return true;
 }
 
