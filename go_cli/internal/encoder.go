@@ -61,11 +61,16 @@ func (e *Encoder) Encode(message string, carrier string) (string, error) {
 	// Add end delimiter
 	encoded += InvisiblePlus
 
-	// If carrier is provided, insert the encoded message into it
+	// If carrier is provided, insert the encoded message before the last character (if len > 1), or after the first (if len == 1)
 	if carrier != "" {
-		// For now, just append to carrier
-		// TODO: Implement proper carrier insertion logic
-		encoded = carrier + encoded
+		runes := []rune(carrier)
+		if len(runes) > 1 {
+			// Insert before the last character
+			encoded = string(runes[:len(runes)-1]) + encoded + string(runes[len(runes)-1:])
+		} else {
+			// Insert after the first (and only) character
+			encoded = string(runes[0]) + encoded
+		}
 	}
 
 	return encoded, nil
@@ -113,11 +118,16 @@ func (e *Encoder) EncodeWithLength(message string, carrier string) (string, erro
 	// Combine length and message
 	encoded := lengthEncoded + msgEncoded
 
-	// If carrier is provided, insert the encoded message into it
+	// If carrier is provided, insert the encoded message before the last character (if len > 1), or after the first (if len == 1)
 	if carrier != "" {
-		// For now, just append to carrier
-		// TODO: Implement proper carrier insertion logic
-		encoded = carrier + encoded
+		runes := []rune(carrier)
+		if len(runes) > 1 {
+			// Insert before the last character
+			encoded = string(runes[:len(runes)-1]) + encoded + string(runes[len(runes)-1:])
+		} else {
+			// Insert after the first (and only) character
+			encoded = string(runes[0]) + encoded
+		}
 	}
 
 	return encoded, nil
