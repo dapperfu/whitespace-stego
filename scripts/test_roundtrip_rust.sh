@@ -14,34 +14,50 @@ run_test_backend() {
     local test_num="$5"
 
     echo "  Backend: $backend"
-    # Encode the message
-    encoded=$(python3 -c "
-from whitespace_stego.encode import encode_and_insert
-print(encode_and_insert('$message', '$carrier'${password:+, '$password'}, backend='$backend'))
-")
+    # Create temp files
+    msgfile=$(mktemp)
+    carrierfile=$(mktemp)
+    encodedfile=$(mktemp)
+    decodedfile=$(mktemp)
+    echo -n "$message" > "$msgfile"
+    echo -n "$carrier" > "$carrierfile"
+
+    # Encode
+    if [ -n "$password" ]; then
+        venv/bin/whitespace-stego encode --backend "$backend" -mf "$msgfile" -cf "$carrierfile" -p "$password" -o "$encodedfile"
+    else
+        venv/bin/whitespace-stego encode --backend "$backend" -mf "$msgfile" -cf "$carrierfile" -o "$encodedfile"
+    fi
     if [ $? -ne 0 ]; then
         echo -e "${RED}    Encoding failed${NC}"
+        rm -f "$msgfile" "$carrierfile" "$encodedfile" "$decodedfile"
         return 1
     fi
+    encoded=$(cat "$encodedfile")
     echo "    Encoded: \`$encoded\`"
-    # Decode the message
-    decoded=$(python3 -c "
-from whitespace_stego.decode import decode_and_remove
-decoded, _ = decode_and_remove('$encoded'${password:+, '$password'}, backend='$backend')
-print(decoded)
-")
+
+    # Decode
+    if [ -n "$password" ]; then
+        venv/bin/whitespace-stego decode --backend "$backend" -if "$encodedfile" -p "$password" -o "$decodedfile"
+    else
+        venv/bin/whitespace-stego decode --backend "$backend" -if "$encodedfile" -o "$decodedfile"
+    fi
     if [ $? -ne 0 ]; then
         echo -e "${RED}    Decoding failed${NC}"
+        rm -f "$msgfile" "$carrierfile" "$encodedfile" "$decodedfile"
         return 1
     fi
-    # Compare original and decoded messages
+    decoded=$(cat "$decodedfile")
+    # Compare
     if [ "$message" = "$decoded" ]; then
         echo -e "${GREEN}    Test passed: Message matches${NC}"
+        rm -f "$msgfile" "$carrierfile" "$encodedfile" "$decodedfile"
         return 0
     else
         echo -e "${RED}    Test failed: Message mismatch${NC}"
         echo "    Original: $message"
         echo "    Decoded:  $decoded"
+        rm -f "$msgfile" "$carrierfile" "$encodedfile" "$decodedfile"
         return 1
     fi
 }
