@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"encoding/base64"
 	"encoding/binary"
 	"fmt"
 	"strings"
@@ -68,6 +69,13 @@ func (d *Decoder) Decode(encoded string) (string, error) {
 		return string(decrypted), nil
 	}
 
+	// Try to decode as base64 first
+	decoded, err := base64.StdEncoding.DecodeString(string(bytes))
+	if err == nil {
+		return string(decoded), nil
+	}
+
+	// If base64 decoding fails, return raw bytes
 	return string(bytes), nil
 }
 
