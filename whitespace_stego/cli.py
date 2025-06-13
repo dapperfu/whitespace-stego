@@ -65,6 +65,7 @@ def encode_command(args: argparse.Namespace) -> None:
         Command-line arguments.
     """
     message = read_text_source(getattr(args, "message_file", None), sys.stdin) if getattr(args, "message_file", None) else getattr(args, "message", "")
+    print(f"Debug: Message received: '{message}'", file=sys.stderr)
     carrier = read_text_source(getattr(args, "carrier_file", None), sys.stdin) if getattr(args, "carrier_file", None) else getattr(args, "carrier", "")
     backend = getattr(args, "backend", "python")
     try:
