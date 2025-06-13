@@ -109,9 +109,8 @@ pub fn decode_message(text: &str, password: Option<&str>) -> Result<String, Stri
     let bytes = binary_to_bytes(&binary)?;
 
     if let Some(password) = password {
-        // Treat bytes as base64 string
-        let base64_str = String::from_utf8(bytes.clone()).map_err(|e| e.to_string())?;
-        let encrypted_data = BASE64.decode(base64_str).map_err(|e| e.to_string())?;
+        // Decode base64 directly from bytes
+        let encrypted_data = BASE64.decode(&bytes).map_err(|e| e.to_string())?;
         if encrypted_data.len() < SALT_LENGTH + IV_LENGTH + TAG_LENGTH {
             return Err("Invalid encrypted data length".to_string());
         }
