@@ -89,7 +89,7 @@ def binary_to_base64(binary: str) -> str:
     bytes_data = bytes(int(binary[i:i+8], 2) for i in range(0, len(binary), 8))
     
     # Convert bytes to base64 string
-    return bytes_data.decode()
+    return base64.b64encode(bytes_data).decode()
 
 def decode_message(text: str, password: Optional[str] = None) -> str:
     """Decode a hidden message from text.
