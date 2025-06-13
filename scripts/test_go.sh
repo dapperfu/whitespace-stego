@@ -140,8 +140,17 @@ test_file_operations "File operations - Unicode" "Hello, 世界!" ""
 test_file_operations "File operations - With password" "Secret message" "mypassword"
 
 # Test command-line arguments
-run_test "Command-line argument encoding" "./bin/whitespace-stego-go encode 'Hello, World!'" "$(echo 'Hello, World!' | ./bin/whitespace-stego-go encode)"
-run_test "Command-line argument with password" "./bin/whitespace-stego-go encode -p 'mypassword' 'Secret message'" "$(echo 'Secret message' | ./bin/whitespace-stego-go encode -p 'mypassword')"
+encoded1=$(./bin/whitespace-stego-go encode 'Hello, World!')
+decoded1=$(echo "$encoded1" | ./bin/whitespace-stego-go decode)
+encoded2=$(echo 'Hello, World!' | ./bin/whitespace-stego-go encode)
+decoded2=$(echo "$encoded2" | ./bin/whitespace-stego-go decode)
+run_test "Command-line argument encoding (decoded)" "echo '$decoded1'" "$decoded2"
+
+encoded3=$(./bin/whitespace-stego-go encode -p 'mypassword' 'Secret message')
+decoded3=$(echo "$encoded3" | ./bin/whitespace-stego-go decode -p 'mypassword')
+encoded4=$(echo 'Secret message' | ./bin/whitespace-stego-go encode -p 'mypassword')
+decoded4=$(echo "$encoded4" | ./bin/whitespace-stego-go decode -p 'mypassword')
+run_test "Command-line argument with password (decoded)" "echo '$decoded3'" "$decoded4"
 
 # Test wrong password
 echo "Testing wrong password..."

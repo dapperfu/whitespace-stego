@@ -1,7 +1,8 @@
 """Tests for the whitespace steganography package."""
 
 import pytest
-from whitespace_stego import encode, decode
+from whitespace_stego.encode import encode as encode_message
+from whitespace_stego.decode import decode_message
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
@@ -61,9 +62,9 @@ def test_stego_encode_decode(message: str, password: str | None, carrier: str) -
     # Empty messages should fail with ValueError
     if not message:
         with pytest.raises(ValueError, match="Message must not be empty"):
-            encode(message, carrier=carrier, password=password)
+            encode_message(message, carrier=carrier, password=password)
         return
         
-    encoded = encode(message, carrier=carrier, password=password)
-    decoded = decode(encoded, password=password)
+    encoded = encode_message(message, carrier=carrier, password=password)
+    decoded = decode_message(encoded, password=password)
     assert decoded == message 

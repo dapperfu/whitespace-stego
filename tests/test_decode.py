@@ -52,8 +52,8 @@ def test_binary_to_base64() -> None:
     logging.debug(f"Running {__name__}.test_binary_to_base64")
     # Valid binary (8 bits = 1 byte)
     binary = "01000001"  # ASCII 'A'
-    base64_str = binary_to_base64(binary)
-    assert base64_str == "A"
+    base64_bytes = binary_to_base64(binary)
+    assert base64_bytes == b'A'
     
     # Invalid length
     with pytest.raises(ValueError, match="must be a multiple of 8"):

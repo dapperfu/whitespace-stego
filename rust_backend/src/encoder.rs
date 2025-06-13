@@ -6,8 +6,11 @@ use aes_gcm::{
 };
 use pbkdf2::Pbkdf2;
 use pbkdf2::password_hash::{PasswordHasher, SaltString};
-use rand::{Rng, rngs::OsRng};
+use rand::{Rng, rngs::OsRng, distributions::Alphanumeric};
 use std::io::{self, Write};
+use hex;
+use hmac::Hmac;
+use sha2::Sha256;
 
 const SALT_LENGTH: usize = 16;
 const IV_LENGTH: usize = 12;
@@ -17,6 +20,46 @@ const TAG_LENGTH: usize = 16;
 const KEY_LENGTH: usize = 32; // 256 bits
 #[allow(dead_code)]
 const ITERATIONS: u32 = 100_000;
+
+/// Generate a random salt string of a given length using only [A-Za-z0-9./].
+///
+/// # Arguments
+///
+/// * `len` - The length of the salt string to generate
+///
+/// # Returns
+///
+/// * `String` - The generated salt string
+fn generate_phc_salt(len: usize) -> String {
+    const PHC_CHARS: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789./";
+    let mut rng = OsRng;
+    (0..len)
+        .map(|_| {
+            let idx = rng.gen_range(0..PHC_CHARS.len());
+            PHC_CHARS[idx] as char
+        })
+        .collect()
+}
+
+/// Generate a random salt as PHC bytes.
+///
+/// # Arguments
+///
+/// * `len` - The length of the salt bytes to generate
+///
+/// # Returns
+///
+/// * `Vec<u8>` - The generated salt bytes
+fn generate_phc_salt_bytes(len: usize) -> Vec<u8> {
+    const PHC_CHARS: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789./";
+    let mut rng = OsRng;
+    (0..len)
+        .map(|_| {
+            let idx = rng.gen_range(0..PHC_CHARS.len());
+            PHC_CHARS[idx]
+        })
+        .collect()
+}
 
 /// Derive an encryption key from a password using PBKDF2.
 ///
@@ -29,14 +72,14 @@ const ITERATIONS: u32 = 100_000;
 ///
 /// * `Vec<u8>` - The derived key
 fn derive_key(password: &str, salt: &[u8]) -> Vec<u8> {
-    let salt_str = BASE64.encode(salt);
-    let salt = SaltString::new(&salt_str).expect("Invalid salt");
-    let password_hash = Pbkdf2.hash_password(
+    let mut key = vec![0u8; KEY_LENGTH];
+    pbkdf2::pbkdf2::<Hmac<Sha256>>(
         password.as_bytes(),
-        &salt,
+        salt,
+        ITERATIONS,
+        &mut key,
     ).unwrap();
-
-    password_hash.hash.unwrap().as_bytes().to_vec()
+    key
 }
 
 /// Encode a binary string into zero-width characters.
@@ -68,24 +111,20 @@ pub fn encode_binary(binary: &str) -> Result<String, String> {
 ///
 /// * `Result<String, String>` - The text with the hidden message, or an error message
 pub fn encode_message(message: &str, password: Option<&str>) -> Result<String, String> {
-    // Encrypt/encode the message
     let bytes = if let Some(password) = password {
-        // Generate a random salt and IV
-        let mut salt = [0u8; SALT_LENGTH];
+        // Generate a random salt as PHC bytes
+        let salt = generate_phc_salt_bytes(SALT_LENGTH);
+        // Generate a random IV
         let mut iv = [0u8; IV_LENGTH];
-        OsRng.fill(&mut salt);
         OsRng.fill(&mut iv);
-
         // Derive key using the salt
         let key = derive_key(password, &salt);
         let cipher = Aes256Gcm::new(Key::<Aes256Gcm>::from_slice(&key));
         let nonce = Nonce::from_slice(&iv);
-
         // Encrypt the message
         let mut buffer = message.as_bytes().to_vec();
         let tag = cipher.encrypt_in_place_detached(nonce, b"", &mut buffer).map_err(|e| e.to_string())?;
-
-        // Combine salt, IV, tag, and ciphertext
+        // Combine salt + iv + tag + ciphertext
         let mut combined = Vec::new();
         combined.extend_from_slice(&salt);
         combined.extend_from_slice(&iv);
@@ -95,21 +134,16 @@ pub fn encode_message(message: &str, password: Option<&str>) -> Result<String, S
     } else {
         message.as_bytes().to_vec()
     };
-
     // Base64 encode the bytes
     let encoded = BASE64.encode(&bytes);
-
     // Convert to binary
     let binary = encoded.as_bytes().iter()
         .map(|&b| format!("{:08b}", b))
         .collect::<String>();
-
     // Encode binary into zero-width characters
     let zero_width = encode_binary(&binary)?;
-
     // Just return the payload with markers
-    let result = format!("{}{}{}", START_MARKER, zero_width, END_MARKER);
-    Ok(result)
+    Ok(format!("{}{}{}", START_MARKER, zero_width, END_MARKER))
 }
 
 /// Insert a steganographic payload into carrier text.

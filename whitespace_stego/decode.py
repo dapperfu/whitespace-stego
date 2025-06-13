@@ -113,10 +113,14 @@ def decode_message(text: str, password: Optional[str] = None) -> str:
     # Convert to base64 bytes
     base64_bytes = binary_to_base64(binary)
     # Convert base64 bytes to string
-    base64_str = base64_bytes.decode('utf-8')
+    base64_str = base64_bytes.decode('ascii')  # Base64 is ASCII-safe
     # Decrypt/Decode the message
     try:
-        return decrypt_message(base64_str, password)
+        if password is not None:
+            return decrypt_message(base64_str, password)
+        else:
+            # If no password, decode base64 directly
+            return base64.b64decode(base64_str).decode('utf-8')
     except ValueError as e:
         raise ValueError(f"Failed to decode message: {str(e)}")
 

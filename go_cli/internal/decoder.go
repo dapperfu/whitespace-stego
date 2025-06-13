@@ -8,13 +8,13 @@ import (
 
 // Decoder handles the decoding of zero-width characters into messages
 type Decoder struct {
-	password []byte
+	password string
 }
 
 // NewDecoder creates a new decoder instance
 func NewDecoder(password string) *Decoder {
 	return &Decoder{
-		password: []byte(password),
+		password: password,
 	}
 }
 
@@ -58,33 +58,57 @@ func (d *Decoder) Decode(encoded string) (string, error) {
 		}
 	}
 
+	// Decrypt if password is set
+	if d.password != "" {
+		decrypted, err := Decrypt(string(bytes), d.password)
+		if err != nil {
+			return "", fmt.Errorf("failed to decrypt message: %w", err)
+		}
+		return string(decrypted), nil
+	}
+
 	return string(bytes), nil
 }
 
 // DecodeWithLength decodes a message that includes its length
 func (d *Decoder) DecodeWithLength(encoded string) (string, error) {
-	// First, find the length part
-	lengthEncoded, err := d.Decode(encoded)
+	// Find the first block (length)
+	startIdx := strings.Index(encoded, WordJoiner)
+	if startIdx == -1 {
+		return "", fmt.Errorf("start delimiter for length not found")
+	}
+	endIdx := strings.Index(encoded, InvisiblePlus)
+	if endIdx == -1 {
+		return "", fmt.Errorf("end delimiter for length not found")
+	}
+	lengthBlock := encoded[startIdx : endIdx+len(InvisiblePlus)]
+
+	lengthDecoded, err := d.Decode(lengthBlock)
 	if err != nil {
 		return "", fmt.Errorf("failed to decode length: %w", err)
 	}
-
-	// Convert length bytes to uint32
-	if len(lengthEncoded) < 4 {
+	if len(lengthDecoded) < 4 {
 		return "", fmt.Errorf("invalid length encoding")
 	}
-	length := binary.BigEndian.Uint32([]byte(lengthEncoded[:4]))
+	length := binary.BigEndian.Uint32([]byte(lengthDecoded[:4]))
 
-	// Decode the actual message
-	message, err := d.Decode(encoded)
+	// Remove the first block and decode the next block (message)
+	remaining := encoded[endIdx+len(InvisiblePlus):]
+	startIdx2 := strings.Index(remaining, WordJoiner)
+	if startIdx2 == -1 {
+		return "", fmt.Errorf("start delimiter for message not found")
+	}
+	endIdx2 := strings.Index(remaining, InvisiblePlus)
+	if endIdx2 == -1 {
+		return "", fmt.Errorf("end delimiter for message not found")
+	}
+	messageBlock := remaining[startIdx2 : endIdx2+len(InvisiblePlus)]
+	message, err := d.Decode(messageBlock)
 	if err != nil {
 		return "", fmt.Errorf("failed to decode message: %w", err)
 	}
-
-	// Verify message length
 	if uint32(len(message)) != length {
 		return "", fmt.Errorf("message length mismatch: expected %d, got %d", length, len(message))
 	}
-
 	return message, nil
 }

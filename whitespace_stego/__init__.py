@@ -1,6 +1,17 @@
-"""Whitespace steganography package."""
+"""Whitespace steganography library.
 
-from .encode import encode_and_insert as encode
-from .decode import decode_and_remove as decode
+This package provides functionality for hiding messages in text using zero-width characters.
+"""
 
-__all__ = ['encode', 'decode'] 
+from . import encode, decode, crypto, common
+from .benchmark import benchmark_encryption, benchmark_compression
+
+__version__ = "0.1.0"
+__all__ = [
+    'encode',
+    'decode',
+    'crypto',
+    'common',
+    'benchmark_encryption',
+    'benchmark_compression'
+] 

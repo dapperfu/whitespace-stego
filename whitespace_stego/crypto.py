@@ -68,7 +68,7 @@ def encrypt_message(message: str, password: Optional[str] = None) -> str:
     before being base64 encoded.
     """
     if password is None:
-        return base64.b64encode(message.encode()).decode()
+        return base64.b64encode(message.encode('utf-8')).decode('ascii')
         
     # Generate a random IV
     iv = os.urandom(12)
@@ -113,20 +113,16 @@ def decrypt_message(encrypted_message: str, password: Optional[str] = None) -> s
     """
     try:
         if password is None:
-            return base64.b64decode(encrypted_message.encode()).decode('utf-8')
-            
+            return base64.b64decode(encrypted_message.encode('ascii')).decode('utf-8')
         # Decode the base64 message
         encrypted_data = base64.b64decode(encrypted_message.encode())
-        
         # Extract salt, iv, tag, and ciphertext
         salt = encrypted_data[:SALT_LENGTH]
         iv = encrypted_data[SALT_LENGTH:SALT_LENGTH + 12]
         tag = encrypted_data[SALT_LENGTH + 12:SALT_LENGTH + 28]
         ciphertext = encrypted_data[SALT_LENGTH + 28:]
-        
         # Derive key using the stored salt
         key, _ = derive_key(password, salt)
-        
         # Create cipher
         cipher = Cipher(
             algorithms.AES(key),
@@ -134,10 +130,8 @@ def decrypt_message(encrypted_message: str, password: Optional[str] = None) -> s
             backend=default_backend()
         )
         decryptor = cipher.decryptor()
-        
         # Decrypt the message
         plaintext = decryptor.update(ciphertext) + decryptor.finalize()
-        return plaintext.decode()
-        
+        return plaintext.decode('utf-8')
     except Exception as e:
         raise ValueError(f"Decryption failed: {str(e)}") 

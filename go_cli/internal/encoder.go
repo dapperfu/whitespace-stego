@@ -29,7 +29,6 @@ func NewEncoder(password string) *Encoder {
 func (e *Encoder) Encode(message string, carrier string) (string, error) {
 	// Encrypt the message if a password is provided
 	var msgBytes []byte
-	var err error
 	if e.password != "" {
 		encrypted, err := Encrypt([]byte(message), e.password)
 		if err != nil {
@@ -84,11 +83,32 @@ func (e *Encoder) EncodeWithLength(message string, carrier string) (string, erro
 		return "", fmt.Errorf("failed to encode length: %w", err)
 	}
 
-	// Encode message
-	msgEncoded, err := e.Encode(message, "")
-	if err != nil {
-		return "", fmt.Errorf("failed to encode message: %w", err)
+	// Encrypt the message if a password is provided
+	var msgBytes []byte
+	if e.password != "" {
+		encrypted, err := Encrypt([]byte(message), e.password)
+		if err != nil {
+			return "", fmt.Errorf("failed to encrypt message: %w", err)
+		}
+		msgBytes = []byte(encrypted)
+	} else {
+		msgBytes = []byte(message)
 	}
+
+	// Create the encoded string for the message
+	var msgEncoded string
+	msgEncoded += WordJoiner
+	for _, b := range msgBytes {
+		for i := 7; i >= 0; i-- {
+			bit := (b >> i) & 1
+			if bit == 1 {
+				msgEncoded += ZeroWidthSpace
+			} else {
+				msgEncoded += ZeroWidthNonJoiner
+			}
+		}
+	}
+	msgEncoded += InvisiblePlus
 
 	// Combine length and message
 	encoded := lengthEncoded + msgEncoded

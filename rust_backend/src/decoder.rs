@@ -8,6 +8,9 @@ use pbkdf2::Pbkdf2;
 use pbkdf2::password_hash::{PasswordHasher, SaltString};
 use rand::{Rng, rngs::OsRng};
 use std::io::{self, Write};
+use hex;
+use hmac::Hmac;
+use sha2::Sha256;
 
 const SALT_LENGTH: usize = 16;
 const IV_LENGTH: usize = 12;
@@ -28,14 +31,14 @@ const ITERATIONS: u32 = 100_000;
 ///
 /// * `Vec<u8>` - The derived key
 fn derive_key(password: &str, salt: &[u8]) -> Vec<u8> {
-    let salt_str = BASE64.encode(salt);
-    let salt = SaltString::new(&salt_str).expect("Invalid salt");
-    let password_hash = Pbkdf2.hash_password(
+    let mut key = vec![0u8; KEY_LENGTH];
+    pbkdf2::pbkdf2::<Hmac<Sha256>>(
         password.as_bytes(),
-        &salt,
+        salt,
+        ITERATIONS,
+        &mut key,
     ).unwrap();
-
-    password_hash.hash.unwrap().as_bytes().to_vec()
+    key
 }
 
 /// Decode a binary string from zero-width characters.
