@@ -4,13 +4,8 @@
 //! using zero-width Unicode whitespace characters.
 
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
-use crypto::buffer::{BufferResult, ReadBuffer, WriteBuffer};
-use crypto::symmetriccipher::{Decryptor, Encryptor};
-use crypto::aes::cbc_encryptor;
-use crypto::aes::cbc_decryptor;
-use crypto::blockmodes::PkcsPadding;
-use crypto::aes::KeySize::KeySize256;
 use thiserror::Error;
+use fernet::{Fernet, DecryptionError};
 
 /// Error type for steganography operations
 #[derive(Error, Debug)]
@@ -66,80 +61,36 @@ fn decode_binary(encoded: &str) -> Vec<u8> {
     result
 }
 
-/// Encrypt data using AES-256-CBC
+/// Encrypt data using Fernet (compatible with Python cryptography.fernet)
 fn encrypt_data(data: &[u8], password: &str) -> Result<Vec<u8>, StegoError> {
-    let key = derive_key(password);
-    let iv = [0u8; 16]; // In production, use a proper IV
-
-    let mut encryptor = cbc_encryptor(
-        KeySize256,
-        &key,
-        &iv,
-        PkcsPadding,
-    );
-
-    let mut buffer = [0; 4096];
-    let mut read_buffer = crypto::buffer::RefReadBuffer::new(data);
-    let mut write_buffer = crypto::buffer::RefWriteBuffer::new(&mut buffer);
-    let mut result = Vec::new();
-
-    loop {
-        let result = encryptor.encrypt(&mut read_buffer, &mut write_buffer, true)
-            .map_err(|e| StegoError::EncryptionFailed(e.to_string()))?;
-
-        result.extend_from_slice(write_buffer.take_read_buffer().take_remaining());
-
-        match result {
-            BufferResult::BufferUnderflow => break,
-            BufferResult::BufferOverflow => {}
-        }
-    }
-
-    Ok(result)
+    let key = derive_fernet_key(password);
+    let fernet = Fernet::new(&key).ok_or_else(|| StegoError::EncodingFailed("Invalid Fernet key".to_string()))?;
+    Ok(fernet.encrypt(data).as_bytes().to_vec())
 }
 
-/// Decrypt data using AES-256-CBC
+/// Decrypt data using Fernet (compatible with Python cryptography.fernet)
 fn decrypt_data(data: &[u8], password: &str) -> Result<Vec<u8>, StegoError> {
-    let key = derive_key(password);
-    let iv = [0u8; 16]; // In production, use a proper IV
-
-    let mut decryptor = cbc_decryptor(
-        KeySize256,
-        &key,
-        &iv,
-        PkcsPadding,
-    );
-
-    let mut buffer = [0; 4096];
-    let mut read_buffer = crypto::buffer::RefReadBuffer::new(data);
-    let mut write_buffer = crypto::buffer::RefWriteBuffer::new(&mut buffer);
-    let mut result = Vec::new();
-
-    loop {
-        let result = decryptor.decrypt(&mut read_buffer, &mut write_buffer, true)
-            .map_err(|e| StegoError::DecryptionFailed(e.to_string()))?;
-
-        result.extend_from_slice(write_buffer.take_read_buffer().take_remaining());
-
-        match result {
-            BufferResult::BufferUnderflow => break,
-            BufferResult::BufferOverflow => {}
-        }
-    }
-
-    Ok(result)
+    let key = derive_fernet_key(password);
+    let fernet = Fernet::new(&key).ok_or_else(|| StegoError::DecryptionFailed("Invalid Fernet key".to_string()))?;
+    let data_str = std::str::from_utf8(data).map_err(|e| StegoError::DecryptionFailed(e.to_string()))?;
+    fernet.decrypt(data_str).map_err(|e| StegoError::DecryptionFailed(e.to_string()))
 }
 
-/// Derive a 32-byte key from a password
-fn derive_key(password: &str) -> [u8; 32] {
-    let mut key = [0u8; 32];
-    let password_bytes = password.as_bytes();
-    
-    for (i, &byte) in password_bytes.iter().cycle().take(32).enumerate() {
-        key[i] = byte;
+/// Derive a Fernet key from a password (base64.urlsafe_b64encode(password.encode('utf-8').ljust(32)[:32]))
+fn derive_fernet_key(password: &str) -> String {
+    use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine as _};
+    let mut key_bytes = [0u8; 32];
+    let pw_bytes = password.as_bytes();
+    for (i, &b) in pw_bytes.iter().enumerate().take(32) {
+        key_bytes[i] = b;
     }
-    
-    key
+    // If password is shorter than 32 bytes, pad with spaces (like Python's ljust)
+    if pw_bytes.len() < 32 {
+        for i in pw_bytes.len()..32 {
+            key_bytes[i] = b' ';
+        }
+    }
+    URL_SAFE_NO_PAD.encode(&key_bytes)
 }
 
 /// Encode a message into carrier text using zero-width characters
@@ -157,17 +108,21 @@ pub fn encode(message: &str, carrier: &str, password: Option<&str>) -> Result<St
     let zero_width = encode_binary(&data);
     let encoded_message = format!("{}{}{}", START_MARKER, zero_width, END_MARKER);
 
-    // Return just the encoded message if no carrier
-    if carrier.is_empty() {
-        return Ok(encoded_message);
-    }
-
     // Embed in carrier after first character
     let mut result = String::with_capacity(carrier.len() + encoded_message.len());
-    result.push(carrier.chars().next().unwrap());
-    result.push_str(&encoded_message);
-    result.push_str(&carrier[1..]);
-
+    if let Some((first_char_end, _)) = carrier.char_indices().nth(1) {
+        // Get the first character and the rest of the string
+        result.push_str(&carrier[..first_char_end]);
+        result.push_str(&encoded_message);
+        result.push_str(&carrier[first_char_end..]);
+    } else if !carrier.is_empty() {
+        // Only one character in carrier
+        result.push_str(carrier);
+        result.push_str(&encoded_message);
+    } else {
+        // carrier is empty, just return the encoded message
+        return Ok(encoded_message);
+    }
     Ok(result)
 }
 
@@ -181,9 +136,11 @@ pub fn decode(carrier: &str, password: Option<&str>) -> Result<String, StegoErro
         StegoError::InvalidCarrier("No end marker found".to_string())
     })?;
 
-    // Extract the encoded message
-    let encoded = &carrier[start + 1..end];
-    let mut data = decode_binary(encoded);
+    // Use char_indices to get char boundaries
+    let start_char = carrier.char_indices().find(|&(i, c)| i == start && c == START_MARKER).map(|(i, _)| i).unwrap();
+    let end_char = carrier.char_indices().find(|&(i, c)| i == end && c == END_MARKER).map(|(i, _)| i).unwrap();
+    let encoded = carrier[start_char + START_MARKER.len_utf8()..end_char].to_string();
+    let mut data = decode_binary(&encoded);
 
     // Decrypt if password provided
     if let Some(pwd) = password {
@@ -193,7 +150,6 @@ pub fn decode(carrier: &str, password: Option<&str>) -> Result<String, StegoErro
     // Base64 decode and convert to string
     let decoded = BASE64.decode(&data)
         .map_err(|e| StegoError::DecryptionFailed(e.to_string()))?;
-    
     String::from_utf8(decoded)
         .map_err(|e| StegoError::DecryptionFailed(e.to_string()))
 }
@@ -206,10 +162,10 @@ pub fn extract_encoded(carrier: &str) -> Result<(String, String), StegoError> {
     let end = carrier.find(END_MARKER).ok_or_else(|| {
         StegoError::InvalidCarrier("No end marker found".to_string())
     })?;
-
-    let encoded = carrier[start..=end].to_string();
-    let remaining = format!("{}{}", &carrier[..start], &carrier[end + 1..]);
-
+    let start_char = carrier.char_indices().find(|&(i, c)| i == start && c == START_MARKER).map(|(i, _)| i).unwrap();
+    let end_char = carrier.char_indices().find(|&(i, c)| i == end && c == END_MARKER).map(|(i, _)| i).unwrap();
+    let encoded = carrier[start_char..=end_char + END_MARKER.len_utf8() - 1].to_string();
+    let remaining = format!("{}{}", &carrier[..start_char], &carrier[end_char + END_MARKER.len_utf8()..]);
     Ok((encoded, remaining))
 }
 

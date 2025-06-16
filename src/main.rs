@@ -15,55 +15,47 @@ struct Cli {
 enum Commands {
     /// Encode a message into carrier text
     Encode {
-        /// Message to encode
-        #[arg(short, long)]
+        /// Message to encode (use --message or -m)
+        #[arg(short = 'm', long)]
         message: Option<String>,
 
-        /// File containing message to encode
-        #[arg(short = 'f', long)]
+        /// File containing message to encode (use --mf or -f)
+        #[arg(short = 'f', long = "mf")]
         message_file: Option<PathBuf>,
 
-        /// Carrier text
-        #[arg(short, long)]
+        /// Carrier text (use --carrier or -c)
+        #[arg(short = 'c', long)]
         carrier: Option<String>,
 
-        /// File containing carrier text
-        #[arg(short = 'f', long)]
+        /// File containing carrier text (use --cf or -F)
+        #[arg(short = 'F', long = "cf")]
         carrier_file: Option<PathBuf>,
 
-        /// Password for encryption
-        #[arg(short, long)]
+        /// Password for encryption (use --password or -p)
+        #[arg(short = 'p', long)]
         password: Option<String>,
 
-        /// File containing password
-        #[arg(short = 'f', long)]
-        password_file: Option<PathBuf>,
-
-        /// Output file (use - for stdout)
-        #[arg(short, long)]
+        /// Output file (use --output or -o, use - for stdout)
+        #[arg(short = 'o', long)]
         output: Option<PathBuf>,
     },
 
     /// Decode a message from carrier text
     Decode {
-        /// Carrier text
-        #[arg(short, long)]
+        /// Carrier text (use --carrier or -c)
+        #[arg(short = 'c', long)]
         carrier: Option<String>,
 
-        /// File containing carrier text
-        #[arg(short = 'f', long)]
+        /// File containing carrier text (use --cf or -F)
+        #[arg(short = 'F', long = "cf")]
         carrier_file: Option<PathBuf>,
 
-        /// Password for decryption
-        #[arg(short, long)]
+        /// Password for decryption (use --password or -p)
+        #[arg(short = 'p', long)]
         password: Option<String>,
 
-        /// File containing password
-        #[arg(short = 'f', long)]
-        password_file: Option<PathBuf>,
-
-        /// Output file (use - for stdout)
-        #[arg(short, long)]
+        /// Output file (use --output or -o, use - for stdout)
+        #[arg(short = 'o', long)]
         output: Option<PathBuf>,
     },
 }
@@ -99,7 +91,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             carrier,
             carrier_file,
             password,
-            password_file,
             output,
         } => {
             // Read message
@@ -119,14 +110,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .unwrap_or_default();
 
             // Read password
-            if password.is_some() && password_file.is_some() {
-                return Err("Cannot specify both --password and --password-file".into());
-            }
-            let password_content = password
-                .or_else(|| password_file.as_ref().and_then(|f| read_file_or_stdin(Some(f)).ok()));
+            let password_content = password.as_deref();
 
             // Encode message
-            let encoded = encode(&message_content, &carrier_content, password_content.as_deref())
+            let encoded = encode(&message_content, &carrier_content, password_content)
                 .map_err(|e| e.to_string())?;
 
             // Write output
@@ -137,7 +124,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             carrier,
             carrier_file,
             password,
-            password_file,
             output,
         } => {
             // Read carrier
@@ -149,14 +135,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .ok_or("No carrier provided")?;
 
             // Read password
-            if password.is_some() && password_file.is_some() {
-                return Err("Cannot specify both --password and --password-file".into());
-            }
-            let password_content = password
-                .or_else(|| password_file.as_ref().and_then(|f| read_file_or_stdin(Some(f)).ok()));
+            let password_content = password.as_deref();
 
             // Decode message
-            let decoded = decode(&carrier_content, password_content.as_deref())
+            let decoded = decode(&carrier_content, password_content)
                 .map_err(|e| e.to_string())?;
 
             // Write output
