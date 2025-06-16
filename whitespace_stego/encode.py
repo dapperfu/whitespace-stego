@@ -1,5 +1,8 @@
-import base64
+"""Encode messages using whitespace steganography."""
+
 from typing import Optional
+import click
+from whitespace_stego.core import encode as core_encode
 
 # Zero-width Unicode characters for encoding
 ZWSP = '\u200B'  # Zero-width space
@@ -17,7 +20,7 @@ ONE_BIT = ZWJ
 
 def encode_message(message: str, carrier: str, password: Optional[str] = None) -> str:
     """
-    Encode a message into carrier text using zero-width Unicode characters.
+    Encode a message into carrier text using whitespace steganography.
     
     Args:
         message: The message to encode
@@ -27,6 +30,22 @@ def encode_message(message: str, carrier: str, password: Optional[str] = None) -
     Returns:
         The encoded carrier text with the message hidden using zero-width characters
     """
+    # Get the backend from CLI context
+    ctx = click.get_current_context()
+    backend = ctx.obj.get('backend', 'python') if ctx.obj else 'python'
+    
+    if backend == 'python':
+        # Use the core Python implementation
+        return core_encode(message, carrier, password)
+    elif backend == 'rust':
+        # Use the Rust backend
+        from whitespace_stego_backend import encode as rust_encode
+        return rust_encode(message, carrier, password)
+    else:
+        raise ValueError(f"Unknown backend: {backend}")
+
+def _encode_python(message: str, carrier: str, password: Optional[str] = None) -> str:
+    """Original Python implementation."""
     # Convert message to bytes and then base64
     message_bytes = message.encode('utf-8')
     message_b64 = base64.b64encode(message_bytes)

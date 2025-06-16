@@ -31,11 +31,11 @@ test: venv maturin-develop
 
 # Install Rust extension in development mode
 maturin-develop:
-	maturin develop
+	.venv/bin/maturin develop
 
 # Build Python wheel from Rust extension
 maturin-build:
-	maturin build --release
+	.venv/bin/maturin build --release
 
 # Build pure Rust CLI binary
 cargo-build:
@@ -47,11 +47,13 @@ cargo-clean:
 
 # Remove all build artifacts and virtual environment
 clean:
-	rm -rf .venv/
-	rm -rf target/
-	rm -rf build/
-	rm -rf dist/
-	rm -rf *.egg-info/
+	rm -rf .venv
+	rm -rf whitespace-stego-backend/target
+	rm -rf whitespace-stego-backend/*.egg-info
+	rm -rf whitespace-stego-backend/dist
+	rm -rf *.egg-info
+	rm -rf dist
+	rm -rf build
 	rm -f whitespace-stego-rs
 	cargo clean
 

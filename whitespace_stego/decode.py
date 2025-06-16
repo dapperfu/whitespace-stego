@@ -1,5 +1,8 @@
-import base64
+"""Decode messages using whitespace steganography."""
+
 from typing import Optional
+import click
+from whitespace_stego.core import decode as core_decode
 
 # Zero-width Unicode characters for encoding
 ZWSP = '\u200B'  # Zero-width space
@@ -17,7 +20,7 @@ ONE_BIT = ZWJ
 
 def decode_message(encoded_text: str, password: Optional[str] = None) -> str:
     """
-    Decode a message from text containing zero-width Unicode steganography.
+    Decode a message from text containing whitespace steganography.
     
     Args:
         encoded_text: The text containing the hidden message
@@ -29,6 +32,22 @@ def decode_message(encoded_text: str, password: Optional[str] = None) -> str:
     Raises:
         ValueError: If no valid message is found or if the message is corrupted
     """
+    # Get the backend from CLI context
+    ctx = click.get_current_context()
+    backend = ctx.obj.get('backend', 'python') if ctx.obj else 'python'
+    
+    if backend == 'python':
+        # Use the core Python implementation
+        return core_decode(encoded_text, password)
+    elif backend == 'rust':
+        # Use the Rust backend
+        from whitespace_stego_backend import decode as rust_decode
+        return rust_decode(encoded_text, password)
+    else:
+        raise ValueError(f"Unknown backend: {backend}")
+
+def _decode_python(encoded_text: str, password: Optional[str] = None) -> str:
+    """Original Python implementation."""
     # Find the start and end markers
     try:
         start_idx = encoded_text.index(START_MARKER)

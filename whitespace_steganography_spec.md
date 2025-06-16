@@ -1,4 +1,4 @@
-# Whitespace Steganography Project Specification
+xdg-o # Whitespace Steganography Project Specification
 
 ## Overview
 
