@@ -1,4 +1,4 @@
-.PHONY: help venv install test maturin-develop maturin-build cargo-build cargo-clean clean
+.PHONY: help venv install test maturin-develop maturin-build cargo-build cargo-clean clean format
 
 # Default target
 help:
@@ -12,6 +12,7 @@ help:
 	@echo "  cargo-build     - Build pure Rust CLI binary"
 	@echo "  cargo-clean     - Clean Rust build artifacts"
 	@echo "  clean           - Remove all build artifacts and virtual environment"
+	@echo "  format          - Format code (Rust and Python)"
 
 # Create Python virtual environment
 venv:
@@ -48,4 +49,9 @@ clean:
 	rm -rf target/
 	rm -rf build/
 	rm -rf dist/
-	rm -rf *.egg-info/ 
+	rm -rf *.egg-info/
+
+# Format code (Rust and Python)
+format:
+	cargo fmt
+	.venv/bin/ruff check --fix . 
