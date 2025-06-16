@@ -1,0 +1,45 @@
+name: Unified Test
+
+on:
+  push:
+    paths:
+      - 'python/**'
+      - 'rust/**'
+      - 'tests/**'
+  pull_request:
+    paths:
+      - 'python/**'
+      - 'rust/**'
+      - 'tests/**'
+
+jobs:
+  test-all:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Python deps
+        run: |
+          python -m venv .venv
+          . .venv/bin/activate
+          pip install -e python/
+          pip install pytest
+
+      - name: Install Maturin
+        run: pip install maturin
+
+      - name: Build PyO3
+        working-directory: rust/whitespace_stego_pyo3
+        run: maturin develop
+
+      - name: Build Rust CLI
+        working-directory: rust/whitespace_stego_rs
+        run: cargo build --release
+
+      - name: Run Python tests
+        run: .venv/bin/pytest tests/

@@ -1,0 +1,24 @@
+name: Python-PyO3
+
+on:
+  push:
+    paths:
+      - 'rust/whitespace_stego_pyo3/**'
+  pull_request:
+    paths:
+      - 'rust/whitespace_stego_pyo3/**'
+
+jobs:
+  build-pyo3:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python and Rust
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install Maturin
+        run: pip install maturin
+      - name: Build PyO3 module
+        working-directory: rust/whitespace_stego_pyo3
+        run: maturin develop
