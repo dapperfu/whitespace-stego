@@ -53,6 +53,7 @@ clean:
 	rm -rf build/
 	rm -rf dist/
 	rm -rf *.egg-info/
+	rm -f whitespace-stego-rs
 	cargo clean
 
 # Format code (Rust and Python)
