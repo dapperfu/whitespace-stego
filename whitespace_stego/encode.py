@@ -27,21 +27,20 @@ def encode_message(message: str, carrier: str, password: Optional[str] = None) -
     Returns:
         The encoded carrier text with the message hidden using zero-width characters
     """
-    # Convert message to base64 for binary-safe encoding
+    # Convert message to bytes and then base64
     message_bytes = message.encode('utf-8')
-    message_b64 = base64.b64encode(message_bytes).decode('utf-8')
+    message_b64 = base64.b64encode(message_bytes)
     
-    # If password is provided, use it to encrypt the base64 message
+    # If password is provided, encrypt the base64 bytes
     if password:
-        # Simple XOR encryption with password
         password_bytes = password.encode('utf-8')
         encrypted = bytearray()
-        for i, b in enumerate(message_bytes):
+        for i, b in enumerate(message_b64):
             encrypted.append(b ^ password_bytes[i % len(password_bytes)])
-        message_b64 = base64.b64encode(encrypted).decode('utf-8')
+        message_b64 = bytes(encrypted)
     
-    # Convert base64 to binary string
-    binary = ''.join(format(ord(c), '08b') for c in message_b64)
+    # Convert base64 bytes to binary string
+    binary = ''.join(format(b, '08b') for b in message_b64)
     
     # Add length prefix (32 bits) to know how many bits to decode
     length_binary = format(len(binary), '032b')

@@ -67,8 +67,7 @@ def decode_message(encoded_text: str, password: Optional[str] = None) -> str:
     # Extract the message binary
     message_binary = binary[32:32 + message_length]
     
-    # Convert binary back to base64
-    # Convert binary string to bytes (8 bits at a time)
+    # Convert binary string to bytes
     message_bytes = bytearray()
     for i in range(0, len(message_binary), 8):
         if i + 8 <= len(message_binary):
@@ -76,18 +75,16 @@ def decode_message(encoded_text: str, password: Optional[str] = None) -> str:
             message_bytes.append(byte)
     
     try:
-        # Decode base64
+        # Decrypt if password was used
         if password:
-            # Decrypt if password was used
             password_bytes = password.encode('utf-8')
             decrypted = bytearray()
             for i, b in enumerate(message_bytes):
                 decrypted.append(b ^ password_bytes[i % len(password_bytes)])
-            message = decrypted.decode('utf-8')
-        else:
-            # Decode base64 directly
-            message = base64.b64decode(message_bytes).decode('utf-8')
+            message_bytes = bytes(decrypted)
+        
+        # Decode base64 to get original message bytes
+        message = base64.b64decode(message_bytes).decode('utf-8')
+        return message
     except Exception as e:
-        raise ValueError(f"Failed to decode message: {str(e)}")
-    
-    return message 
+        raise ValueError(f"Failed to decode message: {str(e)}") 
