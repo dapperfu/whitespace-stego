@@ -8,7 +8,6 @@ import click
 import base64
 import logging
 
-from whitespace_stego.core import decode, encode
 from whitespace_stego.logger import setup_logger
 
 logger = setup_logger(__name__)
@@ -21,6 +20,28 @@ def write_file(file_path: str, content: str) -> None:
     """Write content to a file."""
     Path(file_path).write_text(content)
 
+def get_backend_implementation(backend: str):
+    """Get the appropriate backend implementation."""
+    if backend == "python":
+        from whitespace_stego.core import encode as py_encode, decode as py_decode
+        return py_encode, py_decode
+    elif backend == "rust":
+        try:
+            from whitespace_stego_backend import encode as rust_encode, decode as rust_decode
+            return rust_encode, rust_decode
+        except ImportError:
+            logger.error("Rust backend not available. Please ensure it is installed.")
+            sys.exit(1)
+    elif backend == "c":
+        try:
+            from whitespace_stego.c_backend import encode as c_encode, decode as c_decode
+            return c_encode, c_decode
+        except ImportError:
+            logger.error("C backend not available. Please ensure it is installed.")
+            sys.exit(1)
+    else:
+        raise ValueError(f"Unknown backend: {backend}")
+
 @click.group()
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
 @click.option("--backend", "-b", type=click.Choice(["python", "c", "rust"]), default="python", help="Backend implementation to use")
@@ -29,6 +50,10 @@ def cli(verbose: bool, backend: str) -> None:
     if verbose:
         logger.setLevel(logging.DEBUG)
     logger.debug("Using backend: %s", backend)
+    # Store backend in context
+    ctx = click.get_current_context()
+    ctx.ensure_object(dict)
+    ctx.obj['backend'] = backend
 
 @cli.command()
 @click.option("--message", "-m", help="Message to encode")
@@ -37,7 +62,8 @@ def cli(verbose: bool, backend: str) -> None:
 @click.option("--carrier-file", "-cf", help="File containing carrier text (optional)")
 @click.option("--password", "-p", help="Password for encryption")
 @click.option("--output", "-o", help="Output file (default: stdout)")
-def encode_command(message: Optional[str], message_file: Optional[str], 
+@click.pass_context
+def encode_command(ctx, message: Optional[str], message_file: Optional[str], 
                   carrier: Optional[str], carrier_file: Optional[str],
                   password: Optional[str], output: Optional[str]) -> None:
     """Encode a message into carrier text."""
@@ -62,9 +88,12 @@ def encode_command(message: Optional[str], message_file: Optional[str],
     logger.debug("Using carrier: %s", carrier_text if carrier_text else "None")
     logger.debug("Using password: %s", password if password else "None")
     
+    # Get backend implementation
+    encode_func, _ = get_backend_implementation(ctx.obj['backend'])
+    
     # Encode message
     try:
-        result = encode(message_text, carrier_text, password)
+        result = encode_func(message_text, carrier_text, password)
         logger.debug("Base64 encoded string: %s", 
                     base64.b64encode(message_text.encode("utf-8")).decode("utf-8"))
         logger.debug("Final encoded message: %s", result)
@@ -82,7 +111,8 @@ def encode_command(message: Optional[str], message_file: Optional[str],
 @click.option("--carrier-file", "-cf", help="File containing carrier text")
 @click.option("--password", "-p", help="Password for decryption")
 @click.option("--output", "-o", help="Output file (default: stdout)")
-def decode_command(carrier: Optional[str], carrier_file: Optional[str],
+@click.pass_context
+def decode_command(ctx, carrier: Optional[str], carrier_file: Optional[str],
                   password: Optional[str], output: Optional[str]) -> None:
     """Decode a message from carrier text."""
     # Get carrier
@@ -95,9 +125,12 @@ def decode_command(carrier: Optional[str], carrier_file: Optional[str],
     logger.debug("Decoding carrier: %s", carrier_text)
     logger.debug("Using password: %s", password if password else "None")
     
+    # Get backend implementation
+    _, decode_func = get_backend_implementation(ctx.obj['backend'])
+    
     # Decode message
     try:
-        result = decode(carrier_text, password)
+        result = decode_func(carrier_text, password)
         logger.debug("Decoded message: %s", result)
         
         if output:
