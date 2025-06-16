@@ -18,6 +18,9 @@ dependencies = [
     "maturin>=1.0.0",
 ]
 
+[tool.hatch.build.targets.wheel]
+packages = ["whitespace_stego"]
+
 [project.scripts]
 whitespace-stego = "whitespace_stego.cli:main"
 
