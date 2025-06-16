@@ -3,6 +3,8 @@ use std::error::Error;
 use log::{debug, error, info, LevelFilter};
 use env_logger::Builder;
 use base64;
+use fernet::{Fernet, DecryptionError};
+use sha2::{Sha256, Digest};
 
 const START_MARKER: &str = "\u{200b}"; // Zero-width space
 const END_MARKER: &str = "\u{200c}"; // Zero-width non-joiner
@@ -27,6 +29,12 @@ fn decode_binary(encoded: &str) -> Vec<u8> {
         .collect()
 }
 
+fn derive_fernet_key(password: &str) -> String {
+    let mut key_bytes = password.as_bytes().to_vec();
+    key_bytes.resize(32, 0);
+    base64::encode_config(&key_bytes, base64::STANDARD_NO_PAD)
+}
+
 fn encode(message: &str, carrier: &str, password: Option<&str>) -> Result<String, Box<dyn Error>> {
     info!("Encoding message: {}", message);
     info!("Using carrier: {}", carrier);
@@ -34,15 +42,25 @@ fn encode(message: &str, carrier: &str, password: Option<&str>) -> Result<String
         info!("Using password: {}", pwd);
     }
 
-    let encoded = base64::encode(message.as_bytes());
-    let zero_width = encode_binary(encoded.as_bytes());
+    // Base64 encode the message
+    let mut encoded = base64::encode(message.as_bytes()).into_bytes();
+
+    // Fernet encrypt if password is provided
+    if let Some(pwd) = password {
+        let key = derive_fernet_key(pwd);
+        let fernet = Fernet::new(&key).ok_or("Invalid Fernet key")?;
+        let encrypted = fernet.encrypt(&encoded);
+        encoded = encrypted.into_bytes();
+    }
+
+    let zero_width = encode_binary(&encoded);
     let encoded_message = format!("{}{}{}", START_MARKER, zero_width, END_MARKER);
 
     if carrier.is_empty() {
         return Ok(encoded_message);
     }
 
-    let mut chars: Vec<char> = carrier.chars().collect();
+    let chars: Vec<char> = carrier.chars().collect();
     if chars.len() > 1 {
         let mut result = String::new();
         result.push(chars[0]);
@@ -69,8 +87,17 @@ fn decode(carrier: &str, password: Option<&str>) -> Result<String, Box<dyn Error
     let encoded = &carrier[start_idx..end_idx];
 
     let data = decode_binary(encoded);
-    let decoded = base64::decode(data)?;
-    let result = String::from_utf8(decoded)?;
+    let mut decoded = data;
+
+    // Fernet decrypt if password is provided
+    if let Some(pwd) = password {
+        let key = derive_fernet_key(pwd);
+        let fernet = Fernet::new(&key).ok_or("Invalid Fernet key")?;
+        let encrypted_str = std::str::from_utf8(&decoded)?;
+        decoded = fernet.decrypt(encrypted_str).map_err(|e| format!("Fernet decryption failed: {:?}", e))?;
+    }
+
+    let result = String::from_utf8(base64::decode(&decoded)?)?;
     info!("Decoded message: {}", result);
     Ok(result)
 }
