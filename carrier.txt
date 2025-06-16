@@ -1,1 +1,0 @@
-This is a carrier text. It will be used to hide the message.

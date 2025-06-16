@@ -1,183 +1,130 @@
-"""Command-line interface for whitespace steganography.
+"""Command-line interface for whitespace steganography."""
 
-This module provides a command-line interface for encoding and decoding
-hidden messages in text using zero-width Unicode characters.
-"""
-
-import argparse
 import sys
-from typing import Optional, TextIO, Any
 from pathlib import Path
-from .encode import encode_and_insert as py_encode_and_insert
-from .decode import decode_and_remove as py_decode_and_remove
-from . import rust_bridge
+from typing import Optional
 
-def read_text_source(source: Optional[Path], stdin: Optional[TextIO] = None) -> str:
-    """Read text from a file or stdin.
+import click
+
+from whitespace_stego.core import decode, encode
+
+def read_file_or_stdin(file_path: Optional[str]) -> str:
+    """Read content from a file or stdin.
     
     Parameters
     ----------
-    source : Optional[Path]
+    file_path : Optional[str]
         Path to the file to read, or None for stdin.
-    stdin : Optional[TextIO]
-        Stream to read from if source is None or '-'.
-    
+        
     Returns
     -------
     str
-        The contents of the file or stdin.
+        The content read from the file or stdin.
     """
-    if source is None or str(source) == "-":
-        return (stdin or sys.stdin).read()
-    return source.read_text()
+    if file_path is None:
+        return sys.stdin.read()
+    return Path(file_path).read_text()
 
-# Re-export read_text_source as read_file for compatibility with tests
-read_file = read_text_source
-
-def write_text_sink(sink: Optional[Path], content: str, stdout: Optional[TextIO] = None) -> None:
-    """Write text to a file or stdout.
+def write_file_or_stdout(content: str, file_path: Optional[str]) -> None:
+    """Write content to a file or stdout.
     
     Parameters
     ----------
-    sink : Optional[Path]
-        Path to the file to write, or None for stdout.
     content : str
         The content to write.
-    stdout : Optional[TextIO]
-        Stream to write to if sink is None or '-'.
+    file_path : Optional[str]
+        Path to the file to write to, or None for stdout.
     """
-    if sink is None or str(sink) == "-":
-        (stdout or sys.stdout).write(content)
-        if not content.endswith("\n"):
-            (stdout or sys.stdout).write("\n")
+    if file_path is None or file_path == "-":
+        sys.stdout.write(content)
+        sys.stdout.flush()
     else:
-        sink.write_text(content)
+        Path(file_path).write_text(content)
 
-# Re-export write_text_sink as write_file for compatibility with tests
-write_file = write_text_sink
-
-def encode_command(args: argparse.Namespace) -> None:
-    """Handle the encode command.
-    
-    Parameters
-    ----------
-    args : argparse.Namespace
-        Command-line arguments.
-    """
-    if getattr(args, "message_file", None):
-        message = read_text_source(getattr(args, "message_file", None), sys.stdin)
-    elif getattr(args, "message", None):
-        message = getattr(args, "message")
-    else:
-        # If neither message nor message_file is provided, read from stdin
-        message = sys.stdin.read()
-    print(f"Debug: Message received: '{message}'", file=sys.stderr)
-    if getattr(args, "carrier_file", None):
-        carrier = read_text_source(getattr(args, "carrier_file", None), sys.stdin)
-    elif getattr(args, "carrier", None):
-        carrier = getattr(args, "carrier")
-    else:
-        carrier = ""
-    backend = getattr(args, "backend", "python")
-    try:
-        if backend == "rust":
-            if not rust_bridge.RUST_AVAILABLE:
-                print("Error: Rust backend is not available.", file=sys.stderr)
-                sys.exit(1)
-            result = rust_bridge.encode_and_insert(
-                message=message,
-                carrier=carrier,
-                password=getattr(args, "password", None),
-                position=getattr(args, "position", None)
-            )
-        else:
-            result = py_encode_and_insert(
-                message=message,
-                carrier=carrier,
-                password=getattr(args, "password", None),
-                position=getattr(args, "position", None)
-            )
-        write_text_sink(getattr(args, "output_file", None), result, sys.stdout)
-    except ValueError as e:
-        print(f"Error: {e}", file=sys.stderr)
-        sys.exit(1)
-
-def decode_command(args: argparse.Namespace) -> None:
-    """Handle the decode command.
-    
-    Parameters
-    ----------
-    args : argparse.Namespace
-        Command-line arguments.
-    """
-    text = read_text_source(getattr(args, "input_file", None), sys.stdin) if getattr(args, "input_file", None) else getattr(args, "input", "")
-    backend = getattr(args, "backend", "python")
-    try:
-        if backend == "rust":
-            if not rust_bridge.RUST_AVAILABLE:
-                print("Error: Rust backend is not available.", file=sys.stderr)
-                sys.exit(1)
-            message, carrier = rust_bridge.decode_and_remove(text, getattr(args, "password", None))
-        else:
-            message, carrier = py_decode_and_remove(text, getattr(args, "password", None))
-        write_text_sink(getattr(args, "output_file", None), message, sys.stdout)
-        if getattr(args, "carrier_output_file", None):
-            write_text_sink(getattr(args, "carrier_output_file", None), carrier, sys.stdout)
-    except ValueError as e:
-        print(f"Error: {e}", file=sys.stderr)
-        sys.exit(1)
-
+@click.group()
 def main() -> None:
-    """Main entry point for the CLI.
+    """Whitespace steganography tool."""
+    pass
+
+@main.command()
+@click.option("--message", "-m", help="Message to encode")
+@click.option("--message-file", "-mf", help="File containing message to encode")
+@click.option("--carrier", "-c", help="Carrier text")
+@click.option("--carrier-file", "-cf", help="File containing carrier text")
+@click.option("--password", "-p", help="Password for encryption")
+@click.option("--password-file", "-pf", help="File containing password")
+@click.option("--output", "-o", help="Output file (use - for stdout)")
+@click.option("--backend", type=click.Choice(["python", "rust"]), default="python", help="Backend to use")
+def encode_cmd(
+    message: Optional[str],
+    message_file: Optional[str],
+    carrier: Optional[str],
+    carrier_file: Optional[str],
+    password: Optional[str],
+    password_file: Optional[str],
+    output: Optional[str],
+    backend: str,
+) -> None:
+    """Encode a message into carrier text."""
+    # Read message
+    if message and message_file:
+        raise click.UsageError("Cannot specify both --message and --message-file")
+    message_content = message or read_file_or_stdin(message_file)
     
-    Parses command-line arguments and dispatches to the appropriate command handler.
-    """
-    parser = argparse.ArgumentParser(
-        description="Hide messages in text using zero-width Unicode characters"
-    )
-    subparsers = parser.add_subparsers(dest="command", required=True)
-    # Encode command
-    encode_parser = subparsers.add_parser("encode", help="Encode a message")
-    encode_parser.add_argument(
-        "--backend",
-        choices=["python", "rust"],
-        default="python",
-        help="Backend to use for encoding/decoding (default: python)"
-    )
-    encode_parser.add_argument("-m", "--message", type=str, help="Message as a string")
-    encode_parser.add_argument("-mf", "--message-file", type=Path, help="Message file ('-' for stdin)")
-    encode_parser.add_argument("-c", "--carrier", type=str, help="Carrier text as a string")
-    encode_parser.add_argument("-cf", "--carrier-file", type=Path, help="Carrier text file ('-' for stdin)")
-    encode_parser.add_argument("-p", "--password", help="Encryption password")
-    encode_parser.add_argument("-o", "--output", dest="output_file", type=Path, help="Output file ('-' for stdout)")
-    encode_parser.add_argument("--output-file", dest="output_file_long", type=Path, help="Output file (long option, '-' for stdout)")
-    encode_parser.add_argument(
-        "--position", type=int,
-        help="Position to insert the message (default: end)"
-    )
-    encode_parser.set_defaults(func=encode_command)
-    # Decode command
-    decode_parser = subparsers.add_parser("decode", help="Decode a message")
-    decode_parser.add_argument(
-        "--backend",
-        choices=["python", "rust"],
-        default="python",
-        help="Backend to use for encoding/decoding (default: python)"
-    )
-    decode_parser.add_argument("-i", "--input", type=str, help="Input as a string")
-    decode_parser.add_argument("-if", "--input-file", type=Path, help="Input file ('-' for stdin)")
-    decode_parser.add_argument("-p", "--password", help="Decryption password")
-    decode_parser.add_argument("-o", "--output", dest="output_file", type=Path, help="Output file ('-' for stdout)")
-    decode_parser.add_argument("--output-file", dest="output_file_long", type=Path, help="Output file (long option, '-' for stdout)")
-    decode_parser.add_argument("--carrier-output", dest="carrier_output_file", type=Path, help="Output file for carrier text ('-' for stdout)")
-    decode_parser.set_defaults(func=decode_command)
-    # Parse arguments
-    args = parser.parse_args()
-    # Handle output file aliases
-    if hasattr(args, "output_file_long") and args.output_file_long is not None:
-        args.output_file = args.output_file_long
-    # Execute command
-    args.func(args)
+    # Read carrier
+    if carrier and carrier_file:
+        raise click.UsageError("Cannot specify both --carrier and --carrier-file")
+    carrier_content = carrier or read_file_or_stdin(carrier_file) or ""
+    
+    # Read password
+    if password and password_file:
+        raise click.UsageError("Cannot specify both --password and --password-file")
+    password_content = password or read_file_or_stdin(password_file)
+    
+    # Encode message
+    if backend == "rust":
+        # TODO: Implement Rust backend
+        raise click.UsageError("Rust backend not yet implemented")
+    
+    encoded = encode(message_content, carrier_content, password_content)
+    write_file_or_stdout(encoded, output)
+
+@main.command()
+@click.option("--carrier", "-c", help="Carrier text")
+@click.option("--carrier-file", "-cf", help="File containing carrier text")
+@click.option("--password", "-p", help="Password for decryption")
+@click.option("--password-file", "-pf", help="File containing password")
+@click.option("--output", "-o", help="Output file (use - for stdout)")
+@click.option("--backend", type=click.Choice(["python", "rust"]), default="python", help="Backend to use")
+def decode_cmd(
+    carrier: Optional[str],
+    carrier_file: Optional[str],
+    password: Optional[str],
+    password_file: Optional[str],
+    output: Optional[str],
+    backend: str,
+) -> None:
+    """Decode a message from carrier text."""
+    # Read carrier
+    if carrier and carrier_file:
+        raise click.UsageError("Cannot specify both --carrier and --carrier-file")
+    carrier_content = carrier or read_file_or_stdin(carrier_file)
+    
+    # Read password
+    if password and password_file:
+        raise click.UsageError("Cannot specify both --password and --password-file")
+    password_content = password or read_file_or_stdin(password_file)
+    
+    # Decode message
+    if backend == "rust":
+        # TODO: Implement Rust backend
+        raise click.UsageError("Rust backend not yet implemented")
+    
+    try:
+        decoded = decode(carrier_content, password_content)
+        write_file_or_stdout(decoded, output)
+    except ValueError as e:
+        raise click.ClickException(str(e))
 
 if __name__ == "__main__":
     main() 
