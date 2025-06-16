@@ -24,7 +24,9 @@ install: venv
 	.venv/bin/pip install -r requirements-dev.txt
 
 # Run tests
-test:
+.venv/bin/pytest: install
+
+test: .venv/bin/pytest
 	.venv/bin/pytest
 
 # Install Rust extension in development mode
