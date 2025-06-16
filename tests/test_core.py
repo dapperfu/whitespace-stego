@@ -120,3 +120,82 @@ def test_password_mismatch(message: str, password: str | None) -> None:
     encoded = encode(message, password=password)
     with pytest.raises(ValueError):
         decode(encoded, password="wrong_password")
+
+
+@pytest.mark.parametrize("message", MESSAGES)
+def test_no_carrier_no_password(message: str) -> None:
+    """Test encoding and decoding with no carrier and no password."""
+    # Encode without carrier or password
+    encoded = encode(message)
+    
+    # Verify the encoded message contains only the markers and encoded content
+    assert encoded.startswith(START_MARKER)
+    assert encoded.endswith(END_MARKER)
+    assert len(encoded) > len(message)  # Should be longer due to encoding
+    
+    # Decode and verify
+    decoded = decode(encoded)
+    assert decoded == message
+
+
+@pytest.mark.parametrize("message", MESSAGES)
+def test_no_carrier_with_password(message: str) -> None:
+    """Test encoding and decoding with no carrier but with password."""
+    password = "test_password"
+    
+    # Encode without carrier but with password
+    encoded = encode(message, password=password)
+    
+    # Verify the encoded message contains only the markers and encoded content
+    assert encoded.startswith(START_MARKER)
+    assert encoded.endswith(END_MARKER)
+    assert len(encoded) > len(message)  # Should be longer due to encoding and encryption
+    
+    # Decode and verify
+    decoded = decode(encoded, password=password)
+    assert decoded == message
+    
+    # Verify wrong password fails
+    with pytest.raises(ValueError):
+        decode(encoded, password="wrong_password")
+
+
+@pytest.mark.parametrize("message", MESSAGES)
+def test_with_carrier_no_password(message: str) -> None:
+    """Test encoding and decoding with carrier but no password."""
+    carrier = "Test carrier text"
+    
+    # Encode with carrier but no password
+    encoded = encode(message, carrier=carrier)
+    
+    # Verify the encoded message contains the carrier and encoded content
+    assert START_MARKER in encoded
+    assert END_MARKER in encoded
+    assert carrier in encoded
+    
+    # Decode and verify
+    decoded = decode(encoded)
+    assert decoded == message
+
+
+@pytest.mark.parametrize("message", MESSAGES)
+def test_with_carrier_with_password(message: str) -> None:
+    """Test encoding and decoding with both carrier and password."""
+    carrier = "Test carrier text"
+    password = "test_password"
+    
+    # Encode with both carrier and password
+    encoded = encode(message, carrier=carrier, password=password)
+    
+    # Verify the encoded message contains the carrier and encoded content
+    assert START_MARKER in encoded
+    assert END_MARKER in encoded
+    assert carrier in encoded
+    
+    # Decode and verify
+    decoded = decode(encoded, password=password)
+    assert decoded == message
+    
+    # Verify wrong password fails
+    with pytest.raises(ValueError):
+        decode(encoded, password="wrong_password")
