@@ -3,4 +3,5 @@ pytest-cov>=4.0.0
 mypy>=1.0.0
 black>=23.0.0
 ruff>=0.1.0
-pytest-html>=4.1.1 
+pytest-html>=4.1.1
+pytest-parallel>=0.1.1 
