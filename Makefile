@@ -1,3 +1,4 @@
+VENV?=.venv
 .PHONY: help venv install test coverage maturin-develop maturin-build cargo-build cargo-clean clean format rust
 # Default target
 help:
@@ -25,7 +26,7 @@ cargo-clean:
 
 # Remove all build artifacts and virtual environment
 clean:
-	rm -rf .venv
+	rm -rf ${VENV}
 	rm -rf whitespace-stego-backend/target
 	rm -rf whitespace-stego-backend/*.egg-info
 	rm -rf whitespace-stego-backend/dist
@@ -39,26 +40,26 @@ clean:
 
 # Run tests with coverage reporting
 coverage: venv maturin-develop
-	.venv/bin/pip install -e .
-	.venv/bin/pip install -r requirements-dev.txt
-	.venv/bin/pytest --cov=whitespace_stego --cov=whitespace_stego_backend --cov-report=term-missing --cov-report=html --cov-report=xml
+	${VENV}/bin/pip install -e .
+	${VENV}/bin/pip install -r requirements-dev.txt
+	${VENV}/bin/pytest --cov=whitespace_stego --cov=whitespace_stego_backend --cov-report=term-missing --cov-report=html --cov-report=xml
 
 # Format code (Rust and Python)
-format: .venv/bin/ruff
-	.venv/bin/ruff format .
+format: ${VENV}/bin/ruff
+	${VENV}/bin/ruff format .
 
 # Install Python package and dependencies
 install: venv
-	.venv/bin/pip install -e .
-	.venv/bin/pip install -r requirements-dev.txt
+	${VENV}/bin/pip install -e .
+	${VENV}/bin/pip install -r requirements-dev.txt
 
 # Install Rust extension in development mode
 maturin-develop:
-	.venv/bin/maturin develop
+	${VENV}/bin/maturin develop
 
 # Build Python wheel from Rust extension
 maturin-build:
-	.venv/bin/maturin build --release
+	${VENV}/bin/maturin build --release
 
 # Build Rust CLI in release mode and copy to top-level directory
 rust:
@@ -67,16 +68,16 @@ rust:
 
 # Run tests
 test: venv maturin-develop
-	.venv/bin/pip install -e .
-	.venv/bin/pip install -r requirements-dev.txt
-	.venv/bin/pytest
+	${VENV}/bin/pip install -e .
+	${VENV}/bin/pip install -r requirements-dev.txt
+	${VENV}/bin/pytest
 
 # Create Python virtual environment
 venv:
-	python3 -m venv .venv
+	python3 -m venv ${VENV}
 
 # ... existing code ...
-.venv/bin/ruff: venv
-	.venv/bin/pip install ruff
+${VENV}/bin/ruff: venv
+	${VENV}/bin/pip install ruff
 
 # ... existing code ... 
