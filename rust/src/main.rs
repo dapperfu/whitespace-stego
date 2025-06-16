@@ -1,13 +1,11 @@
 use clap::{App, Arg, SubCommand};
 use std::error::Error;
-use log::{debug, error, info, LevelFilter};
-use env_logger::Builder;
-use base64::{Engine as _, engine::general_purpose::STANDARD_NO_PAD};
-use fernet::{Fernet, DecryptionError};
+use log::{info, LevelFilter};
+use env_logger;
+use base64::{Engine as _, engine::general_purpose::{STANDARD, STANDARD_NO_PAD, URL_SAFE}};
+use fernet::Fernet;
 use sha2::{Sha256, Digest};
 use std::fs;
-use std::io::{self, Read, Write};
-use std::path::Path;
 
 const START_MARKER: &str = "\u{200b}"; // Zero-width space
 const END_MARKER: &str = "\u{200c}"; // Zero-width non-joiner
@@ -36,7 +34,8 @@ fn derive_fernet_key(password: &str) -> String {
     let mut hasher = Sha256::new();
     hasher.update(password.as_bytes());
     let result = hasher.finalize();
-    STANDARD_NO_PAD.encode(result)
+    // Fernet expects a base64-encoded 32-byte key (44 chars, padded, URL-safe)
+    base64::engine::general_purpose::URL_SAFE.encode(result)
 }
 
 fn encode(message: &str, carrier: &str, password: Option<&str>) -> Result<String, Box<dyn Error>> {
@@ -47,13 +46,13 @@ fn encode(message: &str, carrier: &str, password: Option<&str>) -> Result<String
     }
 
     // Base64 encode the message with padding
-    let encoded = base64::encode(message.as_bytes());
+    let encoded = STANDARD.encode(message.as_bytes());
 
     // Fernet encrypt if password is provided
     let final_data = if let Some(pwd) = password {
         let key = derive_fernet_key(pwd);
         let fernet = Fernet::new(&key).ok_or("Invalid Fernet key")?;
-        fernet.encrypt(&encoded)
+        fernet.encrypt(encoded.as_bytes())
     } else {
         encoded
     };
@@ -85,13 +84,17 @@ fn decode(carrier: &str, password: Option<&str>) -> Result<String, Box<dyn Error
         info!("Using password: {}", pwd);
     }
 
-    let start = carrier.find(START_MARKER).ok_or("No valid message found in carrier text")?;
-    let end = carrier.find(END_MARKER).ok_or("No valid message found in carrier text")?;
-    let start_idx = carrier.char_indices().nth(start).map(|(i, _)| i).unwrap_or(0) + START_MARKER.len();
-    let end_idx = carrier.char_indices().nth(end).map(|(i, _)| i).unwrap_or(carrier.len());
-    let encoded = &carrier[start_idx..end_idx];
+    let start = carrier.find(START_MARKER).ok_or("No valid message found in carrier text")? + START_MARKER.len();
+    let end = carrier.rfind(END_MARKER).ok_or("No valid message found in carrier text")?;
+    let encoded = &carrier[start..end];
+    println!("[DEBUG] Extracted encoded message: {}", encoded);
+
+    // Show the binary string for debugging
+    let binary: String = encoded.chars().map(|char| if char == ONE_BIT.chars().next().unwrap() { '1' } else { '0' }).collect();
+    println!("[DEBUG] Binary string: {}", binary);
 
     let data = decode_binary(encoded);
+    println!("[DEBUG] Decoded bytes: {:?}", data);
     let decoded = if let Some(pwd) = password {
         let key = derive_fernet_key(pwd);
         let fernet = Fernet::new(&key).ok_or("Invalid Fernet key")?;
@@ -101,7 +104,7 @@ fn decode(carrier: &str, password: Option<&str>) -> Result<String, Box<dyn Error
         data
     };
 
-    let result = String::from_utf8(base64::decode(&decoded)?)?;
+    let result = String::from_utf8(STANDARD.decode(&decoded)?)?;
     info!("Decoded message: {}", result);
     Ok(result)
 }
@@ -216,4 +219,67 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_encode_decode_no_password() {
+        let message = "Hello, World!";
+        let carrier = "This is a test";
+        let encoded = encode(message, carrier, None).unwrap();
+        println!("Encoded (no password): {}", encoded);
+        let decoded = decode(&encoded, None).unwrap();
+        assert_eq!(decoded, message);
+    }
+
+    #[test]
+    fn test_encode_decode_with_password() {
+        let message = "Secret message";
+        let carrier = "This is a test";
+        let password = "test_password";
+        let key = derive_fernet_key(password);
+        println!("Derived Fernet key: {} (len: {})", key, key.len());
+        let encoded = encode(message, carrier, Some(password)).unwrap();
+        println!("Encoded (with password): {}", encoded);
+        let decoded = decode(&encoded, Some(password)).unwrap();
+        assert_eq!(decoded, message);
+    }
+
+    #[test]
+    fn test_encode_decode_empty_carrier() {
+        let message = "Test message";
+        let carrier = "";
+        let encoded = encode(message, carrier, None).unwrap();
+        let decoded = decode(&encoded, None).unwrap();
+        assert_eq!(decoded, message);
+    }
+
+    #[test]
+    fn test_encode_decode_single_char_carrier() {
+        let message = "Test message";
+        let carrier = "A";
+        let encoded = encode(message, carrier, None).unwrap();
+        let decoded = decode(&encoded, None).unwrap();
+        assert_eq!(decoded, message);
+    }
+
+    #[test]
+    fn test_decode_invalid_carrier() {
+        let result = decode("Invalid carrier", None);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_decode_wrong_password() {
+        let message = "Secret message";
+        let carrier = "Test carrier";
+        let password = "correct_password";
+        let wrong_password = "wrong_password";
+        let encoded = encode(message, carrier, Some(password)).unwrap();
+        let result = decode(&encoded, Some(wrong_password));
+        assert!(result.is_err());
+    }
 } 

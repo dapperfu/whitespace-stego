@@ -98,7 +98,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 return Err("Cannot specify both --message and --message-file".into());
             }
             let message_content = message
-                .or_else(|| message_file.as_ref().and_then(|f| read_file_or_stdin(Some(f)).ok()))
+                .or_else(|| {
+                    message_file
+                        .as_ref()
+                        .and_then(|f| read_file_or_stdin(Some(f)).ok())
+                })
                 .ok_or("No message provided")?;
 
             // Read carrier
@@ -106,7 +110,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 return Err("Cannot specify both --carrier and --carrier-file".into());
             }
             let carrier_content = carrier
-                .or_else(|| carrier_file.as_ref().and_then(|f| read_file_or_stdin(Some(f)).ok()))
+                .or_else(|| {
+                    carrier_file
+                        .as_ref()
+                        .and_then(|f| read_file_or_stdin(Some(f)).ok())
+                })
                 .unwrap_or_default();
 
             // Read password
@@ -131,15 +139,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 return Err("Cannot specify both --carrier and --carrier-file".into());
             }
             let carrier_content = carrier
-                .or_else(|| carrier_file.as_ref().and_then(|f| read_file_or_stdin(Some(f)).ok()))
+                .or_else(|| {
+                    carrier_file
+                        .as_ref()
+                        .and_then(|f| read_file_or_stdin(Some(f)).ok())
+                })
                 .ok_or("No carrier provided")?;
 
             // Read password
             let password_content = password.as_deref();
 
             // Decode message
-            let decoded = decode(&carrier_content, password_content)
-                .map_err(|e| e.to_string())?;
+            let decoded = decode(&carrier_content, password_content).map_err(|e| e.to_string())?;
 
             // Write output
             write_file_or_stdout(&decoded, output.as_ref())?;
@@ -147,4 +158,4 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     Ok(())
-} 
+}

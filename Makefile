@@ -67,5 +67,5 @@ format: .venv/bin/ruff
 
 # Build Rust CLI in release mode and copy to top-level directory
 rust:
-	cd rust && cargo build --release
-	cp rust/target/release/whitespace-stego-rs ./whitespace-stego-rs 
+	cargo build --release --manifest-path rust/Cargo.toml --target-dir rust/target
+	cp rust/target/release/whitespace-stego ./whitespace-stego-rs 

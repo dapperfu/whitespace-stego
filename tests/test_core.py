@@ -164,16 +164,20 @@ def test_no_carrier_with_password(message: str) -> None:
 def test_with_carrier_no_password(message: str) -> None:
     """Test encoding and decoding with carrier but no password."""
     carrier = "Test carrier text"
-    
+
     # Encode with carrier but no password
     encoded = encode(message, carrier=carrier)
-    
+
     # Verify the encoded message contains the carrier and encoded content
     assert START_MARKER in encoded
     assert END_MARKER in encoded
-    assert carrier in encoded
-    
-    # Decode and verify
+    if len(carrier) > 1:
+        assert encoded.startswith(carrier[0])
+        assert encoded.endswith(carrier[1:])
+    elif carrier:
+        assert encoded.startswith(carrier)
+
+    # Decode and check
     decoded = decode(encoded)
     assert decoded == message
 
@@ -183,16 +187,20 @@ def test_with_carrier_with_password(message: str) -> None:
     """Test encoding and decoding with both carrier and password."""
     carrier = "Test carrier text"
     password = "test_password"
-    
+
     # Encode with both carrier and password
     encoded = encode(message, carrier=carrier, password=password)
-    
+
     # Verify the encoded message contains the carrier and encoded content
     assert START_MARKER in encoded
     assert END_MARKER in encoded
-    assert carrier in encoded
-    
-    # Decode and verify
+    if len(carrier) > 1:
+        assert encoded.startswith(carrier[0])
+        assert encoded.endswith(carrier[1:])
+    elif carrier:
+        assert encoded.startswith(carrier)
+
+    # Decode and check
     decoded = decode(encoded, password=password)
     assert decoded == message
     

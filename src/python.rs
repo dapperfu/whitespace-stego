@@ -2,16 +2,6 @@ use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
 use crate::{decode, encode, extract_encoded, StegoError};
 
-/// Python module for whitespace steganography
-#[pymodule]
-fn whitespace_stego(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(py_encode, m)?)?;
-    m.add_function(wrap_pyfunction!(py_decode, m)?)?;
-    m.add_function(wrap_pyfunction!(py_extract_encoded, m)?)?;
-    m.add_class::<PyStegoError>()?;
-    Ok(())
-}
-
 /// Python wrapper for the encode function
 #[pyfunction]
 fn py_encode(message: &str, carrier: &str, password: Option<&str>) -> PyResult<String> {
@@ -52,4 +42,13 @@ impl PyStegoError {
     fn __str__(&self) -> &str {
         &self.message
     }
+}
+
+/// Add Python bindings to the module
+pub fn add_python_bindings(m: &PyModule) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(py_encode, m)?)?;
+    m.add_function(wrap_pyfunction!(py_decode, m)?)?;
+    m.add_function(wrap_pyfunction!(py_extract_encoded, m)?)?;
+    m.add_class::<PyStegoError>()?;
+    Ok(())
 } 

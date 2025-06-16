@@ -4,8 +4,8 @@
 //! using zero-width Unicode whitespace characters.
 
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
+use fernet::{DecryptionError, Fernet};
 use thiserror::Error;
-use fernet::{Fernet, DecryptionError};
 
 /// Error type for steganography operations
 #[derive(Error, Debug)]
@@ -20,9 +20,9 @@ pub enum StegoError {
 
 /// Zero-width characters for encoding
 pub const START_MARKER: char = '\u{200B}'; // Zero-width space
-pub const END_MARKER: char = '\u{200C}';   // Zero-width non-joiner
-pub const ZERO_BIT: char = '\u{200D}';     // Zero-width joiner
-pub const ONE_BIT: char = '\u{FEFF}';      // Zero-width no-break space
+pub const END_MARKER: char = '\u{200C}'; // Zero-width non-joiner
+pub const ZERO_BIT: char = '\u{200D}'; // Zero-width joiner
+pub const ONE_BIT: char = '\u{FEFF}'; // Zero-width no-break space
 
 /// Convert bytes to a string of zero-width characters
 fn encode_binary(data: &[u8]) -> String {
@@ -64,16 +64,21 @@ fn decode_binary(encoded: &str) -> Vec<u8> {
 /// Encrypt data using Fernet (compatible with Python cryptography.fernet)
 fn encrypt_data(data: &[u8], password: &str) -> Result<Vec<u8>, StegoError> {
     let key = derive_fernet_key(password);
-    let fernet = Fernet::new(&key).ok_or_else(|| StegoError::EncodingFailed("Invalid Fernet key".to_string()))?;
+    let fernet = Fernet::new(&key)
+        .ok_or_else(|| StegoError::EncodingFailed("Invalid Fernet key".to_string()))?;
     Ok(fernet.encrypt(data).as_bytes().to_vec())
 }
 
 /// Decrypt data using Fernet (compatible with Python cryptography.fernet)
 fn decrypt_data(data: &[u8], password: &str) -> Result<Vec<u8>, StegoError> {
     let key = derive_fernet_key(password);
-    let fernet = Fernet::new(&key).ok_or_else(|| StegoError::DecryptionFailed("Invalid Fernet key".to_string()))?;
-    let data_str = std::str::from_utf8(data).map_err(|e| StegoError::DecryptionFailed(e.to_string()))?;
-    fernet.decrypt(data_str).map_err(|e| StegoError::DecryptionFailed(e.to_string()))
+    let fernet = Fernet::new(&key)
+        .ok_or_else(|| StegoError::DecryptionFailed("Invalid Fernet key".to_string()))?;
+    let data_str =
+        std::str::from_utf8(data).map_err(|e| StegoError::DecryptionFailed(e.to_string()))?;
+    fernet
+        .decrypt(data_str)
+        .map_err(|e| StegoError::DecryptionFailed(e.to_string()))
 }
 
 /// Derive a Fernet key from a password (base64.urlsafe_b64encode(password.encode('utf-8').ljust(32)[:32]))
@@ -129,16 +134,24 @@ pub fn encode(message: &str, carrier: &str, password: Option<&str>) -> Result<St
 /// Decode a message from carrier text containing zero-width characters
 pub fn decode(carrier: &str, password: Option<&str>) -> Result<String, StegoError> {
     // Find the encoded message between markers
-    let start = carrier.find(START_MARKER).ok_or_else(|| {
-        StegoError::InvalidCarrier("No start marker found".to_string())
-    })?;
-    let end = carrier.find(END_MARKER).ok_or_else(|| {
-        StegoError::InvalidCarrier("No end marker found".to_string())
-    })?;
+    let start = carrier
+        .find(START_MARKER)
+        .ok_or_else(|| StegoError::InvalidCarrier("No start marker found".to_string()))?;
+    let end = carrier
+        .find(END_MARKER)
+        .ok_or_else(|| StegoError::InvalidCarrier("No end marker found".to_string()))?;
 
     // Use char_indices to get char boundaries
-    let start_char = carrier.char_indices().find(|&(i, c)| i == start && c == START_MARKER).map(|(i, _)| i).unwrap();
-    let end_char = carrier.char_indices().find(|&(i, c)| i == end && c == END_MARKER).map(|(i, _)| i).unwrap();
+    let start_char = carrier
+        .char_indices()
+        .find(|&(i, c)| i == start && c == START_MARKER)
+        .map(|(i, _)| i)
+        .unwrap();
+    let end_char = carrier
+        .char_indices()
+        .find(|&(i, c)| i == end && c == END_MARKER)
+        .map(|(i, _)| i)
+        .unwrap();
     let encoded = carrier[start_char + START_MARKER.len_utf8()..end_char].to_string();
     let mut data = decode_binary(&encoded);
 
@@ -148,24 +161,36 @@ pub fn decode(carrier: &str, password: Option<&str>) -> Result<String, StegoErro
     }
 
     // Base64 decode and convert to string
-    let decoded = BASE64.decode(&data)
+    let decoded = BASE64
+        .decode(&data)
         .map_err(|e| StegoError::DecryptionFailed(e.to_string()))?;
-    String::from_utf8(decoded)
-        .map_err(|e| StegoError::DecryptionFailed(e.to_string()))
+    String::from_utf8(decoded).map_err(|e| StegoError::DecryptionFailed(e.to_string()))
 }
 
 /// Extract the encoded message and remaining carrier text
 pub fn extract_encoded(carrier: &str) -> Result<(String, String), StegoError> {
-    let start = carrier.find(START_MARKER).ok_or_else(|| {
-        StegoError::InvalidCarrier("No start marker found".to_string())
-    })?;
-    let end = carrier.find(END_MARKER).ok_or_else(|| {
-        StegoError::InvalidCarrier("No end marker found".to_string())
-    })?;
-    let start_char = carrier.char_indices().find(|&(i, c)| i == start && c == START_MARKER).map(|(i, _)| i).unwrap();
-    let end_char = carrier.char_indices().find(|&(i, c)| i == end && c == END_MARKER).map(|(i, _)| i).unwrap();
+    let start = carrier
+        .find(START_MARKER)
+        .ok_or_else(|| StegoError::InvalidCarrier("No start marker found".to_string()))?;
+    let end = carrier
+        .find(END_MARKER)
+        .ok_or_else(|| StegoError::InvalidCarrier("No end marker found".to_string()))?;
+    let start_char = carrier
+        .char_indices()
+        .find(|&(i, c)| i == start && c == START_MARKER)
+        .map(|(i, _)| i)
+        .unwrap();
+    let end_char = carrier
+        .char_indices()
+        .find(|&(i, c)| i == end && c == END_MARKER)
+        .map(|(i, _)| i)
+        .unwrap();
     let encoded = carrier[start_char..=end_char + END_MARKER.len_utf8() - 1].to_string();
-    let remaining = format!("{}{}", &carrier[..start_char], &carrier[end_char + END_MARKER.len_utf8()..]);
+    let remaining = format!(
+        "{}{}",
+        &carrier[..start_char],
+        &carrier[end_char + END_MARKER.len_utf8()..]
+    );
     Ok((encoded, remaining))
 }
 
@@ -178,18 +203,18 @@ mod tests {
         "Test message with emoji 😀",
         "Multilingual text: 你好, 世界!",
         "Special chars: !@#$%^&*()",
-        "",  // Empty message
+        "", // Empty message
     ];
 
     const PASSWORDS: &[Option<&str>] = &[
         None,
         Some("simple_password"),
         Some("complex_password_123!@#"),
-        Some(""),  // Empty password
+        Some(""), // Empty password
     ];
 
     const CARRIERS: &[&str] = &[
-        "",  // Empty carrier
+        "", // Empty carrier
         "Simple carrier text",
         "Carrier with emoji 🎉",
         "Multilingual carrier: 你好",
@@ -248,4 +273,13 @@ mod tests {
             assert!(decode(&encoded, Some("wrong_password")).is_err());
         }
     }
-} 
+}
+
+mod python;
+
+// Re-export the PyO3 module for maturin
+use pyo3::prelude::*;
+#[pymodule]
+fn whitespace_stego(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
+    python::add_python_bindings(m)
+}

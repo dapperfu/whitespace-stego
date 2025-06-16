@@ -4,6 +4,7 @@ import tempfile
 from pathlib import Path
 from test_data import MESSAGES, CARRIERS, PASSWORDS
 
+
 @pytest.mark.parametrize("message", MESSAGES)
 @pytest.mark.parametrize("carrier", CARRIERS)
 @pytest.mark.parametrize("password", PASSWORDS)
@@ -18,10 +19,14 @@ def test_cli_roundtrip_whitespace_stego_rs(message, carrier, password):
         car_path.write_text(carrier, encoding="utf-8")
 
         encode_cmd = [
-            "./whitespace-stego-rs", "encode",
-            "--mf", str(msg_path),
-            "--cf", str(car_path),
-            "-o", str(enc_path)
+            "./whitespace-stego-rs",
+            "encode",
+            "--mf",
+            str(msg_path),
+            "--cf",
+            str(car_path),
+            "-o",
+            str(enc_path),
         ]
         if password:
             encode_cmd += ["-p", password]
@@ -29,9 +34,12 @@ def test_cli_roundtrip_whitespace_stego_rs(message, carrier, password):
         subprocess.run(encode_cmd, check=True)
 
         decode_cmd = [
-            "./whitespace-stego-rs", "decode",
-            "--cf", str(enc_path),
-            "-o", str(dec_path)
+            "./whitespace-stego-rs",
+            "decode",
+            "--cf",
+            str(enc_path),
+            "-o",
+            str(dec_path),
         ]
         if password:
             decode_cmd += ["-p", password]
