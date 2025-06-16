@@ -33,8 +33,8 @@ def cli(verbose: bool, backend: str) -> None:
 @cli.command()
 @click.option("--message", "-m", help="Message to encode")
 @click.option("--message-file", "-mf", help="File containing message to encode")
-@click.option("--carrier", "-c", help="Carrier text")
-@click.option("--carrier-file", "-cf", help="File containing carrier text")
+@click.option("--carrier", "-c", help="Carrier text (optional)")
+@click.option("--carrier-file", "-cf", help="File containing carrier text (optional)")
 @click.option("--password", "-p", help="Password for encryption")
 @click.option("--output", "-o", help="Output file (default: stdout)")
 def encode_command(message: Optional[str], message_file: Optional[str], 
@@ -50,14 +50,16 @@ def encode_command(message: Optional[str], message_file: Optional[str],
     message_text = message if message else read_file(message_file)
     logger.debug("Encoding message: %s", message_text)
     
-    # Get carrier
+    # Get carrier (optional)
+    carrier_text = ""
     if carrier and carrier_file:
         raise click.UsageError("Cannot specify both --carrier and --carrier-file")
-    if not carrier and not carrier_file:
-        raise click.UsageError("Must specify either --carrier or --carrier-file")
+    if carrier:
+        carrier_text = carrier
+    elif carrier_file:
+        carrier_text = read_file(carrier_file)
     
-    carrier_text = carrier if carrier else read_file(carrier_file)
-    logger.debug("Using carrier: %s", carrier_text)
+    logger.debug("Using carrier: %s", carrier_text if carrier_text else "None")
     logger.debug("Using password: %s", password if password else "None")
     
     # Encode message
