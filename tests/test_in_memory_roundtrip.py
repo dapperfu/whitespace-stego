@@ -1,7 +1,7 @@
 import pytest
 from test_data import MESSAGES, CARRIERS, PASSWORDS
 from whitespace_stego.core import encode as encode_python, decode as decode_python
-from whitespace_stego_backend import encode as encode_rust, decode as decode_rust
+from whitespace_stego import encode as encode_rust, decode as decode_rust
 
 
 @pytest.mark.parametrize("message", MESSAGES)
