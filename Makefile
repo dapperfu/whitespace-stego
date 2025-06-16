@@ -52,6 +52,7 @@ clean:
 	rm -rf build/
 	rm -rf dist/
 	rm -rf *.egg-info/
+	cargo clean
 
 # Format code (Rust and Python)
 format:
