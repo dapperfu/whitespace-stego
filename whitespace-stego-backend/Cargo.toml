@@ -1,0 +1,13 @@
+[package]
+name = "whitespace-stego-backend"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "whitespace_stego_backend"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.20.3", features = ["extension-module"] }
+base64 = "0.21.7"
+fernet = "0.2.0" 
