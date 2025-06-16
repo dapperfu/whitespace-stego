@@ -4,16 +4,34 @@
 #include <string.h>
 #include <getopt.h>
 #include <errno.h>
+#include <stdbool.h>
+#include <stdarg.h>
 
 #define BUFFER_SIZE 4096
 
+static bool verbose = false;
+
 static void print_usage(const char* program_name) {
-    fprintf(stderr, "Usage: %s [OPTIONS] [CARRIER]\n", program_name);
+    fprintf(stderr, "Usage: %s [options]\n", program_name);
     fprintf(stderr, "Options:\n");
-    fprintf(stderr, "  -e, --encode MESSAGE    Encode MESSAGE into carrier text\n");
-    fprintf(stderr, "  -d, --decode           Decode message from carrier text\n");
-    fprintf(stderr, "  -p, --password PASS    Use password for encryption/decryption\n");
-    fprintf(stderr, "  -h, --help             Show this help message\n");
+    fprintf(stderr, "  -v, --verbose     Enable verbose output\n");
+    fprintf(stderr, "  -e, --encode      Encode mode\n");
+    fprintf(stderr, "  -d, --decode      Decode mode\n");
+    fprintf(stderr, "  -m, --message     Message to encode\n");
+    fprintf(stderr, "  -c, --carrier     Carrier text\n");
+    fprintf(stderr, "  -p, --password    Password for encryption\n");
+    fprintf(stderr, "  -h, --help        Show this help message\n");
+}
+
+static void debug_log(const char* format, ...) {
+    if (!verbose) return;
+    
+    va_list args;
+    va_start(args, format);
+    fprintf(stderr, "DEBUG: ");
+    vfprintf(stderr, format, args);
+    fprintf(stderr, "\n");
+    va_end(args);
 }
 
 static char* read_file(const char* filename) {
@@ -93,86 +111,91 @@ static char* read_stdin(void) {
 }
 
 int main(int argc, char* argv[]) {
-    const char* program_name = argv[0];
-    const char* message = NULL;
-    const char* password = NULL;
+    bool encode_mode = false;
     bool decode_mode = false;
+    char* message = NULL;
     char* carrier = NULL;
-    char* result = NULL;
-    int ret = 1;
-
-    static struct option long_options[] = {
-        {"encode", required_argument, 0, 'e'},
-        {"decode", no_argument, 0, 'd'},
-        {"password", required_argument, 0, 'p'},
-        {"help", no_argument, 0, 'h'},
-        {0, 0, 0, 0}
-    };
-
-    int opt;
-    int option_index = 0;
-    while ((opt = getopt_long(argc, argv, "e:dp:h", long_options, &option_index)) != -1) {
-        switch (opt) {
-            case 'e':
-                message = optarg;
-                break;
-            case 'd':
-                decode_mode = true;
-                break;
-            case 'p':
-                password = optarg;
-                break;
-            case 'h':
-                print_usage(program_name);
-                return 0;
-            default:
-                print_usage(program_name);
-                return 1;
+    char* password = NULL;
+    
+    // Parse command line arguments
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--verbose") == 0) {
+            verbose = true;
+        } else if (strcmp(argv[i], "-e") == 0 || strcmp(argv[i], "--encode") == 0) {
+            encode_mode = true;
+        } else if (strcmp(argv[i], "-d") == 0 || strcmp(argv[i], "--decode") == 0) {
+            decode_mode = true;
+        } else if (strcmp(argv[i], "-m") == 0 || strcmp(argv[i], "--message") == 0) {
+            if (i + 1 < argc) {
+                message = argv[++i];
+            }
+        } else if (strcmp(argv[i], "-c") == 0 || strcmp(argv[i], "--carrier") == 0) {
+            if (i + 1 < argc) {
+                carrier = argv[++i];
+            }
+        } else if (strcmp(argv[i], "-p") == 0 || strcmp(argv[i], "--password") == 0) {
+            if (i + 1 < argc) {
+                password = argv[++i];
+            }
+        } else if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) {
+            print_usage(argv[0]);
+            return 0;
         }
     }
-
-    // Check for required arguments
-    if (!message && !decode_mode) {
-        fprintf(stderr, "Error: Either --encode or --decode must be specified\n");
-        print_usage(program_name);
+    
+    // Validate arguments
+    if (encode_mode && decode_mode) {
+        fprintf(stderr, "Error: Cannot specify both encode and decode modes\n");
         return 1;
     }
-
-    // Read carrier text
-    if (optind < argc) {
-        carrier = read_file(argv[optind]);
-    } else {
-        carrier = read_stdin();
-    }
-
-    if (!carrier) {
-        fprintf(stderr, "Error: Failed to read carrier text\n");
+    
+    if (!encode_mode && !decode_mode) {
+        fprintf(stderr, "Error: Must specify either encode or decode mode\n");
         return 1;
     }
-
-    // Process the text
-    bool success;
+    
+    if (encode_mode) {
+        if (!message) {
+            fprintf(stderr, "Error: Message required for encode mode\n");
+            return 1;
+        }
+        
+        debug_log("Encoding message: %s", message);
+        debug_log("Using carrier: %s", carrier);
+        debug_log("Using password: %s", password ? password : "None");
+        
+        char* result = NULL;
+        if (!whitespace_stego_encode(message, carrier, password, &result)) {
+            fprintf(stderr, "Error: %s\n", whitespace_stego_get_last_error());
+            return 1;
+        }
+        
+        debug_log("Final encoded message: %s", result);
+        printf("%s\n", result);
+        free(result);
+        return 0;
+    }
+    
     if (decode_mode) {
-        success = whitespace_stego_decode(carrier, password, &result);
-    } else {
-        success = whitespace_stego_encode(carrier, message, password, &result);
-    }
-
-    if (success && result) {
-        printf("%s", result);
-        ret = 0;
-    } else {
-        fprintf(stderr, "Error: Failed to %s message\n", 
-                decode_mode ? "decode" : "encode");
-        const char* err = whitespace_stego_last_error();
-        if (err && err[0]) {
-            fprintf(stderr, "Details: %s\n", err);
+        if (!carrier) {
+            fprintf(stderr, "Error: Carrier text required for decode mode\n");
+            return 1;
         }
+        
+        debug_log("Decoding carrier: %s", carrier);
+        debug_log("Using password: %s", password ? password : "None");
+        
+        char* result = NULL;
+        if (!whitespace_stego_decode(carrier, password, &result)) {
+            fprintf(stderr, "Error: %s\n", whitespace_stego_get_last_error());
+            return 1;
+        }
+        
+        debug_log("Decoded message: %s", result);
+        printf("%s\n", result);
+        free(result);
+        return 0;
     }
-
-    // Cleanup
-    free(carrier);
-    whitespace_stego_free(result);
-
-    return ret;
+    
+    return 0;
 } 
