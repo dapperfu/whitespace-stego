@@ -1,4 +1,4 @@
-.PHONY: help venv install test maturin-develop maturin-build cargo-build cargo-clean clean format
+.PHONY: help venv install test maturin-develop maturin-build cargo-build cargo-clean clean format rust
 
 # Default target
 help:
@@ -13,6 +13,7 @@ help:
 	@echo "  cargo-clean     - Clean Rust build artifacts"
 	@echo "  clean           - Remove all build artifacts and virtual environment"
 	@echo "  format          - Format code (Rust and Python)"
+	@echo "  rust            - Build Rust CLI in release mode and copy to top-level directory"
 
 # Create Python virtual environment
 venv:
@@ -62,4 +63,9 @@ format: .venv/bin/ruff
 .venv/bin/ruff: venv
 	.venv/bin/pip install ruff
 
-# ... existing code ... 
+# ... existing code ...
+
+# Build Rust CLI in release mode and copy to top-level directory
+rust:
+	cd rust && cargo build --release
+	cp rust/target/release/whitespace-stego-rs ./whitespace-stego-rs 
