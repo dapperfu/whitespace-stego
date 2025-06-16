@@ -1,8 +1,79 @@
 use clap::{App, Arg};
 use std::error::Error;
-use whitespace_stego::{decode, encode};
 use log::{debug, error, info, LevelFilter};
 use env_logger::Builder;
+use base64;
+
+const START_MARKER: &str = "\u{200b}"; // Zero-width space
+const END_MARKER: &str = "\u{200c}"; // Zero-width non-joiner
+const ZERO_BIT: &str = "\u{200d}"; // Zero-width joiner
+const ONE_BIT: &str = "\u{feff}"; // Zero-width no-break space
+
+fn encode_binary(data: &[u8]) -> String {
+    let binary: String = data.iter()
+        .map(|byte| format!("{:08b}", byte))
+        .collect();
+    binary.chars()
+        .map(|bit| if bit == '1' { ONE_BIT } else { ZERO_BIT })
+        .collect()
+}
+
+fn decode_binary(encoded: &str) -> Vec<u8> {
+    let binary: String = encoded.chars()
+        .map(|char| if char == ONE_BIT.chars().next().unwrap() { '1' } else { '0' })
+        .collect();
+    (0..binary.len() / 8)
+        .map(|i| u8::from_str_radix(&binary[i * 8..(i + 1) * 8], 2).unwrap())
+        .collect()
+}
+
+fn encode(message: &str, carrier: &str, password: Option<&str>) -> Result<String, Box<dyn Error>> {
+    info!("Encoding message: {}", message);
+    info!("Using carrier: {}", carrier);
+    if let Some(pwd) = password {
+        info!("Using password: {}", pwd);
+    }
+
+    let encoded = base64::encode(message.as_bytes());
+    let zero_width = encode_binary(encoded.as_bytes());
+    let encoded_message = format!("{}{}{}", START_MARKER, zero_width, END_MARKER);
+
+    if carrier.is_empty() {
+        return Ok(encoded_message);
+    }
+
+    let mut chars: Vec<char> = carrier.chars().collect();
+    if chars.len() > 1 {
+        let mut result = String::new();
+        result.push(chars[0]);
+        result.push_str(&encoded_message);
+        for c in &chars[1..] {
+            result.push(*c);
+        }
+        Ok(result)
+    } else {
+        Ok(format!("{}{}", carrier, encoded_message))
+    }
+}
+
+fn decode(carrier: &str, password: Option<&str>) -> Result<String, Box<dyn Error>> {
+    info!("Decoding carrier: {}", carrier);
+    if let Some(pwd) = password {
+        info!("Using password: {}", pwd);
+    }
+
+    let start = carrier.find(START_MARKER).ok_or("No valid message found in carrier text")?;
+    let end = carrier.find(END_MARKER).ok_or("No valid message found in carrier text")?;
+    let start_idx = carrier.char_indices().nth(start).map(|(i, _)| i).unwrap_or(0) + START_MARKER.len();
+    let end_idx = carrier.char_indices().nth(end).map(|(i, _)| i).unwrap_or(carrier.len());
+    let encoded = &carrier[start_idx..end_idx];
+
+    let data = decode_binary(encoded);
+    let decoded = base64::decode(data)?;
+    let result = String::from_utf8(decoded)?;
+    info!("Decoded message: {}", result);
+    Ok(result)
+}
 
 fn main() -> Result<(), Box<dyn Error>> {
     let matches = App::new("whitespace-stego")
@@ -11,42 +82,42 @@ fn main() -> Result<(), Box<dyn Error>> {
         .about("Whitespace steganography tool")
         .arg(
             Arg::with_name("verbose")
-                .short('v')
+                .short("v")
                 .long("verbose")
                 .help("Enable verbose output")
                 .takes_value(false),
         )
         .arg(
             Arg::with_name("encode")
-                .short('e')
+                .short("e")
                 .long("encode")
                 .help("Encode mode")
                 .takes_value(false),
         )
         .arg(
             Arg::with_name("decode")
-                .short('d')
+                .short("d")
                 .long("decode")
                 .help("Decode mode")
                 .takes_value(false),
         )
         .arg(
             Arg::with_name("message")
-                .short('m')
+                .short("m")
                 .long("message")
                 .help("Message to encode")
                 .takes_value(true),
         )
         .arg(
             Arg::with_name("carrier")
-                .short('c')
+                .short("c")
                 .long("carrier")
                 .help("Carrier text")
                 .takes_value(true),
         )
         .arg(
             Arg::with_name("password")
-                .short('p')
+                .short("p")
                 .long("password")
                 .help("Password for encryption")
                 .takes_value(true),
