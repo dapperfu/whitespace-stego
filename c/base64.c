@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 #include "base64.h"
 
 static const char b64_table[] =
@@ -27,31 +28,48 @@ char *base64_encode(const char *input) {
 
     out[out_len] = '\0';
     return out;
-}#include <stdlib.h>
-#include <string.h>
-#include "base64.h"
+}
 
-static const unsigned char d[] = {
-    64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
-    64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 62, 64, 64, 64, 63, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 64, 64, 64,  0, 64, 64,
-    64,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 64, 64, 64, 64, 64,
-    64, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51
+static const unsigned char d_table[256] = {
+    [0 ... 255] = 64,
+    ['A'] = 0,  ['B'] = 1,  ['C'] = 2,  ['D'] = 3,
+    ['E'] = 4,  ['F'] = 5,  ['G'] = 6,  ['H'] = 7,
+    ['I'] = 8,  ['J'] = 9,  ['K'] = 10, ['L'] = 11,
+    ['M'] = 12, ['N'] = 13, ['O'] = 14, ['P'] = 15,
+    ['Q'] = 16, ['R'] = 17, ['S'] = 18, ['T'] = 19,
+    ['U'] = 20, ['V'] = 21, ['W'] = 22, ['X'] = 23,
+    ['Y'] = 24, ['Z'] = 25, ['a'] = 26, ['b'] = 27,
+    ['c'] = 28, ['d'] = 29, ['e'] = 30, ['f'] = 31,
+    ['g'] = 32, ['h'] = 33, ['i'] = 34, ['j'] = 35,
+    ['k'] = 36, ['l'] = 37, ['m'] = 38, ['n'] = 39,
+    ['o'] = 40, ['p'] = 41, ['q'] = 42, ['r'] = 43,
+    ['s'] = 44, ['t'] = 45, ['u'] = 46, ['v'] = 47,
+    ['w'] = 48, ['x'] = 49, ['y'] = 50, ['z'] = 51,
+    ['0'] = 52, ['1'] = 53, ['2'] = 54, ['3'] = 55,
+    ['4'] = 56, ['5'] = 57, ['6'] = 58, ['7'] = 59,
+    ['8'] = 60, ['9'] = 61, ['+'] = 62, ['/'] = 63
 };
 
 char *base64_decode(const char *input, size_t *out_len) {
     size_t len = strlen(input);
-    size_t pad = input[len - 1] == '=' ? (input[len - 2] == '=' ? 2 : 1) : 0;
+    if (len % 4 != 0) return NULL;
+
+    size_t pad = 0;
+    if (len >= 1 && input[len - 1] == '=') pad++;
+    if (len >= 2 && input[len - 2] == '=') pad++;
     size_t decoded_len = (len / 4) * 3 - pad;
+
     unsigned char *output = malloc(decoded_len + 1);
     if (!output) return NULL;
 
     for (size_t i = 0, j = 0; i < len;) {
-        uint32_t sextet_a = d[(unsigned char)input[i++] & 0x7F];
-        uint32_t sextet_b = d[(unsigned char)input[i++] & 0x7F];
-        uint32_t sextet_c = d[(unsigned char)input[i++] & 0x7F];
-        uint32_t sextet_d = d[(unsigned char)input[i++] & 0x7F];
+        uint32_t sextet_a = d_table[(unsigned char)input[i++]];
+        uint32_t sextet_b = d_table[(unsigned char)input[i++]];
+        uint32_t sextet_c = d_table[(unsigned char)input[i++]];
+        uint32_t sextet_d = d_table[(unsigned char)input[i++]];
 
-        uint32_t triple = (sextet_a << 18) + (sextet_b << 12) + (sextet_c << 6) + sextet_d;
+        uint32_t triple = (sextet_a << 18) | (sextet_b << 12) |
+                          (sextet_c << 6) | sextet_d;
 
         if (j < decoded_len) output[j++] = (triple >> 16) & 0xFF;
         if (j < decoded_len) output[j++] = (triple >> 8) & 0xFF;
