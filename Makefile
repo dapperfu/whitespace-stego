@@ -27,7 +27,7 @@ install: venv
 test: venv maturin-develop
 	.venv/bin/pip install -e .
 	.venv/bin/pip install -r requirements-dev.txt
-	.venv/bin/pytest --workers 8
+	.venv/bin/pytest
 
 # Install Rust extension in development mode
 maturin-develop:
