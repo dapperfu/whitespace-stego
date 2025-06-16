@@ -55,6 +55,11 @@ clean:
 	cargo clean
 
 # Format code (Rust and Python)
-format:
-	cargo fmt
-	.venv/bin/ruff check --fix . 
+format: .venv/bin/ruff
+	.venv/bin/ruff format .
+
+# ... existing code ...
+.venv/bin/ruff: venv
+	.venv/bin/pip install ruff
+
+# ... existing code ... 
