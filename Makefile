@@ -1,5 +1,4 @@
 .PHONY: help venv install test maturin-develop maturin-build cargo-build cargo-clean clean format rust
-m
 # Default target
 help:
 	@echo "Available targets:"
@@ -25,9 +24,9 @@ install: venv
 	.venv/bin/pip install -r requirements-dev.txt
 
 # Run tests
-.venv/bin/pytest: install
-
-test: .venv/bin/pytest
+test: venv maturin-develop
+	.venv/bin/pip install -e .
+	.venv/bin/pip install -r requirements-dev.txt
 	.venv/bin/pytest --workers 8
 
 # Install Rust extension in development mode
