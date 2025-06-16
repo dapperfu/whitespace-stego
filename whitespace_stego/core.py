@@ -82,8 +82,12 @@ def encode(message: str, carrier: str = "", password: Optional[str] = None) -> s
     if not carrier:
         return encoded_message
     
-    # Embed in carrier after first character
-    return carrier[0] + encoded_message + carrier[1:]
+    # Embed in carrier after first Unicode character
+    chars = list(carrier)
+    if len(chars) > 1:
+        return chars[0] + encoded_message + ''.join(chars[1:])
+    else:
+        return carrier + encoded_message
 
 def decode(carrier: str, password: Optional[str] = None) -> str:
     """Decode a message from carrier text containing zero-width characters.
