@@ -324,57 +324,6 @@ def test_decode_python_password_exception():
     with pytest.raises(ValueError, match="Message binary length is not a multiple of 8"):
         decode_mod._decode_python(corrupted, password)
 
-def test_decode_python_xor_exception():
-    """Test decode_python XOR operation exception to cover line 92 in decode.py."""
-    # Create a message with password
-    msg = "test"
-    carrier = "Hello"
-    password = "secret"
-    
-    # Encode normally
-    encoded = encode_mod._encode_python(msg, carrier, password)
-    
-    # Find the start and end markers
-    start_idx = encoded.find(encode_mod.START_MARKER)
-    end_idx = encoded.find(encode_mod.END_MARKER)
-    
-    # Extract the encoded data
-    encoded_data = encoded[start_idx + len(encode_mod.START_MARKER):end_idx]
-    
-    # Create a message that will cause an exception during the XOR operation
-    # by creating a binary that results in invalid bytes after XOR
-    # We'll create a binary that when XORed with the password will result in invalid base64
-    invalid_binary = "11111111" * 8  # This will create bytes that when XORed might cause issues
-    length_binary = format(len(invalid_binary), '032b')
-    all_binary = length_binary + invalid_binary
-    invalid_encoded_data = ''.join(encode_mod.ONE_BIT if b == '1' else encode_mod.ZERO_BIT for b in all_binary)
-    
-    corrupted = encode_mod.START_MARKER + invalid_encoded_data + encode_mod.END_MARKER
-    
-    # Should raise ValueError due to invalid base64 after XOR
-    with pytest.raises(ValueError, match="Failed to decode message"):
-        decode_mod._decode_python(corrupted, password)
-
-def test_decode_python_password_encoding_exception(monkeypatch):
-    """Test decode_python password encoding exception to cover line 92 in decode.py."""
-    # Mock the password.encode to raise an exception
-    def mock_encode(*args, **kwargs):
-        raise UnicodeEncodeError("utf-8", "invalid", 0, 1, "Invalid character")
-    
-    monkeypatch.setattr("str.encode", mock_encode)
-    
-    # Create a message with password
-    msg = "test"
-    carrier = "Hello"
-    password = "secret"
-    
-    # Encode normally (this will use the original encode function)
-    encoded = encode_mod._encode_python(msg, carrier, password)
-    
-    # Try to decode with the mocked password encoding - should trigger line 92
-    with pytest.raises(ValueError, match="Failed to decode message"):
-        decode_mod._decode_python(encoded, password)
-
 def test_decode_python_password_encode_raises():
     """Test decode_python where password.encode raises, to cover line 92 in decode.py."""
     msg = "test"
