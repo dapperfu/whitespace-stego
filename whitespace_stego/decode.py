@@ -3,6 +3,7 @@
 from typing import Optional
 import click
 from whitespace_stego.core import decode as core_decode
+import base64
 
 # Zero-width Unicode characters for encoding
 ZWSP = '\u200B'  # Zero-width space
@@ -86,6 +87,10 @@ def _decode_python(encoded_text: str, password: Optional[str] = None) -> str:
     # Extract the message binary
     message_binary = binary[32:32 + message_length]
     
+    # Verify message binary length is a multiple of 8 (valid for base64)
+    if len(message_binary) % 8 != 0:
+        raise ValueError("Message binary length is not a multiple of 8")
+    
     # Convert binary string to bytes
     message_bytes = bytearray()
     for i in range(0, len(message_binary), 8):
@@ -103,7 +108,11 @@ def _decode_python(encoded_text: str, password: Optional[str] = None) -> str:
             message_bytes = bytes(decrypted)
         
         # Decode base64 to get original message bytes
-        message = base64.b64decode(message_bytes).decode('utf-8')
+        try:
+            decoded_bytes = base64.b64decode(message_bytes)
+            message = decoded_bytes.decode('utf-8')
+        except Exception as e:
+            raise ValueError(f"Failed to decode message: {str(e)}")
         return message
     except Exception as e:
         raise ValueError(f"Failed to decode message: {str(e)}") 

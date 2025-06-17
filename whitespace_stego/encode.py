@@ -3,6 +3,7 @@
 from typing import Optional
 import click
 from whitespace_stego.core import encode as core_encode
+import base64
 
 # Zero-width Unicode characters for encoding
 ZWSP = '\u200B'  # Zero-width space
