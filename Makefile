@@ -39,7 +39,7 @@ clean:
 	cargo clean
 
 # Run tests with coverage reporting
-coverage: venv maturin-develop
+coverage: venv maturin-develop rust
 	${VENV}/bin/pip install -e .
 	${VENV}/bin/pip install -r requirements-dev.txt
 	${VENV}/bin/pytest --cov=whitespace_stego --cov=whitespace_stego_backend --cov-report=term-missing --cov-report=html --cov-report=xml
@@ -54,12 +54,12 @@ install: venv
 	${VENV}/bin/pip install -r requirements-dev.txt
 
 # Install Rust extension in development mode
-maturin-develop:
-	${VENV}/bin/maturin develop
+maturin-develop: ${VENV}/bin/maturin
+	cd whitespace-stego-backend && ../${VENV}/bin/maturin develop
 
 # Build Python wheel from Rust extension
-maturin-build:
-	${VENV}/bin/maturin build --release
+maturin-build: ${VENV}/bin/maturin
+	cd whitespace-stego-backend && ../${VENV}/bin/maturin build --release
 
 # Build Rust CLI in release mode and copy to top-level directory
 rust:
@@ -79,5 +79,8 @@ venv:
 # ... existing code ...
 ${VENV}/bin/ruff: venv
 	${VENV}/bin/pip install ruff
+
+${VENV}/bin/maturin: venv
+	${VENV}/bin/pip install maturin
 
 # ... existing code ... 
