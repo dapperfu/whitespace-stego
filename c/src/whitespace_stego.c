@@ -110,18 +110,29 @@ bool whitespace_stego_encode(const char* carrier, const char* message,
     strcat(encoded_message, END_MARKER);
     free(zw);
 
-    // Insert after first char of carrier, or return directly if carrier is NULL/empty
+    // Handle carrier embedding (match Python/Rust behavior)
     if (!carrier || carrier[0] == '\0') {
+        // Empty carrier - return just the encoded message
         *result = encoded_message;
     } else {
+        // Non-empty carrier - insert after first character
         size_t carrier_len = strlen(carrier);
         size_t out_len = carrier_len + strlen(encoded_message) + 1;
         *result = malloc(out_len);
         if (!*result) { free(encoded_message); return false; }
+        
+        // Copy first character
         (*result)[0] = carrier[0];
         (*result)[1] = '\0';
+        
+        // Add encoded message
         strcat(*result, encoded_message);
-        strcat(*result, carrier + 1);
+        
+        // Add rest of carrier
+        if (carrier_len > 1) {
+            strcat(*result, carrier + 1);
+        }
+        
         free(encoded_message);
     }
     return true;

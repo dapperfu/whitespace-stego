@@ -12,36 +12,36 @@
 static bool verbose = false;
 
 static void print_usage(const char* program_name) {
-    fprintf(stderr, "Usage: %s [OPTIONS] COMMAND [ARGS]...\n\n", program_name);
-    fprintf(stderr, "Whitespace steganography tool for encoding and decoding messages.\n\n");
-    fprintf(stderr, "Options:\n");
-    fprintf(stderr, "  -v, --verbose                  Enable verbose output\n");
-    fprintf(stderr, "  -h, --help                     Show this message and exit\n\n");
-    fprintf(stderr, "Commands:\n");
-    fprintf(stderr, "  encode                         Encode a message into a carrier file\n");
-    fprintf(stderr, "  decode                         Decode a message from a carrier file\n");
-    fprintf(stderr, "  help                           Show this message or the help of the given subcommand\n");
+    fprintf(stdout, "Usage: %s [OPTIONS] COMMAND [ARGS]...\n\n", program_name);
+    fprintf(stdout, "Whitespace steganography tool for encoding and decoding messages.\n\n");
+    fprintf(stdout, "Options:\n");
+    fprintf(stdout, "  -v, --verbose                  Enable verbose output\n");
+    fprintf(stdout, "  -h, --help                     Show this message and exit\n\n");
+    fprintf(stdout, "Commands:\n");
+    fprintf(stdout, "  encode                         Encode a message into a carrier file\n");
+    fprintf(stdout, "  decode                         Decode a message from a carrier file\n");
+    fprintf(stdout, "  help                           Show this message or the help of the given subcommand\n");
 }
 
 static void print_encode_usage(const char* program_name) {
-    fprintf(stderr, "Usage: %s encode [OPTIONS]\n\n", program_name);
-    fprintf(stderr, "Encode a message into a carrier file using whitespace steganography.\n\n");
-    fprintf(stderr, "Options:\n");
-    fprintf(stderr, "  -m, --message-file PATH       Path to the file containing the message to encode [required]\n");
-    fprintf(stderr, "  -c, --carrier-file PATH       Path to the carrier file [required]\n");
-    fprintf(stderr, "  -o, --output PATH             Path where the encoded file will be saved [required]\n");
-    fprintf(stderr, "  -p, --password TEXT           Optional password for encryption\n");
-    fprintf(stderr, "  -h, --help                    Show this message and exit\n");
+    fprintf(stdout, "Usage: %s encode [OPTIONS]\n\n", program_name);
+    fprintf(stdout, "Encode a message into a carrier file using whitespace steganography.\n\n");
+    fprintf(stdout, "Options:\n");
+    fprintf(stdout, "  -m, --message-file PATH       Path to the file containing the message to encode [required]\n");
+    fprintf(stdout, "  -c, --carrier-file PATH       Path to the carrier file [required]\n");
+    fprintf(stdout, "  -o, --output PATH             Path where the encoded file will be saved [required]\n");
+    fprintf(stdout, "  -p, --password TEXT           Optional password for encryption\n");
+    fprintf(stdout, "  -h, --help                    Show this message and exit\n");
 }
 
 static void print_decode_usage(const char* program_name) {
-    fprintf(stderr, "Usage: %s decode [OPTIONS]\n\n", program_name);
-    fprintf(stderr, "Decode a message from a carrier file using whitespace steganography.\n\n");
-    fprintf(stderr, "Options:\n");
-    fprintf(stderr, "  -c, --carrier-file PATH       Path to the encoded carrier file [required]\n");
-    fprintf(stderr, "  -o, --output PATH             Path where the decoded message will be saved [required]\n");
-    fprintf(stderr, "  -p, --password TEXT           Optional password for decryption\n");
-    fprintf(stderr, "  -h, --help                    Show this message and exit\n");
+    fprintf(stdout, "Usage: %s decode [OPTIONS]\n\n", program_name);
+    fprintf(stdout, "Decode a message from a carrier file using whitespace steganography.\n\n");
+    fprintf(stdout, "Options:\n");
+    fprintf(stdout, "  -c, --carrier-file PATH       Path to the encoded carrier file [required]\n");
+    fprintf(stdout, "  -o, --output PATH             Path where the decoded message will be saved [required]\n");
+    fprintf(stdout, "  -p, --password TEXT           Optional password for decryption\n");
+    fprintf(stdout, "  -h, --help                    Show this message and exit\n");
 }
 
 static void debug_log(const char* format, ...) {
@@ -93,7 +93,15 @@ static char* read_file(const char* filename) {
         return NULL;
     }
 
-    if (buffer) {
+    // Handle empty files - return empty string instead of NULL
+    if (!buffer) {
+        buffer = malloc(1);
+        if (!buffer) {
+            fclose(file);
+            return NULL;
+        }
+        buffer[0] = '\0';
+    } else {
         buffer[buffer_pos] = '\0';
     }
     fclose(file);
@@ -201,8 +209,9 @@ static int handle_encode(int argc, char* argv[]) {
         return 1;
     }
     
-    printf("Message successfully encoded into %s\n", output_file);
+    fprintf(stdout, "Message successfully encoded into %s\n", output_file);
     
+    // Cleanup
     free(message);
     free(carrier);
     free(result);
@@ -253,7 +262,7 @@ static int handle_decode(int argc, char* argv[]) {
         return 1;
     }
     
-    debug_log("Decoding carrier from file: %s", carrier_file);
+    debug_log("Decoding message from file: %s", carrier_file);
     debug_log("Using password: %s", password ? password : "None");
     
     // Decode the message
@@ -271,8 +280,9 @@ static int handle_decode(int argc, char* argv[]) {
         return 1;
     }
     
-    printf("Message successfully decoded to %s\n", output_file);
+    fprintf(stdout, "Message successfully decoded into %s\n", output_file);
     
+    // Cleanup
     free(carrier);
     free(result);
     return 0;
@@ -284,47 +294,51 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     
-    // Parse global options
-    int global_argc = 0;
-    char* global_argv[argc];
-    
+    // Check for global options
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--verbose") == 0) {
             verbose = true;
+            // Remove the verbose flag from argv
+            for (int j = i; j < argc - 1; j++) {
+                argv[j] = argv[j + 1];
+            }
+            argc--;
+            i--;
         } else if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) {
             print_usage(argv[0]);
             return 0;
-        } else {
-            global_argv[global_argc++] = argv[i];
         }
     }
     
-    if (global_argc == 0) {
+    // Parse command
+    if (argc < 2) {
+        fprintf(stderr, "Error: No command specified\n");
         print_usage(argv[0]);
         return 1;
     }
     
-    // Handle subcommands
-    if (strcmp(global_argv[0], "encode") == 0) {
-        return handle_encode(global_argc - 1, global_argv + 1);
-    } else if (strcmp(global_argv[0], "decode") == 0) {
-        return handle_decode(global_argc - 1, global_argv + 1);
-    } else if (strcmp(global_argv[0], "help") == 0) {
-        if (global_argc > 1) {
-            if (strcmp(global_argv[1], "encode") == 0) {
+    char* command = argv[1];
+    
+    if (strcmp(command, "encode") == 0) {
+        return handle_encode(argc - 2, argv + 2);
+    } else if (strcmp(command, "decode") == 0) {
+        return handle_decode(argc - 2, argv + 2);
+    } else if (strcmp(command, "help") == 0) {
+        if (argc >= 3) {
+            char* subcommand = argv[2];
+            if (strcmp(subcommand, "encode") == 0) {
                 print_encode_usage(argv[0]);
-            } else if (strcmp(global_argv[1], "decode") == 0) {
+                return 0;
+            } else if (strcmp(subcommand, "decode") == 0) {
                 print_decode_usage(argv[0]);
-            } else {
-                print_usage(argv[0]);
+                return 0;
             }
-        } else {
-            print_usage(argv[0]);
         }
+        print_usage(argv[0]);
         return 0;
     } else {
-        fprintf(stderr, "Error: Unknown command '%s'\n", global_argv[0]);
-        print_usage(argv[0]);
+        fprintf(stderr, "Unknown command: %s\n", command);
+        fprintf(stderr, "Use --help for usage information\n");
         return 1;
     }
 } 
