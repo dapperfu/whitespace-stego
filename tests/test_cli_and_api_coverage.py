@@ -121,4 +121,67 @@ def test__encode_python_and_decode_python_roundtrip():
     password = "pw"
     encoded = encode_mod._encode_python(msg, carrier, password)
     decoded = decode_mod._decode_python(encoded, password)
-    assert decoded == msg 
+    assert decoded == msg
+
+def test__encode_python_carrier_length_one():
+    """Test encoding with carrier of length 1 to cover line 77."""
+    msg = "test message"
+    carrier = "A"
+    password = "secret"
+    
+    encoded = encode_mod._encode_python(msg, carrier, password)
+    decoded = decode_mod._decode_python(encoded, password)
+    
+    assert decoded == msg
+    # Verify the structure: carrier[0] + encoded_message
+    assert encoded.startswith(carrier)
+    assert encode_mod.START_MARKER in encoded
+    assert encode_mod.END_MARKER in encoded
+
+def test__encode_python_carrier_length_greater_than_one():
+    """Test encoding with carrier of length > 1 to cover line 81."""
+    msg = "another test"
+    carrier = "Hello World"
+    password = "password123"
+    
+    encoded = encode_mod._encode_python(msg, carrier, password)
+    decoded = decode_mod._decode_python(encoded, password)
+    
+    assert decoded == msg
+    # Verify the structure: carrier[0] + encoded_message + carrier[1:]
+    assert encoded.startswith(carrier[0])
+    assert encoded.endswith(carrier[1:])
+    assert encode_mod.START_MARKER in encoded
+    assert encode_mod.END_MARKER in encoded
+    # The encoded message should be inserted after the first character
+    assert carrier[1:] in encoded
+
+def test__encode_python_empty_carrier():
+    """Test encoding with empty carrier to ensure line 75 is covered."""
+    msg = "hidden message"
+    carrier = ""
+    password = "test"
+    
+    encoded = encode_mod._encode_python(msg, carrier, password)
+    decoded = decode_mod._decode_python(encoded, password)
+    
+    assert decoded == msg
+    # Should return just the encoded message without carrier
+    assert encoded == encode_mod.START_MARKER + encoded[len(encode_mod.START_MARKER):-len(encode_mod.END_MARKER)] + encode_mod.END_MARKER
+
+def test_encode_message_rust_backend(monkeypatch):
+    """Test encode_message function with Rust backend to cover line 42."""
+    # Mock the click context to return rust backend
+    ctx = click.Context(click.Command("encode"))
+    ctx.obj = {"backend": "rust"}
+    monkeypatch.setattr(click, "get_current_context", lambda: ctx)
+    
+    # Mock the rust backend import and function
+    mock_rust_encode = lambda msg, carrier, password: f"rust_encoded_{msg}_{carrier}_{password}"
+    mock_rust_module = types.ModuleType("whitespace_stego_backend")
+    mock_rust_module.encode = mock_rust_encode
+    
+    monkeypatch.setitem(sys.modules, "whitespace_stego_backend", mock_rust_module)
+    
+    result = encode_mod.encode_message("test", "carrier", "password")
+    assert result == "rust_encoded_test_carrier_password" 
