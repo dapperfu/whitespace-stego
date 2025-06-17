@@ -7,6 +7,10 @@ use whitespace_stego::{decode, encode, StegoError};
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 struct Cli {
+    /// Enable verbose output
+    #[arg(short, long)]
+    verbose: bool,
+    
     #[command(subcommand)]
     command: Commands,
 }
@@ -120,9 +124,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             // Read password
             let password_content = password.as_deref();
 
+            if cli.verbose {
+                eprintln!("DEBUG: Encoding message");
+                eprintln!("DEBUG: Using password: {}", password_content.unwrap_or("None"));
+            }
+
             // Encode message
             let encoded = encode(&message_content, &carrier_content, password_content)
                 .map_err(|e| e.to_string())?;
+
+            if cli.verbose {
+                eprintln!("DEBUG: Message successfully encoded");
+            }
 
             // Write output
             write_file_or_stdout(&encoded, output.as_ref())?;
@@ -149,8 +162,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             // Read password
             let password_content = password.as_deref();
 
+            if cli.verbose {
+                eprintln!("DEBUG: Decoding carrier");
+                eprintln!("DEBUG: Using password: {}", password_content.unwrap_or("None"));
+            }
+
             // Decode message
             let decoded = decode(&carrier_content, password_content).map_err(|e| e.to_string())?;
+
+            if cli.verbose {
+                eprintln!("DEBUG: Message successfully decoded");
+            }
 
             // Write output
             write_file_or_stdout(&decoded, output.as_ref())?;

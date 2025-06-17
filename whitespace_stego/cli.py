@@ -49,8 +49,9 @@ def get_backend_implementation(backend: str):
 @click.option("--backend", "-b", type=click.Choice(["python", "c", "rust"]), default="python", help="Backend implementation to use")
 def cli(verbose: bool, backend: str) -> None:
     """Whitespace steganography tool for encoding and decoding messages."""
+    global logger
     if verbose:
-        logger.setLevel(logging.DEBUG)
+        logger = setup_logger(__name__, level=logging.DEBUG, verbose=True)
     logger.debug("Using backend: %s", backend)
     # Store backend in context
     ctx = click.get_current_context()
@@ -72,8 +73,14 @@ def encode(message_file: Path, carrier_file: Path, output: Path, password: str |
         message = message_file.read_text(encoding='utf-8')
         carrier = carrier_file.read_text(encoding='utf-8')
         
+        logger.debug("Encoding message from file: %s", message_file)
+        logger.debug("Using carrier from file: %s", carrier_file)
+        logger.debug("Using password: %s", password if password else "None")
+        
         # Encode the message
         encoded = encode_message(message, carrier, password)
+        
+        logger.debug("Message successfully encoded")
         
         # Write the encoded result
         output.write_text(encoded, encoding='utf-8')
@@ -94,8 +101,13 @@ def decode(carrier_file: Path, output: Path, password: str | None):
         # Read the carrier file
         carrier = carrier_file.read_text(encoding='utf-8')
         
+        logger.debug("Decoding carrier from file: %s", carrier_file)
+        logger.debug("Using password: %s", password if password else "None")
+        
         # Decode the message
         decoded = decode_message(carrier, password)
+        
+        logger.debug("Message successfully decoded")
         
         # Write the decoded result
         output.write_text(decoded, encoding='utf-8')
