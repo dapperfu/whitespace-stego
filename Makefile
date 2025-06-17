@@ -67,7 +67,7 @@ rust:
 	cp rust/target/release/whitespace-stego-rs ./whitespace-stego-rs 
 
 # Run tests
-test: venv maturin-develop
+test: venv maturin-develop rust
 	${VENV}/bin/pip install -e .
 	${VENV}/bin/pip install -r requirements-dev.txt
 	${VENV}/bin/pytest
