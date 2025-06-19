@@ -1,0 +1,32 @@
+[package]
+name = "whitespace-stego"
+version = "0.1.0"
+edition = "2021"
+description = "Whitespace steganography using zero-width Unicode characters"
+license = "MIT"
+
+[lib]
+name = "whitespace_stego"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+base64 = "0.21.7"
+clap = { version = "4.5.1", features = ["derive"] }
+thiserror = "1.0"
+fernet = "0.2.0"
+pyo3 = { version = "0.20.3", features = ["extension-module"] }
+
+[build-dependencies]
+maturin = "1.4"
+
+[dev-dependencies]
+criterion = "0.5"
+test-case = "3.3"
+
+[profile.release]
+lto = true
+codegen-units = 1
+
+[[bin]]
+name = "whitespace-stego"
+path = "src/main.rs" 

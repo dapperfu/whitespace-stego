@@ -203,7 +203,6 @@ cython_debug/
 .github/
 .ruff_cache/
 Cargo.lock
-Cargo.toml
 py_fernet_key*.log
 rust/Cargo.lock
 rust/target/
@@ -214,10 +213,10 @@ whitespace-stego-backend/Cargo.lock
 whitespace-stego-backend/whitespace_stego_backend/__pycache__/
 whitespace-stego-backend/whitespace_stego_backend/*.so
 whitespace-stego-cli/Cargo.lock
-whitespace-stego-cli/Cargo.toml
-whitespace-stego-core/Cargo.toml
 whitespace_stego/*.so
 
 # Test files (temporary)
 test_*.txt
 test_*.out
+encoded*.txt
+out.txt
