@@ -259,7 +259,7 @@ mod tests {
                 assert!(extracted.contains(START_MARKER));
                 assert!(extracted.contains(END_MARKER));
                 if !carrier.is_empty() {
-                    assert_eq!(remaining, &carrier[1..]);
+                    assert_eq!(remaining, carrier);
                 }
             }
         }
@@ -271,6 +271,70 @@ mod tests {
             let password = Some("test_password");
             let encoded = encode(message, "", password).unwrap();
             assert!(decode(&encoded, Some("wrong_password")).is_err());
+        }
+    }
+
+    #[test]
+    fn test_encode_binary_and_decode_binary() {
+        let data = b"test data";
+        let encoded = encode_binary(data);
+        let decoded = decode_binary(&encoded);
+        assert_eq!(decoded, data);
+    }
+
+    #[test]
+    fn test_derive_fernet_key_length_and_padding() {
+        let key1 = derive_fernet_key("short");
+        let key2 = derive_fernet_key("this_is_a_very_long_password_that_should_be_truncated");
+        assert_eq!(key1.len(), key2.len());
+        assert_eq!(key1.len(), 43); // 32 bytes base64-url encoded, no padding
+    }
+
+    #[test]
+    fn test_encrypt_decrypt_data_roundtrip() {
+        let data = b"super secret";
+        let password = "password123";
+        let encrypted = encrypt_data(data, password).unwrap();
+        let decrypted = decrypt_data(&encrypted, password).unwrap();
+        assert_eq!(decrypted, data);
+    }
+
+    #[test]
+    fn test_decrypt_data_wrong_password() {
+        let data = b"super secret";
+        let password = "password123";
+        let wrong_password = "wrongpass";
+        let encrypted = encrypt_data(data, password).unwrap();
+        let result = decrypt_data(&encrypted, wrong_password);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_decode_binary_with_invalid_input() {
+        // Not a valid zero-width sequence, should decode to empty
+        let decoded = decode_binary("not zero width");
+        assert_eq!(decoded, Vec::<u8>::new());
+    }
+}
+
+#[cfg(test)]
+mod proptests {
+    use super::*;
+    use proptest::prelude::*;
+
+    proptest! {
+        #[test]
+        fn prop_encode_decode_roundtrip(message in ".{0,100}", carrier in ".{0,100}") {
+            let encoded = encode(&message, &carrier, None).unwrap();
+            let decoded = decode(&encoded, None).unwrap();
+            prop_assert_eq!(decoded, message);
+        }
+
+        #[test]
+        fn prop_encode_decode_with_password(message in ".{0,100}", carrier in ".{0,100}", password in ".{0,32}") {
+            let encoded = encode(&message, &carrier, Some(&password)).unwrap();
+            let decoded = decode(&encoded, Some(&password)).unwrap();
+            prop_assert_eq!(decoded, message);
         }
     }
 }

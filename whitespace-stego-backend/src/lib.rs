@@ -18,4 +18,24 @@ pub fn encode_py(message: &str, carrier: &str, password: Option<&str>) -> PyResu
 #[pyfunction]
 pub fn decode_py(carrier: &str, password: Option<&str>) -> PyResult<String> {
     decode(carrier, password).map_err(|e| PyValueError::new_err(e.to_string()))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_encode_decode_py() {
+        let message = "Hello, backend!";
+        let carrier = "Carrier text";
+        let encoded = encode_py(message, carrier, None).unwrap();
+        let decoded = decode_py(&encoded, None).unwrap();
+        assert_eq!(decoded, message);
+    }
+
+    #[test]
+    fn test_decode_py_invalid() {
+        let result = decode_py("not encoded", None);
+        assert!(result.is_err());
+    }
 } 
