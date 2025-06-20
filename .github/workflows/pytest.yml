@@ -32,7 +32,7 @@ jobs:
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
-    if: github.event.inputs.test_type == 'unit' || github.event.inputs.test_type == 'all' || github.event.inputs.test_type == 'quick'
+    if: github.event.inputs.test_type == 'unit' || github.event.inputs.test_type == 'all' || github.event.inputs.test_type == 'quick' || github.event.inputs.test_type == ''
     strategy:
       matrix:
         python-version: ['3.9', '3.10', '3.11', '3.12']
@@ -341,12 +341,56 @@ jobs:
           echo "Quick Tests: ${{ needs.quick-tests.result }}"
           echo "WASM Website Tests: ${{ needs.wasm-website-tests.result }}"
           
-          if [[ "${{ needs.unit-tests.result }}" == "success" && 
-                "${{ needs.integration-tests.result }}" == "success" && 
-                "${{ needs.cli-tests.result }}" == "success" && 
-                "${{ needs.comprehensive-tests.result }}" == "success" && 
-                "${{ needs.coverage-tests.result }}" == "success" && 
-                "${{ needs.quick-tests.result }}" == "success" ]]; then
+          # Count successful and failed jobs (excluding skipped)
+          SUCCESS_COUNT=0
+          FAILED_COUNT=0
+          
+          if [[ "${{ needs.unit-tests.result }}" == "success" ]]; then
+            SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+          elif [[ "${{ needs.unit-tests.result }}" == "failure" ]]; then
+            FAILED_COUNT=$((FAILED_COUNT + 1))
+          fi
+          
+          if [[ "${{ needs.integration-tests.result }}" == "success" ]]; then
+            SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+          elif [[ "${{ needs.integration-tests.result }}" == "failure" ]]; then
+            FAILED_COUNT=$((FAILED_COUNT + 1))
+          fi
+          
+          if [[ "${{ needs.cli-tests.result }}" == "success" ]]; then
+            SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+          elif [[ "${{ needs.cli-tests.result }}" == "failure" ]]; then
+            FAILED_COUNT=$((FAILED_COUNT + 1))
+          fi
+          
+          if [[ "${{ needs.comprehensive-tests.result }}" == "success" ]]; then
+            SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+          elif [[ "${{ needs.comprehensive-tests.result }}" == "failure" ]]; then
+            FAILED_COUNT=$((FAILED_COUNT + 1))
+          fi
+          
+          if [[ "${{ needs.coverage-tests.result }}" == "success" ]]; then
+            SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+          elif [[ "${{ needs.coverage-tests.result }}" == "failure" ]]; then
+            FAILED_COUNT=$((FAILED_COUNT + 1))
+          fi
+          
+          if [[ "${{ needs.quick-tests.result }}" == "success" ]]; then
+            SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+          elif [[ "${{ needs.quick-tests.result }}" == "failure" ]]; then
+            FAILED_COUNT=$((FAILED_COUNT + 1))
+          fi
+          
+          if [[ "${{ needs.wasm-website-tests.result }}" == "success" ]]; then
+            SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+          elif [[ "${{ needs.wasm-website-tests.result }}" == "failure" ]]; then
+            FAILED_COUNT=$((FAILED_COUNT + 1))
+          fi
+          
+          echo ""
+          echo "Summary: $SUCCESS_COUNT successful, $FAILED_COUNT failed"
+          
+          if [[ $FAILED_COUNT -eq 0 ]]; then
             echo "✅ All critical tests passed!"
             exit 0
           else
