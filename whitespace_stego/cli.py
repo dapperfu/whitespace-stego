@@ -127,9 +127,8 @@ def cli(verbose: bool, backend: str) -> None:
 @click.option(
     "--output",
     "-o",
-    required=True,
     type=click.Path(path_type=Path),
-    help="Path where the encoded file will be saved",
+    help="Path where the encoded file will be saved (use '-' for stdout, omit for stdout)",
 )
 @click.option("--password", "-p", help="Optional password for encryption")
 def encode(
@@ -137,7 +136,7 @@ def encode(
     message_file: Optional[Path],
     carrier: Optional[str],
     carrier_file: Optional[Path],
-    output: Path,
+    output: Optional[Path],
     password: Optional[str]
 ):
     """Encode a message into a carrier using whitespace steganography."""
@@ -185,9 +184,15 @@ def encode(
 
         logger.debug("Message successfully encoded")
 
-        # Write the encoded result
-        output.write_text(encoded, encoding="utf-8")
-        click.echo(f"Message successfully encoded into {output}")
+        # Output the encoded result
+        if output is None or str(output) == "-":
+            # Output to stdout
+            click.echo(encoded)
+            logger.debug("Message output to stdout")
+        else:
+            # Output to file
+            output.write_text(encoded, encoding="utf-8")
+            click.echo(f"Message successfully encoded into {output}")
     except Exception as e:
         click.echo(f"Error encoding message: {str(e)}", err=True)
         raise click.Abort()
