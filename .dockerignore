@@ -1,0 +1,103 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env
+pip-log.txt
+pip-delete-this-directory.txt
+.tox
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.git
+.mypy_cache
+.pytest_cache
+.hypothesis
+
+# Virtual environments
+.venv
+venv/
+ENV/
+env/
+.venv/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+target/
+*.so
+*.dylib
+*.dll
+
+# Test artifacts
+htmlcov/
+.pytest_cache/
+.coverage
+coverage.xml
+test_results.html
+pytest.out
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# Logs
+*.log
+logs/
+
+# Data files (keep only what's needed)
+*.txt
+!requirements*.txt
+!pyproject.toml
+!Cargo.toml
+!Cargo.lock
+!Makefile
+!README.md
+
+# Rust
+target/
+Cargo.lock
+
+# C
+*.o
+*.a
+*.so
+c/bin/
+c/obj/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Documentation
+docs/
+*.md
+!README.md 

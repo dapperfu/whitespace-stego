@@ -1,0 +1,60 @@
+# Python Implementation Dockerfile
+FROM python:3.11-slim
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Rust for building the Rust backend
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+# Set working directory
+WORKDIR /app
+
+# Copy Python dependencies
+COPY pyproject.toml requirements-dev.txt ./
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements-dev.txt
+RUN pip install --no-cache-dir -e .
+
+# Copy Rust backend and build it
+COPY whitespace-stego-backend/ ./whitespace-stego-backend/
+RUN cd whitespace-stego-backend && maturin develop --release
+
+# Copy source code
+COPY whitespace_stego/ ./whitespace_stego/
+
+# Copy notebooks for interactive use
+COPY *.ipynb ./
+COPY README.md ./
+
+# Create data directory
+RUN mkdir -p /app/data
+
+# Expose Jupyter port
+EXPOSE 8888
+
+# Create convenience script
+RUN echo '#!/bin/bash\n\
+echo "=== Python Whitespace Steganography ==="\n\
+echo "Available commands:"\n\
+echo "  CLI: python -m whitespace_stego.cli --help"\n\
+echo "  Jupyter: jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root"\n\
+echo "  Tests: pytest"\n\
+echo ""\n\
+echo "Examples:"\n\
+echo "  python -m whitespace_stego.cli encode --message-file message.txt --carrier-file carrier.txt --output encoded.txt"\n\
+echo "  python -m whitespace_stego.cli decode --carrier-file encoded.txt --output decoded.txt"\n\
+' > /usr/local/bin/python-stego-help && chmod +x /usr/local/bin/python-stego-help
+
+# Default command
+CMD ["python-stego-help"] 
