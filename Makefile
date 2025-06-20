@@ -1,5 +1,5 @@
 VENV?=.venv
-.PHONY: help venv install test coverage maturin-develop maturin-build cargo-build cargo-clean clean format rust wasi-web docker-build docker-build-python docker-build-rust docker-build-c docker-compose-up docker-compose-down docker-compose-dev docker-compose-jupyter docker-compose-test docker-compose-production docker-clean docker-push docker-pull docker-run-python docker-run-rust docker-run-c docker-run-jupyter docker-run-test docker-logs docker-shell docker-stop-all
+.PHONY: help venv install test coverage maturin-develop maturin-build cargo-build cargo-clean clean format rust wasi-web test-wasm test-wasm-only test-all docker-build docker-build-python docker-build-rust docker-build-c docker-compose-up docker-compose-down docker-compose-dev docker-compose-jupyter docker-compose-test docker-compose-production docker-clean docker-push docker-pull docker-run-python docker-run-rust docker-run-c docker-run-jupyter docker-run-test docker-logs docker-shell docker-stop-all
 # Default target
 help:
 	@echo "Available targets:"
@@ -7,6 +7,9 @@ help:
 	@echo "  venv            - Create Python virtual environment"
 	@echo "  install         - Install Python package and dependencies"
 	@echo "  test            - Run tests using pytest"
+	@echo "  test-wasm       - Run WASM website Selenium tests"
+	@echo "  test-wasm-only  - Run only WASM website Selenium tests"
+	@echo "  test-all        - Run all tests (including WASM website tests)"
 	@echo "  coverage        - Run tests with coverage reporting"
 	@echo "  maturin-develop - Install Rust extension in development mode"
 	@echo "  maturin-build   - Build Python wheel from Rust extension"
@@ -92,11 +95,34 @@ rust:
 	cargo build --release --manifest-path rust/Cargo.toml --target-dir rust/target
 	cp rust/target/release/whitespace-stego-rs ./whitespace-stego-rs 
 
-# Run tests
+# Run standard tests (excluding WASM website tests)
 test: venv maturin-develop rust
 	.venv/bin/pip install -e .
 	.venv/bin/pip install -r requirements-dev.txt
-	.venv/bin/pytest
+	.venv/bin/pytest -k "not test_wasm_website"
+
+# Run WASM website Selenium tests
+test-wasm: venv wasi-web
+	.venv/bin/pip install -e .
+	.venv/bin/pip install -r requirements-dev.txt
+	@echo "Starting WASM web server in background..."
+	@cd wasi/pkg && python3 -m http.server 8000 > /dev/null 2>&1 & echo $$! > /tmp/wasm_server.pid
+	@sleep 3
+	@echo "Running WASM website Selenium tests..."
+	@PYTHONPATH=. .venv/bin/pytest tests/test_wasm_website.py -v --disable-warnings
+	@echo "Stopping WASM web server..."
+	@kill $$(cat /tmp/wasm_server.pid) 2>/dev/null || true
+	@rm -f /tmp/wasm_server.pid
+
+# Run only WASM website Selenium tests (assumes server is already running)
+test-wasm-only: venv
+	.venv/bin/pip install -e .
+	.venv/bin/pip install -r requirements-dev.txt
+	@echo "Running WASM website Selenium tests..."
+	@PYTHONPATH=. .venv/bin/pytest tests/test_wasm_website.py -v --disable-warnings
+
+# Run all tests (including WASM website tests)
+test-all: test test-wasm
 
 # Create Python virtual environment
 venv:
