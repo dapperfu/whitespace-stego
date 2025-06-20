@@ -19,17 +19,12 @@ RUN apt-get update && apt-get install -y \
 # Set working directory
 WORKDIR /app
 
-# Copy Rust CLI dependencies and source
-COPY rust/Cargo.toml ./rust/
-COPY rust/Cargo.lock ./rust/
-COPY rust/src/ ./rust/src/
+# Copy entire Rust project
+COPY rust/ ./rust/
 
 # Build Rust CLI in release mode
 RUN cargo build --release --manifest-path rust/Cargo.toml --target-dir rust/target
 RUN cp rust/target/release/whitespace-stego-rs /usr/local/bin/
-
-# Copy source code for reference
-COPY rust/ ./rust/
 
 # Create data directory
 RUN mkdir -p /app/data
