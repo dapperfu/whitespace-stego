@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-// Zero-width Unicode characters (match Python/Rust)
+// Zero-width Unicode characters (match Python core.py implementation)
 #define START_MARKER "\xE2\x80\x8B"   // U+200B Zero-width space
 #define END_MARKER   "\xE2\x80\x8C"   // U+200C Zero-width non-joiner
 #define ZERO_BIT     "\xE2\x80\x8D"   // U+200D Zero-width joiner
@@ -68,7 +68,7 @@ static unsigned char* decode_binary(const char* encoded, size_t* out_len) {
     return out;
 }
 
-bool whitespace_stego_encode(const char* carrier, const char* message,
+bool whitespace_stego_encode(const char* carrier, size_t carrier_len, const char* message,
                            const char* password, char** result) {
     if (!message || !result) {
         return false;
@@ -111,50 +111,89 @@ bool whitespace_stego_encode(const char* carrier, const char* message,
     free(zw);
 
     // Handle carrier embedding (match Python/Rust behavior)
-    if (!carrier || carrier[0] == '\0') {
+    if (!carrier || carrier_len == 0) {
         // Empty carrier - return just the encoded message
         *result = encoded_message;
     } else {
         // Non-empty carrier - insert after first character
-        size_t carrier_len = strlen(carrier);
         size_t out_len = carrier_len + strlen(encoded_message) + 1;
         *result = malloc(out_len);
         if (!*result) { free(encoded_message); return false; }
         
-        // Copy first character
-        (*result)[0] = carrier[0];
-        (*result)[1] = '\0';
+        // Copy the entire carrier (it's already UTF-8 encoded)
+        memcpy(*result, carrier, carrier_len);
+        (*result)[carrier_len] = '\0';
         
-        // Add encoded message
-        strcat(*result, encoded_message);
-        
-        // Add rest of carrier
-        if (carrier_len > 1) {
-            strcat(*result, carrier + 1);
+        // Insert encoded message after the first character
+        // For UTF-8, we need to find the first complete character
+        size_t first_char_len = 0;
+        if ((unsigned char)carrier[0] < 0x80) {
+            // ASCII character - 1 byte
+            first_char_len = 1;
+        } else if ((unsigned char)carrier[0] < 0xE0) {
+            // 2-byte UTF-8 sequence
+            first_char_len = 2;
+        } else if ((unsigned char)carrier[0] < 0xF0) {
+            // 3-byte UTF-8 sequence
+            first_char_len = 3;
+        } else {
+            // 4-byte UTF-8 sequence
+            first_char_len = 4;
         }
         
+        // Ensure we don't exceed carrier length
+        if (first_char_len > carrier_len) {
+            first_char_len = carrier_len;
+        }
+        
+        // Create new result with encoded message inserted after first character
+        size_t new_len = first_char_len + strlen(encoded_message) + (carrier_len - first_char_len) + 1;
+        char* new_result = malloc(new_len);
+        if (!new_result) { free(*result); free(encoded_message); return false; }
+        
+        // Copy first character
+        memcpy(new_result, carrier, first_char_len);
+        
+        // Add encoded message
+        strcpy(new_result + first_char_len, encoded_message);
+        
+        // Add rest of carrier
+        if (carrier_len > first_char_len) {
+            strcpy(new_result + first_char_len + strlen(encoded_message), carrier + first_char_len);
+        }
+        
+        free(*result);
         free(encoded_message);
+        *result = new_result;
     }
     return true;
 }
 
-bool whitespace_stego_decode(const char* carrier, const char* password,
+bool whitespace_stego_decode(const char* carrier, size_t carrier_len, const char* password,
                            char** result) {
     if (!carrier || !result) {
         snprintf(last_error, sizeof(last_error), "No carrier or result pointer provided");
         return false;
     }
+    
+    // Create a null-terminated copy for string operations
+    char* carrier_copy = malloc(carrier_len + 1);
+    if (!carrier_copy) return false;
+    memcpy(carrier_copy, carrier, carrier_len);
+    carrier_copy[carrier_len] = '\0';
+    
     // Find start and end marker
-    const char* start = strstr(carrier, START_MARKER);
-    if (!start) return false;
+    const char* start = strstr(carrier_copy, START_MARKER);
+    if (!start) { free(carrier_copy); return false; }
     start += strlen(START_MARKER);
     const char* end = strstr(start, END_MARKER);
-    if (!end) return false;
+    if (!end) { free(carrier_copy); return false; }
     size_t zw_len = end - start;
     char* zw = malloc(zw_len + 1);
-    if (!zw) return false;
+    if (!zw) { free(carrier_copy); return false; }
     strncpy(zw, start, zw_len);
     zw[zw_len] = '\0';
+    free(carrier_copy);
 
     // Decode zero-width to base64
     size_t b64_len = 0;
