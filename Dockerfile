@@ -26,6 +26,7 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     jupyter \
     jupyter-notebook \
+    patchelf \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Rust
@@ -39,7 +40,7 @@ WORKDIR /workspace
 FROM base AS development
 
 # Install Python development dependencies
-COPY requirements-dev.txt pyproject.toml ./
+COPY requirements-dev.txt pyproject.toml README.md ./
 RUN pip3 install --no-cache-dir -r requirements-dev.txt
 RUN pip3 install --no-cache-dir -e .
 
@@ -55,12 +56,13 @@ COPY c/ ./c/
 RUN cd c && make clean && make
 
 # Install Rust backend for Python
+COPY whitespace-stego-core/ ./whitespace-stego-core/
 COPY whitespace-stego-backend/ ./whitespace-stego-backend/
-RUN cd whitespace-stego-backend && maturin develop --release
+RUN cd whitespace-stego-backend && maturin build --release
+RUN pip3 install --no-cache-dir whitespace-stego-backend/target/wheels/*.whl
 
 # Copy notebooks and documentation
 COPY *.ipynb ./
-COPY README.md ./
 
 # Create convenience scripts
 RUN echo '#!/bin/bash\n\

@@ -28,6 +28,7 @@ COPY pyproject.toml requirements-dev.txt README.md ./
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements-dev.txt
 RUN pip install --no-cache-dir maturin
+RUN pip install --no-cache-dir jupyter notebook
 
 # Copy source code first
 COPY whitespace_stego/ ./whitespace_stego/
