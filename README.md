@@ -10,6 +10,7 @@ This project implements a whitespace steganography tool that encodes messages us
 - **Cross-compatibility**: Messages encoded with one implementation can be decoded with another
 - **Comprehensive testing**: 743+ tests ensuring reliability
 - **Command-line interface**: Easy-to-use CLI for all implementations
+- **Interactive examples**: Jupyter notebooks for learning and experimentation
 
 ## Installation
 
@@ -362,6 +363,95 @@ fn main() {
     let decoded_secure = decode(&encoded_secure, Some("secret123")).unwrap();
 }
 ```
+
+## Interactive Examples (Jupyter Notebooks)
+
+This project includes several Jupyter notebooks that provide interactive examples and demonstrations of the whitespace steganography functionality. These notebooks are perfect for learning the concepts and experimenting with different use cases.
+
+### Available Notebooks
+
+#### 1. `whitespace_stego_example.ipynb`
+**Comprehensive tutorial and examples**
+
+This notebook provides a complete introduction to whitespace steganography with hands-on examples:
+
+- **Basic Concepts**: Introduction to zero-width Unicode characters and steganography
+- **Core Functionality**: Basic encoding and decoding without carrier text
+- **Carrier Text**: Embedding messages within innocent-looking text
+- **Password Protection**: Adding encryption to hidden messages
+- **Error Handling**: Demonstrating robust error handling for various scenarios
+- **Performance Analysis**: Comparing encoding/decoding performance
+- **Real-world Applications**: Practical examples and use cases
+
+**Key Features Demonstrated:**
+- Invisible message embedding using zero-width characters
+- Optional password encryption using Fernet (AES-128)
+- Flexible usage with or without carrier text
+- Robust error handling and validation
+- Performance characteristics and optimization
+
+#### 2. `whitespace_stego_backends_demo.ipynb`
+**Multi-backend comparison and compatibility**
+
+This notebook demonstrates the interoperability between different backend implementations:
+
+- **Backend Comparison**: Side-by-side comparison of Python and Rust backends
+- **Cross-backend Compatibility**: Testing message encoding/decoding across implementations
+- **Performance Benchmarks**: Performance comparisons between backends
+- **Unicode Support**: Testing with international characters and emojis
+- **Password Protection**: Verifying encryption works across backends
+
+**Key Features Demonstrated:**
+- Identical output from Python and Rust backends
+- Cross-backend message compatibility
+- Performance characteristics of each backend
+- Unicode and special character handling
+- Password protection consistency
+
+#### 3. `whitespace_stego_example_updated.ipynb`
+**Updated examples with latest features**
+
+This notebook contains updated examples reflecting the current state of the library:
+
+- **Latest API**: Examples using the most recent library features
+- **Enhanced Examples**: Improved demonstrations with better explanations
+- **Additional Features**: Coverage of newer functionality
+- **Best Practices**: Updated recommendations and usage patterns
+
+### Running the Notebooks
+
+1. **Install Jupyter**: Make sure you have Jupyter installed in your environment:
+   ```bash
+   pip install jupyter
+   ```
+
+2. **Start Jupyter**: Launch Jupyter from the project directory:
+   ```bash
+   jupyter notebook
+   ```
+
+3. **Open Notebooks**: Navigate to and open any of the available notebooks:
+   - `whitespace_stego_example.ipynb` - Start here for learning
+   - `whitespace_stego_backends_demo.ipynb` - For backend comparison
+   - `whitespace_stego_example_updated.ipynb` - For latest features
+
+### Notebook Features
+
+- **Interactive Code**: Run code cells to see results immediately
+- **Visual Output**: See the encoded zero-width characters and their effects
+- **Step-by-step Learning**: Progressive examples from basic to advanced
+- **Error Demonstrations**: See how the library handles various error conditions
+- **Performance Insights**: Understand the performance characteristics
+- **Real-world Scenarios**: Practical examples you can adapt to your needs
+
+### Learning Path
+
+1. **Begin with `whitespace_stego_example.ipynb`** to understand the basic concepts
+2. **Try `whitespace_stego_backends_demo.ipynb`** to see multi-backend capabilities
+3. **Explore `whitespace_stego_example_updated.ipynb`** for the latest features
+4. **Experiment with your own examples** using the patterns shown in the notebooks
+
+The notebooks are designed to be educational and practical, providing both theoretical understanding and hands-on experience with the whitespace steganography library.
 
 ## Command Line Options
 
