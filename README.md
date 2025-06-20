@@ -5,6 +5,7 @@ This project implements a whitespace steganography tool that encodes messages us
 ## Features
 
 - **Multi-language support**: Python, Rust, and C implementations
+- **WebAssembly web interface**: Modern browser-based UI for easy access
 - **Unicode support**: Works with any text including emojis and international characters
 - **Password protection**: Optional encryption for your hidden messages
 - **Cross-compatibility**: Messages encoded with one implementation can be decoded with another
@@ -92,6 +93,111 @@ For detailed Docker usage, see [DOCKER.md](DOCKER.md).
    make c
    ```
 
+### WebAssembly (WASI) Implementation
+
+The project includes a WebAssembly implementation that runs in modern web browsers, providing a beautiful web interface for encoding and decoding messages.
+
+#### Features
+
+- **🌐 Web Interface**: Modern, responsive web UI accessible from any browser
+- **🔐 Message Encoding**: Hide secret messages within normal-looking text
+- **🔓 Message Decoding**: Extract hidden messages from encoded text
+- **📋 Copy to Clipboard**: One-click copying of results
+- **📱 Mobile Friendly**: Responsive design that works on all devices
+- **⚡ Fast**: Compiled to WebAssembly for near-native performance
+- **🔒 Simple**: No password required - just encode and decode your messages
+
+#### Prerequisites
+
+- Rust (latest stable version)
+- wasm-pack (will be installed automatically if missing)
+
+#### Installation and Usage
+
+1. **Build the WASM module and web interface:**
+   ```bash
+   make wasi-web
+   ```
+   
+   This command will:
+   - Install wasm-pack if not present
+   - Compile the Rust code to WebAssembly
+   - Generate JavaScript bindings
+   - Start a Python HTTP server at http://localhost:8000
+
+2. **Open your browser** and navigate to [http://localhost:8000](http://localhost:8000)
+
+3. **Use the web interface:**
+   - Enter your secret message in the "Secret Message" field
+   - Enter carrier text where you want to hide the message
+   - Click "🔒 Encode Message" to hide your message
+   - Click "🔓 Decode Message" to extract hidden messages
+   - Use "📋 Copy to Clipboard" to copy results
+
+#### Manual Build (Alternative)
+
+If you prefer to build manually:
+
+```bash
+cd wasi
+./build.sh
+cd pkg
+python3 -m http.server 8000
+```
+
+#### Web Interface Features
+
+The web interface provides:
+
+- **Input Forms**: Text areas for message and carrier text
+- **Action Buttons**: Encode, decode, and clear functionality
+- **Output Display**: Results area with copy-to-clipboard support
+- **Status Messages**: Real-time feedback on operations
+- **Error Handling**: Clear error messages for troubleshooting
+- **Loading Indicators**: Visual feedback during processing
+
+#### Browser Compatibility
+
+Works in all modern browsers that support WebAssembly:
+- Chrome 57+
+- Firefox 52+
+- Safari 11+
+- Edge 16+
+
+#### API Reference
+
+The WASM module exposes these functions:
+
+```javascript
+// Encode a message into carrier text
+encode(message: string, carrier: string): string
+
+// Decode a message from carrier text
+decode(carrier: string): string
+
+// Check if text contains encoded data
+has_encoded_data(text: string): boolean
+
+// Extract original carrier text without encoded data
+extract_carrier(text: string): string
+```
+
+#### Development
+
+To modify the WASM implementation:
+
+1. Edit `wasi/src/lib.rs` for core functionality
+2. Edit `wasi/index.html` for the web interface
+3. Run `./build.sh` to rebuild
+4. Refresh your browser to see changes
+
+#### Security Notes
+
+- Uses the same zero-width Unicode character encoding as other implementations
+- No password protection in the current WASM version (simplified for browser compatibility)
+- Encoded text can be detected by analyzing Unicode character patterns
+- Always use strong passwords for sensitive messages in other implementations
+
 ## Quick Start Examples
 
 ### Basic Usage
@@ -130,6 +236,29 @@ python -m whitespace_stego.cli decode --carrier-file encoded.txt --output decode
 **Decode the message:**
 ```bash
 ./c/bin/whitespace-stego decode --carrier-file encoded.txt --output decoded.txt
+```
+
+#### WebAssembly Web Interface
+
+**Start the web application:**
+```bash
+make wasi-web
+```
+
+**Use the web interface:**
+1. Open your browser to [http://localhost:8000](http://localhost:8000)
+2. Enter your secret message in the "Secret Message" field
+3. Enter carrier text in the "Carrier Text" field
+4. Click "🔒 Encode Message" to hide your message
+5. Copy the encoded text from the output area
+6. To decode, paste encoded text in the "Carrier Text" field and click "🔓 Decode Message"
+
+**Alternative manual build:**
+```bash
+cd wasi
+./build.sh
+cd pkg
+python3 -m http.server 8000
 ```
 
 ### Advanced Examples
@@ -177,6 +306,22 @@ python -m whitespace_stego.cli decode \
   --carrier-file international_encoded.txt \
   --output international_decoded.txt
 ```
+
+#### WebAssembly Web Interface
+
+**Unicode and Emoji Support:**
+The web interface fully supports Unicode characters and emojis:
+1. Start the web app: `make wasi-web`
+2. Open [http://localhost:8000](http://localhost:8000)
+3. Enter messages with emojis: "Hello 🌍! 你好世界!"
+4. Use carrier text with international characters
+5. Encode and decode with full Unicode support
+
+**Real-time Encoding/Decoding:**
+- No file I/O required - everything happens in the browser
+- Instant results with no server round-trips
+- Copy results directly to clipboard
+- Clear all fields with one click
 
 #### 2. Password Protection
 
@@ -343,6 +488,34 @@ python -m whitespace_stego.cli --verbose encode \
   --output encoded.txt
 ```
 
+### WebAssembly Web Interface
+
+The web interface is accessed through a web browser and provides an intuitive graphical interface:
+
+**Access:**
+```bash
+make wasi-web
+# Then open http://localhost:8000 in your browser
+```
+
+**Interface Elements:**
+- **Secret Message**: Text area for entering the message to hide
+- **Carrier Text**: Text area for entering the text where the message will be hidden
+- **🔒 Encode Message**: Button to encode the message into the carrier text
+- **🔓 Decode Message**: Button to extract hidden messages from text
+- **🗑️ Clear All**: Button to clear all input and output fields
+- **📋 Copy to Clipboard**: Button to copy the result to clipboard
+- **Output**: Text area showing encoded/decoded results
+- **Status**: Real-time feedback and error messages
+
+**Features:**
+- No command-line options needed
+- Real-time encoding/decoding
+- Copy-to-clipboard functionality
+- Error handling with user-friendly messages
+- Mobile-responsive design
+- Works offline (no server-side processing)
+
 ## API Usage
 
 ### Python API
@@ -386,6 +559,33 @@ fn main() {
     let encoded_secure = encode(message, carrier, Some("secret123")).unwrap();
     let decoded_secure = decode(&encoded_secure, Some("secret123")).unwrap();
 }
+```
+
+### WebAssembly API
+
+```javascript
+import init, { encode, decode, has_encoded_data, extract_carrier } from './whitespace_stego_wasi.js';
+
+// Initialize the WASM module
+await init();
+
+// Encode a message
+const carrier = "This is innocent text.";
+const message = "Secret message";
+const encoded = encode(message, carrier);
+console.log("Encoded:", encoded);
+
+// Decode a message
+const decoded = decode(encoded);
+console.log("Decoded:", decoded);
+
+// Check if text contains encoded data
+const hasData = has_encoded_data(encoded);
+console.log("Contains encoded data:", hasData);
+
+// Extract original carrier text
+const originalCarrier = extract_carrier(encoded);
+console.log("Original carrier:", originalCarrier);
 ```
 
 ## Interactive Examples (Jupyter Notebooks)
@@ -578,6 +778,34 @@ python -m whitespace_stego.cli decode --help
 - `--password, -p`: Password for decryption (if used during encoding)
 - `--help, -h`: Show help message
 
+### WebAssembly Web Interface
+
+The web interface is accessed through a web browser and provides an intuitive graphical interface:
+
+**Access:**
+```bash
+make wasi-web
+# Then open http://localhost:8000 in your browser
+```
+
+**Interface Elements:**
+- **Secret Message**: Text area for entering the message to hide
+- **Carrier Text**: Text area for entering the text where the message will be hidden
+- **🔒 Encode Message**: Button to encode the message into the carrier text
+- **🔓 Decode Message**: Button to extract hidden messages from text
+- **🗑️ Clear All**: Button to clear all input and output fields
+- **📋 Copy to Clipboard**: Button to copy the result to clipboard
+- **Output**: Text area showing encoded/decoded results
+- **Status**: Real-time feedback and error messages
+
+**Features:**
+- No command-line options needed
+- Real-time encoding/decoding
+- Copy-to-clipboard functionality
+- Error handling with user-friendly messages
+- Mobile-responsive design
+- Works offline (no server-side processing)
+
 ## Testing
 
 Run the comprehensive test suite:
@@ -615,7 +843,7 @@ The message is:
 
 - **Password protection**: Uses Fernet encryption for password-protected messages
 - **Steganographic security**: Messages are hidden using invisible characters
-- **Cross-compatibility**: Messages work across Python, Rust, and C implementations
+- **Cross-compatibility**: Messages work across Python, Rust, C, and WebAssembly implementations
 - **No metadata**: No additional information is stored about the hidden message
 
 ## Contributing
@@ -629,4 +857,4 @@ The message is:
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+This project is licensed under the MIT License - see the LICENSE file for details.
