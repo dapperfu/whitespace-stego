@@ -217,15 +217,14 @@ def encode(
 @click.option(
     "--output",
     "-o",
-    required=True,
     type=click.Path(path_type=Path),
-    help="Path where the decoded message will be saved",
+    help="Path where the decoded message will be saved (use '-' for stdout, omit for stdout)",
 )
 @click.option("--password", "-p", help="Optional password for decryption")
 def decode(
     carrier: Optional[str],
     carrier_file: Optional[Path],
-    output: Path,
+    output: Optional[Path],
     password: Optional[str]
 ):
     """Decode a message from a carrier using whitespace steganography."""
@@ -255,9 +254,15 @@ def decode(
 
         logger.debug("Message successfully decoded")
 
-        # Write the decoded result
-        output.write_text(decoded, encoding="utf-8")
-        click.echo(f"Message successfully decoded to {output}")
+        # Output the decoded result
+        if output is None or str(output) == "-":
+            # Output to stdout
+            click.echo(decoded)
+            logger.debug("Message output to stdout")
+        else:
+            # Output to file
+            output.write_text(decoded, encoding="utf-8")
+            click.echo(f"Message successfully decoded to {output}")
     except Exception as e:
         click.echo(f"Error decoding message: {str(e)}", err=True)
         raise click.Abort()
