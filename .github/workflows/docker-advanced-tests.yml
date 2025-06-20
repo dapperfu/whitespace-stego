@@ -2,9 +2,9 @@ name: Advanced Docker Tests and Edge Cases
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: ["**"]
   pull_request:
-    branches: [ main, develop ]
+    branches: ["**"]
   schedule:
     # Run weekly for comprehensive testing
     - cron: '0 3 * * 1'

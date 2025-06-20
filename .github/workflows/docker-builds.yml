@@ -2,9 +2,9 @@ name: Docker Builds and Tests
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: ["**"]
   pull_request:
-    branches: [ main, develop ]
+    branches: ["**"]
   schedule:
     # Run weekly to ensure builds still work
     - cron: '0 2 * * 1'

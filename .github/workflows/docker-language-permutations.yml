@@ -2,9 +2,9 @@ name: Docker Language Permutations and Integration Tests
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: ["**"]
   pull_request:
-    branches: [ main, develop ]
+    branches: ["**"]
   schedule:
     # Run weekly for comprehensive testing
     - cron: '0 4 * * 1'
