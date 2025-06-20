@@ -1,6 +1,7 @@
 """Tests for the core steganography functionality."""
 
 import pytest
+from typing import Union
 
 from whitespace_stego.core import (
     decode,
@@ -38,7 +39,7 @@ CARRIERS = [
 @pytest.mark.parametrize("password", PASSWORDS)
 @pytest.mark.parametrize("carrier", CARRIERS)
 def test_encode_decode(
-    message: str, password: str | None, carrier: str, debug_logger
+    message: str, password: Union[str, None], carrier: str, debug_logger
 ) -> None:
     """Test that encoding and decoding preserves the original message."""
     debug_logger.debug("Testing encode/decode with carrier: %s", carrier)
@@ -115,7 +116,7 @@ def test_extract_encoded_invalid(carrier: str) -> None:
 
 @pytest.mark.parametrize("message", MESSAGES)
 @pytest.mark.parametrize("password", PASSWORDS)
-def test_password_mismatch(message: str, password: str | None) -> None:
+def test_password_mismatch(message: str, password: Union[str, None]) -> None:
     """Test that wrong password fails to decode."""
     if password is None:
         return  # Skip if no password
