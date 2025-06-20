@@ -57,6 +57,32 @@ def get_backend_implementation(backend: str):
         raise ValueError(f"Unknown backend: {backend}")
 
 
+class MutuallyExclusiveOption(click.Option):
+    """Custom option class to handle mutually exclusive options."""
+    
+    def __init__(self, *args, **kwargs):
+        self.mutually_exclusive = set(kwargs.pop('mutually_exclusive', []))
+        help = kwargs.get('help', '')
+        if self.mutually_exclusive:
+            ex_str = ', '.join(self.mutually_exclusive)
+            kwargs['help'] = help + (
+                ' NOTE: This option is mutually exclusive with '
+                ' options: [' + ex_str + '].'
+            )
+        super(MutuallyExclusiveOption, self).__init__(*args, **kwargs)
+
+    def handle_parse_result(self, ctx, opts, args):
+        if self.mutually_exclusive.intersection(opts) and self.name in opts:
+            raise click.UsageError(
+                f"Illegal usage: `{self.name}` is mutually exclusive with "
+                f"options {self.mutually_exclusive}."
+            )
+
+        return super(MutuallyExclusiveOption, self).handle_parse_result(
+            ctx, opts, args
+        )
+
+
 @click.group()
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
 @click.option(
@@ -80,18 +106,34 @@ def cli(verbose: bool, backend: str) -> None:
 
 @cli.command()
 @click.option(
-    "--message-file",
+    "--message",
     "-m",
-    required=True,
+    cls=MutuallyExclusiveOption,
+    mutually_exclusive=['message_file'],
+    help="Message to encode (mutually exclusive with --message-file)",
+)
+@click.option(
+    "--message-file",
+    "-mf",
+    cls=MutuallyExclusiveOption,
+    mutually_exclusive=['message'],
     type=click.Path(exists=True, path_type=Path),
-    help="Path to the file containing the message to encode",
+    help="Path to the file containing the message to encode (mutually exclusive with --message)",
+)
+@click.option(
+    "--carrier",
+    "-c",
+    cls=MutuallyExclusiveOption,
+    mutually_exclusive=['carrier_file'],
+    help="Carrier text to encode into (mutually exclusive with --carrier-file)",
 )
 @click.option(
     "--carrier-file",
-    "-c",
-    required=True,
+    "-cf",
+    cls=MutuallyExclusiveOption,
+    mutually_exclusive=['carrier'],
     type=click.Path(exists=True, path_type=Path),
-    help="Path to the carrier file",
+    help="Path to the carrier file (mutually exclusive with --carrier)",
 )
 @click.option(
     "--output",
@@ -101,19 +143,56 @@ def cli(verbose: bool, backend: str) -> None:
     help="Path where the encoded file will be saved",
 )
 @click.option("--password", "-p", help="Optional password for encryption")
-def encode(message_file: Path, carrier_file: Path, output: Path, password: str | None):
-    """Encode a message into a carrier file using whitespace steganography."""
+def encode(
+    message: Optional[str],
+    message_file: Optional[Path],
+    carrier: Optional[str],
+    carrier_file: Optional[Path],
+    output: Path,
+    password: Optional[str]
+):
+    """Encode a message into a carrier using whitespace steganography."""
     try:
-        # Read the message and carrier files
-        message = message_file.read_text(encoding="utf-8")
-        carrier = carrier_file.read_text(encoding="utf-8")
+        # Validate that exactly one message option is provided
+        if message is None and message_file is None:
+            raise click.UsageError(
+                "Either --message/-m or --message-file/-mf must be provided."
+            )
+        if message is not None and message_file is not None:
+            raise click.UsageError(
+                "--message/-m and --message-file/-mf are mutually exclusive."
+            )
+        
+        # Validate that exactly one carrier option is provided
+        if carrier is None and carrier_file is None:
+            raise click.UsageError(
+                "Either --carrier/-c or --carrier-file/-cf must be provided."
+            )
+        if carrier is not None and carrier_file is not None:
+            raise click.UsageError(
+                "--carrier/-c and --carrier-file/-cf are mutually exclusive."
+            )
 
-        logger.debug("Encoding message from file: %s", message_file)
-        logger.debug("Using carrier from file: %s", carrier_file)
+        # Get the message content
+        if message_file is not None:
+            message_content = message_file.read_text(encoding="utf-8")
+            logger.debug("Reading message from file: %s", message_file)
+        else:
+            message_content = message
+            logger.debug("Using message from command line")
+
+        # Get the carrier content
+        if carrier_file is not None:
+            carrier_content = carrier_file.read_text(encoding="utf-8")
+            logger.debug("Reading carrier from file: %s", carrier_file)
+        else:
+            carrier_content = carrier
+            logger.debug("Using carrier from command line")
+
         logger.debug("Using password: %s", password if password else "None")
 
         # Encode the message
-        encoded = encode_message(message, carrier, password)
+        encoded = encode_message(message_content, carrier_content, password)
 
         logger.debug("Message successfully encoded")
 
@@ -127,11 +206,19 @@ def encode(message_file: Path, carrier_file: Path, output: Path, password: str |
 
 @cli.command()
 @click.option(
-    "--carrier-file",
+    "--carrier",
     "-c",
-    required=True,
+    cls=MutuallyExclusiveOption,
+    mutually_exclusive=['carrier_file'],
+    help="Carrier text containing the encoded message (mutually exclusive with --carrier-file)",
+)
+@click.option(
+    "--carrier-file",
+    "-cf",
+    cls=MutuallyExclusiveOption,
+    mutually_exclusive=['carrier'],
     type=click.Path(exists=True, path_type=Path),
-    help="Path to the encoded carrier file",
+    help="Path to the encoded carrier file (mutually exclusive with --carrier)",
 )
 @click.option(
     "--output",
@@ -141,17 +228,36 @@ def encode(message_file: Path, carrier_file: Path, output: Path, password: str |
     help="Path where the decoded message will be saved",
 )
 @click.option("--password", "-p", help="Optional password for decryption")
-def decode(carrier_file: Path, output: Path, password: str | None):
-    """Decode a message from a carrier file using whitespace steganography."""
+def decode(
+    carrier: Optional[str],
+    carrier_file: Optional[Path],
+    output: Path,
+    password: Optional[str]
+):
+    """Decode a message from a carrier using whitespace steganography."""
     try:
-        # Read the carrier file
-        carrier = carrier_file.read_text(encoding="utf-8")
+        # Validate that exactly one carrier option is provided
+        if carrier is None and carrier_file is None:
+            raise click.UsageError(
+                "Either --carrier/-c or --carrier-file/-cf must be provided."
+            )
+        if carrier is not None and carrier_file is not None:
+            raise click.UsageError(
+                "--carrier/-c and --carrier-file/-cf are mutually exclusive."
+            )
 
-        logger.debug("Decoding carrier from file: %s", carrier_file)
+        # Get the carrier content
+        if carrier_file is not None:
+            carrier_content = carrier_file.read_text(encoding="utf-8")
+            logger.debug("Reading carrier from file: %s", carrier_file)
+        else:
+            carrier_content = carrier
+            logger.debug("Using carrier from command line")
+
         logger.debug("Using password: %s", password if password else "None")
 
         # Decode the message
-        decoded = decode_message(carrier, password)
+        decoded = decode_message(carrier_content, password)
 
         logger.debug("Message successfully decoded")
 
