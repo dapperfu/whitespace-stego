@@ -65,7 +65,7 @@
             font-size: 1rem;
         }
 
-        textarea, input[type="text"] {
+        textarea, input[type="text"], input[type="file"] {
             width: 100%;
             padding: 15px;
             border: 2px solid #e1e8ed;
@@ -84,6 +84,28 @@
 
         textarea {
             min-height: 120px;
+        }
+
+        input[type="file"] {
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .file-upload-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .file-upload-container input[type="file"] {
+            flex: 1;
+        }
+
+        .file-info {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
         }
 
         .button-group {
@@ -135,6 +157,16 @@
             box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
         }
 
+        .btn-warning {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #333;
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 236, 210, 0.3);
+        }
+
         .btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
@@ -178,7 +210,7 @@
             border: 1px solid #bee5eb;
         }
 
-        .copy-btn {
+        .copy-btn, .download-btn {
             background: #28a745;
             color: white;
             border: none;
@@ -187,15 +219,27 @@
             cursor: pointer;
             font-size: 0.9rem;
             margin-top: 10px;
+            margin-right: 10px;
             transition: all 0.3s ease;
+        }
+
+        .download-btn {
+            background: #17a2b8;
+        }
+
+        .copy-btn:hover, .download-btn:hover {
+            transform: translateY(-1px);
         }
 
         .copy-btn:hover {
             background: #218838;
-            transform: translateY(-1px);
         }
 
-        .copy-btn:active {
+        .download-btn:hover {
+            background: #138496;
+        }
+
+        .copy-btn:active, .download-btn:active {
             transform: translateY(0);
         }
 
@@ -274,8 +318,10 @@
                 <ul>
                     <li><strong>Encode:</strong> Hide your secret message within normal-looking text</li>
                     <li><strong>Decode:</strong> Extract hidden messages from text that contains encoded data</li>
+                    <li><strong>Password Protection:</strong> Optionally encrypt your messages with a password</li>
+                    <li><strong>File Upload:</strong> Upload files for decoding or use text input</li>
+                    <li><strong>Download:</strong> Save encoded text to a file</li>
                     <li><strong>Invisible:</strong> Uses zero-width Unicode characters that are invisible to the human eye</li>
-                    <li><strong>Simple:</strong> No password required - just encode and decode your messages</li>
                 </ul>
             </div>
 
@@ -288,6 +334,21 @@
                 <div class="form-group">
                     <label for="carrier">Carrier Text (where to hide the message):</label>
                     <textarea id="carrier" placeholder="Enter the text where you want to hide your message..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password (optional):</label>
+                    <input type="text" id="password" placeholder="Password encryption not yet supported in WASM version">
+                    <div class="file-info">Note: Password encryption is not yet supported in the WebAssembly version. Use Python, Rust, or C implementations for password protection.</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="file-upload">Upload File for Decoding (optional):</label>
+                    <div class="file-upload-container">
+                        <input type="file" id="file-upload" accept=".txt,.md,.html,.js,.py,.rs,.c,.cpp,.h,.hpp,.json,.xml,.csv">
+                        <button class="btn btn-warning" onclick="loadFileContent()">📁 Load File</button>
+                    </div>
+                    <div class="file-info" id="file-info"></div>
                 </div>
 
                 <div class="button-group">
@@ -310,6 +371,7 @@
                     <label for="output">Result:</label>
                     <textarea id="output" placeholder="Encoded or decoded text will appear here..." readonly></textarea>
                     <button class="copy-btn" onclick="copyToClipboard()">📋 Copy to Clipboard</button>
+                    <button class="download-btn" onclick="downloadOutput()" id="download-btn" style="display: none;">💾 Download File</button>
                 </div>
             </div>
         </div>
@@ -338,6 +400,7 @@
 
             const message = document.getElementById('message').value.trim();
             const carrier = document.getElementById('carrier').value.trim();
+            const password = document.getElementById('password').value.trim();
 
             if (!message) {
                 showStatus('Error: Please enter a message to encode.', 'error');
@@ -352,11 +415,14 @@
             showLoading('encode');
             
             try {
-                const result = encode(message, carrier);
+                const passwordOption = password ? password : null;
+                const result = encode(message, carrier, passwordOption);
                 document.getElementById('output').value = result;
                 showStatus('✅ Message encoded successfully! The encoded text is now in the output area.', 'success');
+                document.getElementById('download-btn').style.display = 'inline-block';
             } catch (error) {
                 showStatus(`Error: ${error}`, 'error');
+                document.getElementById('download-btn').style.display = 'none';
             } finally {
                 hideLoading('encode');
             }
@@ -369,6 +435,7 @@
             }
 
             const carrier = document.getElementById('carrier').value.trim();
+            const password = document.getElementById('password').value.trim();
 
             if (!carrier) {
                 showStatus('Error: Please enter text to decode.', 'error');
@@ -385,21 +452,71 @@
                     return;
                 }
 
-                const result = decode(carrier);
+                const passwordOption = password ? password : null;
+                const result = decode(carrier, passwordOption);
                 document.getElementById('output').value = result;
                 showStatus('✅ Message decoded successfully! The hidden message is now in the output area.', 'success');
+                document.getElementById('download-btn').style.display = 'inline-block';
             } catch (error) {
                 showStatus(`Error: ${error}`, 'error');
+                document.getElementById('download-btn').style.display = 'none';
             } finally {
                 hideLoading('decode');
             }
         };
 
+        window.loadFileContent = function() {
+            const fileInput = document.getElementById('file-upload');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showStatus('Error: Please select a file first.', 'error');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                document.getElementById('carrier').value = content;
+                document.getElementById('file-info').textContent = `Loaded: ${file.name} (${file.size} bytes)`;
+                showStatus(`✅ File "${file.name}" loaded successfully!`, 'success');
+            };
+            
+            reader.onerror = function() {
+                showStatus('Error: Failed to read file.', 'error');
+            };
+            
+            reader.readAsText(file);
+        };
+
+        window.downloadOutput = function() {
+            const output = document.getElementById('output').value;
+            if (!output) {
+                showStatus('Error: Nothing to download. Please encode or decode a message first.', 'error');
+                return;
+            }
+
+            const blob = new Blob([output], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'whitespace_stego_output.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showStatus('✅ File downloaded successfully!', 'success');
+        };
+
         window.clearAll = function() {
             document.getElementById('message').value = '';
             document.getElementById('carrier').value = '';
+            document.getElementById('password').value = '';
             document.getElementById('output').value = '';
+            document.getElementById('file-upload').value = '';
+            document.getElementById('file-info').textContent = '';
             document.getElementById('status').innerHTML = '';
+            document.getElementById('download-btn').style.display = 'none';
         };
 
         window.copyToClipboard = async function() {

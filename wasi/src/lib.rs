@@ -62,7 +62,12 @@ fn decode_binary(encoded: &str) -> Vec<u8> {
 }
 
 /// Encode a message into carrier text using zero-width characters
-fn encode_internal(message: &str, carrier: &str) -> Result<String, StegoError> {
+fn encode_internal(message: &str, carrier: &str, password: Option<&str>) -> Result<String, StegoError> {
+    // Check if password is provided (not yet supported in WASM)
+    if password.is_some() {
+        return Err(StegoError::EncodingFailed("Password encryption is not yet supported in the WebAssembly version. Please use the Python, Rust, or C implementations for password protection.".to_string()));
+    }
+
     // Base64 encode the message
     let encoded = BASE64.encode(message.as_bytes());
     let data = encoded.as_bytes().to_vec();
@@ -90,7 +95,12 @@ fn encode_internal(message: &str, carrier: &str) -> Result<String, StegoError> {
 }
 
 /// Decode a message from carrier text containing zero-width characters
-fn decode_internal(carrier: &str) -> Result<String, StegoError> {
+fn decode_internal(carrier: &str, password: Option<&str>) -> Result<String, StegoError> {
+    // Check if password is provided (not yet supported in WASM)
+    if password.is_some() {
+        return Err(StegoError::DecryptionFailed("Password decryption is not yet supported in the WebAssembly version. Please use the Python, Rust, or C implementations for password protection.".to_string()));
+    }
+
     // Find the encoded message between markers
     let start = carrier
         .find(START_MARKER)
@@ -122,15 +132,17 @@ fn decode_internal(carrier: &str) -> Result<String, StegoError> {
 
 /// WASI-compatible encode function
 #[wasm_bindgen]
-pub fn encode(message: &str, carrier: &str) -> Result<String, JsValue> {
-    encode_internal(message, carrier)
+pub fn encode(message: &str, carrier: &str, password: Option<String>) -> Result<String, JsValue> {
+    let password_ref = password.as_deref();
+    encode_internal(message, carrier, password_ref)
         .map_err(|e| JsValue::from_str(&e.to_string()))
 }
 
 /// WASI-compatible decode function
 #[wasm_bindgen]
-pub fn decode(carrier: &str) -> Result<String, JsValue> {
-    decode_internal(carrier)
+pub fn decode(carrier: &str, password: Option<String>) -> Result<String, JsValue> {
+    let password_ref = password.as_deref();
+    decode_internal(carrier, password_ref)
         .map_err(|e| JsValue::from_str(&e.to_string()))
 }
 
