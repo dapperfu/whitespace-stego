@@ -1,4 +1,4 @@
-use clap::{App, Arg, SubCommand};
+use clap::{Command, Arg, Subcommand};
 use std::error::Error;
 use log::{info, LevelFilter};
 use env_logger;
@@ -111,85 +111,85 @@ fn decode(carrier: &str, password: Option<&str>) -> Result<String, Box<dyn Error
 
 fn main() -> Result<(), Box<dyn Error>> {
     env_logger::builder().filter_level(LevelFilter::Info).init();
-    let matches = App::new("whitespace-stego-rs")
+    let matches = Command::new("whitespace-stego-rs")
         .version("1.0")
         .author("Your Name")
         .about("Whitespace steganography tool")
         .subcommand(
-            SubCommand::with_name("encode")
+            Command::new("encode")
                 .about("Encode a message into a carrier")
-                .arg(Arg::with_name("message")
-                    .short("m")
+                .arg(Arg::new("message")
+                    .short('m')
                     .long("message")
-                    .takes_value(true)
+                    .num_args(1)
                     .help("Message to encode"))
-                .arg(Arg::with_name("message_file")
+                .arg(Arg::new("message_file")
                     .long("mf")
-                    .takes_value(true)
+                    .num_args(1)
                     .help("File containing the message to encode"))
-                .arg(Arg::with_name("carrier")
-                    .short("c")
+                .arg(Arg::new("carrier")
+                    .short('c')
                     .long("carrier")
-                    .takes_value(true)
+                    .num_args(1)
                     .help("Carrier text"))
-                .arg(Arg::with_name("carrier_file")
+                .arg(Arg::new("carrier_file")
                     .long("cf")
-                    .takes_value(true)
+                    .num_args(1)
                     .help("File containing the carrier text"))
-                .arg(Arg::with_name("password")
-                    .short("p")
+                .arg(Arg::new("password")
+                    .short('p')
                     .long("password")
-                    .takes_value(true)
+                    .num_args(1)
                     .help("Password for encryption"))
-                .arg(Arg::with_name("output")
-                    .short("o")
+                .arg(Arg::new("output")
+                    .short('o')
                     .long("output")
-                    .takes_value(true)
+                    .num_args(1)
                     .help("Output file (default: stdout)")),
         )
         .subcommand(
-            SubCommand::with_name("decode")
+            Command::new("decode")
                 .about("Decode a message from a carrier")
-                .arg(Arg::with_name("carrier")
-                    .short("c")
+                .arg(Arg::new("carrier")
+                    .short('c')
                     .long("carrier")
-                    .takes_value(true)
+                    .num_args(1)
                     .help("Carrier text"))
-                .arg(Arg::with_name("carrier_file")
+                .arg(Arg::new("carrier_file")
                     .long("cf")
-                    .takes_value(true)
+                    .num_args(1)
                     .help("File containing the carrier text"))
-                .arg(Arg::with_name("password")
-                    .short("p")
+                .arg(Arg::new("password")
+                    .short('p')
                     .long("password")
-                    .takes_value(true)
+                    .num_args(1)
                     .help("Password for decryption"))
-                .arg(Arg::with_name("output")
-                    .short("o")
+                .arg(Arg::new("output")
+                    .short('o')
                     .long("output")
-                    .takes_value(true)
+                    .num_args(1)
                     .help("Output file (default: stdout)")),
         )
         .get_matches();
 
     match matches.subcommand() {
-        ("encode", Some(sub_m)) => {
-            let message = if let Some(mf) = sub_m.value_of("message_file") {
+        Some(("encode", sub_m)) => {
+            let message = if let Some(mf) = sub_m.get_one::<String>("message_file") {
                 fs::read_to_string(mf)?
-            } else if let Some(m) = sub_m.value_of("message") {
+            } else if let Some(m) = sub_m.get_one::<String>("message") {
                 m.to_string()
             } else {
                 return Err("No message provided".into());
             };
-            let carrier = if let Some(cf) = sub_m.value_of("carrier_file") {
+            let carrier = if let Some(cf) = sub_m.get_one::<String>("carrier_file") {
                 fs::read_to_string(cf)?
-            } else if let Some(c) = sub_m.value_of("carrier") {
+            } else if let Some(c) = sub_m.get_one::<String>("carrier") {
                 c.to_string()
             } else {
                 String::new()
             };
-            let password = sub_m.value_of("password");
-            let output = sub_m.value_of("output");
+            let password = sub_m.get_one::<String>("password").map(|s| s.as_str());
+            let output = sub_m.get_one::<String>("output").map(|s| s.as_str());
             let encoded = encode(&message, &carrier, password)?;
             if let Some(out) = output {
                 fs::write(out, &encoded)?;
@@ -197,16 +197,16 @@ fn main() -> Result<(), Box<dyn Error>> {
                 println!("{}", encoded);
             }
         }
-        ("decode", Some(sub_m)) => {
-            let carrier = if let Some(cf) = sub_m.value_of("carrier_file") {
+        Some(("decode", sub_m)) => {
+            let carrier = if let Some(cf) = sub_m.get_one::<String>("carrier_file") {
                 fs::read_to_string(cf)?
-            } else if let Some(c) = sub_m.value_of("carrier") {
+            } else if let Some(c) = sub_m.get_one::<String>("carrier") {
                 c.to_string()
             } else {
                 return Err("No carrier provided".into());
             };
-            let password = sub_m.value_of("password");
-            let output = sub_m.value_of("output");
+            let password = sub_m.get_one::<String>("password").map(|s| s.as_str());
+            let output = sub_m.get_one::<String>("output").map(|s| s.as_str());
             let decoded = decode(&carrier, password)?;
             if let Some(out) = output {
                 fs::write(out, &decoded)?;

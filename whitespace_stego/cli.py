@@ -29,7 +29,6 @@ def get_backend_implementation(backend: str):
     """Get the appropriate backend implementation."""
     if backend == "python":
         from whitespace_stego.core import encode as py_encode, decode as py_decode
-
         return py_encode, py_decode
     elif backend == "rust":
         try:
@@ -37,10 +36,16 @@ def get_backend_implementation(backend: str):
                 encode as rust_encode,
                 decode as rust_decode,
             )
-
             return rust_encode, rust_decode
         except ImportError:
             logger.error("Rust backend not available. Please ensure it is installed.")
+            sys.exit(1)
+    elif backend == "c":
+        try:
+            from whitespace_stego.c_backend import encode as c_encode, decode as c_decode
+            return c_encode, c_decode
+        except ImportError:
+            logger.error("C backend not available. Please ensure it is installed.")
             sys.exit(1)
     else:
         raise ValueError(f"Unknown backend: {backend}")
@@ -77,7 +82,7 @@ class MutuallyExclusiveOption(click.Option):
 @click.option(
     "--backend",
     "-b",
-    type=click.Choice(["python", "rust"]),
+    type=click.Choice(["python", "rust", "c"]),
     default="python",
     help="Backend implementation to use",
 )

@@ -19,12 +19,19 @@ services:
     profiles:
       - development
 
+  # Base Python service for development
+  python-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.python
+    image: whitespace-stego:python
+
   # Jupyter notebook environment
   jupyter:
     build:
       context: .
-      dockerfile: Dockerfile
-      target: jupyter
+      dockerfile: Dockerfile.python
+    image: whitespace-stego:python
     volumes:
       - .:/workspace
       - jupyter-data:/root/.jupyter
@@ -36,17 +43,15 @@ services:
     profiles:
       - jupyter
 
-  # Testing environment
+  # Test service for running pytest
   test:
     build:
       context: .
-      dockerfile: Dockerfile
-      target: test
+      dockerfile: Dockerfile.python # Uses the development stage
+    image: whitespace-stego:python-test
     volumes:
       - .:/workspace
-    environment:
-      - PYTHONPATH=/workspace
-    command: make test
+    command: pytest --maxfail=1 --disable-warnings -v
     profiles:
       - testing
 
@@ -54,8 +59,8 @@ services:
   production:
     build:
       context: .
-      dockerfile: Dockerfile
-      target: production
+      dockerfile: Dockerfile # Main Dockerfile, if you have one
+    image: whitespace-stego:latest
     volumes:
       - ./data:/home/stego/data
     environment:

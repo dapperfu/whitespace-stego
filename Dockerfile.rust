@@ -12,20 +12,19 @@ RUN apt-get update && apt-get install -y \
     git \
     pkg-config \
     libssl-dev \
-    python3 \
-    python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
 
 # Copy Rust dependencies
-COPY rust/Cargo.toml rust/Cargo.lock ./
+COPY Cargo.toml Cargo.lock ./
+COPY rust/Cargo.toml ./rust/
 COPY src/ ./src/
 
 # Build Rust CLI in release mode
-RUN cargo build --release --manifest-path Cargo.toml --target-dir target
-RUN cp target/release/whitespace-stego-rs /usr/local/bin/
+RUN cargo build --release --manifest-path rust/Cargo.toml --target-dir rust/target
+RUN cp rust/target/release/whitespace-stego-rs /usr/local/bin/
 
 # Copy source code for reference
 COPY rust/ ./rust/

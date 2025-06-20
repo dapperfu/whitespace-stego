@@ -142,19 +142,27 @@ wasi-web:
 # Docker targets
 
 # Build all Docker images
-docker-build: docker-build-python docker-build-rust docker-build-c
+docker-build: docker-build-base docker-build-python docker-build-rust docker-build-c
 	@echo "All Docker images built successfully"
+
+# Build base Docker image
+docker-build-base:
+	@echo "Building base Docker image..."
+	docker build -f Dockerfile.base -t whitespace-stego:base .
 
 # Build Python implementation Docker image
 docker-build-python:
+	@echo "Building Python Docker image..."
 	docker build -f Dockerfile.python -t whitespace-stego:python .
 
 # Build Rust implementation Docker image
 docker-build-rust:
+	@echo "Building Rust Docker image..."
 	docker build -f Dockerfile.rust -t whitespace-stego:rust .
 
 # Build C implementation Docker image
 docker-build-c:
+	@echo "Building C Docker image..."
 	docker build -f Dockerfile.c -t whitespace-stego:c .
 
 # Build main multi-stage Docker image
