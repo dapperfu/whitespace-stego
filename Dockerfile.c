@@ -1,5 +1,5 @@
 # C Implementation Dockerfile
-FROM gcc:12-slim
+FROM gcc:latest
 
 # Set environment variables
 ENV CC=gcc

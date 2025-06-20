@@ -85,7 +85,6 @@ logs/
 
 # Rust
 target/
-Cargo.lock
 
 # C
 *.o
