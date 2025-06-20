@@ -184,4 +184,273 @@ pub fn extract_carrier(text: &str) -> Result<String, JsValue> {
         }
         _ => Ok(text.to_string())
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // Test data for different character types
+    const ASCII_MESSAGES: &[&str] = &[
+        "Hello, World!",
+        "This is a simple ASCII message",
+        "Special chars: !@#$%^&*()_+-=[]{}|;':\",./<>?",
+        "Numbers: 0123456789",
+        "Mixed case: Hello World 123 !@#",
+        "", // Empty message
+    ];
+
+    const UNICODE_MESSAGES: &[&str] = &[
+        "你好，世界！", // Chinese
+        "こんにちは、世界！", // Japanese
+        "안녕하세요, 세계!", // Korean
+        "Привет, мир!", // Russian
+        "مرحبا بالعالم!", // Arabic
+        "नमस्ते दुनिया!", // Hindi
+        "สวัสดีชาวโลก!", // Thai
+        "Γεια σου κόσμε!", // Greek
+        "Hola mundo!", // Spanish with accent
+        "Café résumé naïve", // French with accents
+        "München Zürich", // German with umlauts
+        "ÆØÅ æøå", // Nordic characters
+        "Café résumé naïve Münchën Zürich ÆØÅ æøå", // Mixed international
+    ];
+
+    const EMOJI_MESSAGES: &[&str] = &[
+        "Hello 🌍!",
+        "Test message with emoji 😀",
+        "Multiple emojis: 🚀🎉🎊🎈🎁",
+        "Animals: 🐶🐱🐭🐹🐰🦊🐻🐼",
+        "Food: 🍕🍔🍟🌭🍿🧂🥨🥖",
+        "Nature: 🌸🌺🌻🌼🌷🌹🌱🌲",
+        "Weather: ☀️🌤️⛅🌥️☁️🌦️🌧️⛈️",
+        "Activities: ⚽🏀🏈⚾🎾🏐🏉🎱",
+        "Mixed: Hello 你好 🌍! Test 测试 🎉",
+        "Complex: 🚀🎉🎊🎈🎁🐶🐱🐭🐹🐰🦊🐻🐼🍕🍔🍟🌭🍿🧂🥨🥖🌸🌺🌻🌼🌷🌹🌱🌲☀️🌤️⛅🌥️☁️🌦️🌧️⛈️⚽🏀🏈⚾🎾🏐🏉🎱",
+    ];
+
+    const ASCII_CARRIERS: &[&str] = &[
+        "Simple carrier text",
+        "This is a normal paragraph that could contain any text.",
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "The quick brown fox jumps over the lazy dog.",
+        "A simple sentence.",
+        "", // Empty carrier
+    ];
+
+    const UNICODE_CARRIERS: &[&str] = &[
+        "你好世界", // Chinese
+        "こんにちは世界", // Japanese
+        "안녕하세요세계", // Korean
+        "Привет мир", // Russian
+        "مرحبا بالعالم", // Arabic
+        "नमस्ते दुनिया", // Hindi
+        "สวัสดีชาวโลก", // Thai
+        "Γεια σου κόσμε", // Greek
+        "Hola mundo", // Spanish
+        "Bonjour le monde", // French
+        "Hallo Welt", // German
+        "Hej världen", // Swedish
+        "Mixed international text: 你好 こんにちは 안녕하세요 Привет مرحبا नमस्ते สวัสดี Γεια Hola Bonjour Hallo Hej",
+    ];
+
+    const EMOJI_CARRIERS: &[&str] = &[
+        "Hello 🌍!",
+        "Carrier with emoji 🎉",
+        "Multiple emojis: 🚀🎉🎊🎈🎁",
+        "Animals: 🐶🐱🐭🐹🐰🦊🐻🐼",
+        "Food: 🍕🍔🍟🌭🍿🧂🥨🥖",
+        "Nature: 🌸🌺🌻🌼🌷🌹🌱🌲",
+        "Weather: ☀️🌤️⛅🌥️☁️🌦️🌧️⛈️",
+        "Activities: ⚽🏀🏈⚾🎾🏐🏉🎱",
+        "Mixed: Hello 你好 🌍! Test 测试 🎉",
+        "Complex: 🚀🎉🎊🎈🎁🐶🐱🐭🐹🐰🦊🐻🐼🍕🍔🍟🌭🍿🧂🥨🥖🌸🌺🌻🌼🌷🌹🌱🌲☀️🌤️⛅🌥️☁️🌦️🌧️⛈️⚽🏀🏈⚾🎾🏐🏉🎱",
+    ];
+
+    #[test]
+    fn test_ascii_roundtrip() {
+        for &message in ASCII_MESSAGES {
+            for &carrier in ASCII_CARRIERS {
+                let encoded = encode_internal(message, carrier, None).unwrap();
+                let decoded = decode_internal(&encoded, None).unwrap();
+                assert_eq!(decoded, message, "ASCII roundtrip failed for message: '{}', carrier: '{}'", message, carrier);
+            }
+        }
+    }
+
+    #[test]
+    fn test_unicode_roundtrip() {
+        for &message in UNICODE_MESSAGES {
+            for &carrier in UNICODE_CARRIERS {
+                let encoded = encode_internal(message, carrier, None).unwrap();
+                let decoded = decode_internal(&encoded, None).unwrap();
+                assert_eq!(decoded, message, "Unicode roundtrip failed for message: '{}', carrier: '{}'", message, carrier);
+            }
+        }
+    }
+
+    #[test]
+    fn test_emoji_roundtrip() {
+        for &message in EMOJI_MESSAGES {
+            for &carrier in EMOJI_CARRIERS {
+                let encoded = encode_internal(message, carrier, None).unwrap();
+                let decoded = decode_internal(&encoded, None).unwrap();
+                assert_eq!(decoded, message, "Emoji roundtrip failed for message: '{}', carrier: '{}'", message, carrier);
+            }
+        }
+    }
+
+    #[test]
+    fn test_mixed_character_roundtrip() {
+        let mixed_messages = [
+            "Hello 你好 🌍!",
+            "Test 测试 🎉 message",
+            "ASCII + Unicode + Emoji: Hello 你好 🌍!",
+            "Complex: 🚀🎉🎊🎈🎁 你好 こんにちは 안녕하세요 Привет مرحبا नमस्ते สวัสดี Γεια Hola Bonjour Hallo Hej",
+        ];
+
+        let mixed_carriers = [
+            "Simple ASCII carrier",
+            "Unicode carrier: 你好世界",
+            "Emoji carrier: 🌍🎉",
+            "Mixed carrier: Hello 你好 🌍! Test 测试 🎉",
+        ];
+
+        for &message in &mixed_messages {
+            for &carrier in &mixed_carriers {
+                let encoded = encode_internal(message, carrier, None).unwrap();
+                let decoded = decode_internal(&encoded, None).unwrap();
+                assert_eq!(decoded, message, "Mixed character roundtrip failed for message: '{}', carrier: '{}'", message, carrier);
+            }
+        }
+    }
+
+    #[test]
+    fn test_edge_cases() {
+        // Empty message and carrier
+        let encoded = encode_internal("", "", None).unwrap();
+        let decoded = decode_internal(&encoded, None).unwrap();
+        assert_eq!(decoded, "");
+
+        // Empty message, non-empty carrier
+        let encoded = encode_internal("", "Hello", None).unwrap();
+        let decoded = decode_internal(&encoded, None).unwrap();
+        assert_eq!(decoded, "");
+
+        // Non-empty message, empty carrier
+        let encoded = encode_internal("Hello", "", None).unwrap();
+        let decoded = decode_internal(&encoded, None).unwrap();
+        assert_eq!(decoded, "Hello");
+
+        // Single character carrier
+        let encoded = encode_internal("Test", "A", None).unwrap();
+        let decoded = decode_internal(&encoded, None).unwrap();
+        assert_eq!(decoded, "Test");
+
+        // Very long message
+        let long_message = "A".repeat(1000);
+        let encoded = encode_internal(&long_message, "Carrier", None).unwrap();
+        let decoded = decode_internal(&encoded, None).unwrap();
+        assert_eq!(decoded, long_message);
+
+        // Very long carrier
+        let long_carrier = "Carrier".repeat(100);
+        let encoded = encode_internal("Test", &long_carrier, None).unwrap();
+        let decoded = decode_internal(&encoded, None).unwrap();
+        assert_eq!(decoded, "Test");
+    }
+
+    #[test]
+    fn test_has_encoded_data() {
+        // Test with encoded data
+        let encoded = encode_internal("Test", "Hello", None).unwrap();
+        assert!(has_encoded_data(&encoded));
+
+        // Test without encoded data
+        assert!(!has_encoded_data("Hello, World!"));
+        assert!(!has_encoded_data(""));
+        assert!(!has_encoded_data("Hello 你好 🌍!"));
+    }
+
+    #[test]
+    fn test_extract_carrier() {
+        let original_carrier = "Hello, World!";
+        let encoded = encode_internal("Test", original_carrier, None).unwrap();
+        let extracted = extract_carrier(&encoded).unwrap();
+        assert_eq!(extracted, original_carrier);
+
+        // Test with Unicode carrier
+        let unicode_carrier = "你好世界";
+        let encoded = encode_internal("Test", unicode_carrier, None).unwrap();
+        let extracted = extract_carrier(&encoded).unwrap();
+        assert_eq!(extracted, unicode_carrier);
+
+        // Test with emoji carrier
+        let emoji_carrier = "Hello 🌍!";
+        let encoded = encode_internal("Test", emoji_carrier, None).unwrap();
+        let extracted = extract_carrier(&encoded).unwrap();
+        assert_eq!(extracted, emoji_carrier);
+    }
+
+    #[test]
+    fn test_password_not_supported() {
+        // Test that password encryption is not supported
+        let result = encode_internal("Test", "Hello", Some("password"));
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("not yet supported"));
+
+        // Test that password decryption is not supported
+        let encoded = encode_internal("Test", "Hello", None).unwrap();
+        let result = decode_internal(&encoded, Some("password"));
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("not yet supported"));
+    }
+
+    #[test]
+    fn test_invalid_decode() {
+        // Test decoding text without encoded data
+        let result = decode_internal("Hello, World!", None);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("No start marker found"));
+
+        // Test decoding empty string
+        let result = decode_internal("", None);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("No start marker found"));
+    }
+
+    #[test]
+    fn test_binary_data_roundtrip() {
+        // Test with binary-like data (Base64 encoded)
+        let binary_message = "SGVsbG8gV29ybGQh"; // "Hello World!" in Base64
+        let encoded = encode_internal(binary_message, "Carrier", None).unwrap();
+        let decoded = decode_internal(&encoded, None).unwrap();
+        assert_eq!(decoded, binary_message);
+    }
+
+    #[test]
+    fn test_special_unicode_characters() {
+        let special_messages = [
+            "Zero-width characters: \u{200B}\u{200C}\u{200D}\u{FEFF}",
+            "Combining characters: e\u{0301} (é)",
+            "Surrogate pairs: \u{1F600}", // 😀
+            "Variation selectors: \u{FE0F}",
+            "Right-to-left: \u{202E}Hello\u{202C}",
+            "Bidirectional: \u{202A}Hello\u{202C}",
+        ];
+
+        let special_carriers = [
+            "Normal carrier",
+            "Carrier with special chars: \u{200B}\u{200C}",
+            "Mixed: Hello \u{1F600} 你好",
+        ];
+
+        for &message in &special_messages {
+            for &carrier in &special_carriers {
+                let encoded = encode_internal(message, carrier, None).unwrap();
+                let decoded = decode_internal(&encoded, None).unwrap();
+                assert_eq!(decoded, message, "Special Unicode roundtrip failed for message: '{}', carrier: '{}'", message, carrier);
+            }
+        }
+    }
 } 
