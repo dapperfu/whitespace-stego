@@ -34,7 +34,7 @@ def test_c_cli_roundtrip(message, carrier, password):
         ]
         if password:
             encode_cmd += ["--password", password]
-        
+
         # Capture output to see what's happening
         result = subprocess.run(encode_cmd, capture_output=True, text=True)
         if result.returncode != 0:
@@ -43,7 +43,7 @@ def test_c_cli_roundtrip(message, carrier, password):
             print(f"stderr: {result.stderr}")
             print(f"returncode: {result.returncode}")
             result.check_returncode()  # This will raise the exception with the captured output
-        
+
         # Decode with C CLI
         decode_cmd = [
             "./c/bin/whitespace-stego",
@@ -55,7 +55,7 @@ def test_c_cli_roundtrip(message, carrier, password):
         ]
         if password:
             decode_cmd += ["--password", password]
-        
+
         result = subprocess.run(decode_cmd, capture_output=True, text=True)
         if result.returncode != 0:
             print(f"Decode command failed: {decode_cmd}")
@@ -72,8 +72,12 @@ def test_c_cli_roundtrip(message, carrier, password):
 @pytest.mark.parametrize("decode_tool", ["python", "rust-cli", "c-cli"])
 @pytest.mark.parametrize("message", MESSAGES)
 @pytest.mark.parametrize("carrier", CARRIERS)
-@pytest.mark.parametrize("password", [None])  # Only test without passwords for cross-tool compatibility
-def test_cross_tool_roundtrip_with_c(encode_tool, decode_tool, message, carrier, password):
+@pytest.mark.parametrize(
+    "password", [None]
+)  # Only test without passwords for cross-tool compatibility
+def test_cross_tool_roundtrip_with_c(
+    encode_tool, decode_tool, message, carrier, password
+):
     """Test cross-tool roundtrips including C CLI with Python and Rust CLIs."""
     with tempfile.TemporaryDirectory() as tmpdir:
         msg_path = Path(tmpdir) / "msg.txt"
@@ -87,7 +91,7 @@ def test_cross_tool_roundtrip_with_c(encode_tool, decode_tool, message, carrier,
         # Encode with first tool
         if encode_tool == "python":
             encode_cmd = [
-                "python3",
+                ".venv/bin/python",
                 "-m",
                 "whitespace_stego.cli",
                 "--backend",
@@ -128,13 +132,13 @@ def test_cross_tool_roundtrip_with_c(encode_tool, decode_tool, message, carrier,
             ]
             if password:
                 encode_cmd += ["--password", password]
-        
+
         subprocess.run(encode_cmd, check=True)
 
         # Decode with second tool
         if decode_tool == "python":
             decode_cmd = [
-                "python3",
+                ".venv/bin/python",
                 "-m",
                 "whitespace_stego.cli",
                 "--backend",
@@ -169,7 +173,7 @@ def test_cross_tool_roundtrip_with_c(encode_tool, decode_tool, message, carrier,
             ]
             if password:
                 decode_cmd += ["--password", password]
-        
+
         subprocess.run(decode_cmd, check=True)
 
         result = dec_path.read_text(encoding="utf-8")
@@ -203,9 +207,9 @@ def test_c_cli_verbose_output(message, carrier, password):
         ]
         if password:
             encode_cmd += ["--password", password]
-        
+
         result = subprocess.run(encode_cmd, capture_output=True, text=True, check=True)
-        
+
         # Check for debug output in stderr
         assert "DEBUG:" in result.stderr
         assert "Encoding message from file:" in result.stderr
@@ -238,7 +242,7 @@ def test_c_cli_error_handling(message, carrier, password):
         ]
         if password:
             encode_cmd += ["--password", password]
-        
+
         result = subprocess.run(encode_cmd, capture_output=True, text=True)
         assert result.returncode != 0
         assert "Error opening file" in result.stderr
@@ -256,14 +260,15 @@ def test_c_cli_error_handling(message, carrier, password):
         ]
         if password:
             encode_cmd += ["--password", password]
-        
+
         result = subprocess.run(encode_cmd, capture_output=True, text=True)
         assert result.returncode != 0
         assert "Error opening file" in result.stderr
 
         # Test invalid command
-        result = subprocess.run(["./c/bin/whitespace-stego", "invalid"], 
-                              capture_output=True, text=True)
+        result = subprocess.run(
+            ["./c/bin/whitespace-stego", "invalid"], capture_output=True, text=True
+        )
         assert result.returncode != 0
         assert "Unknown command" in result.stderr
 
@@ -271,16 +276,24 @@ def test_c_cli_error_handling(message, carrier, password):
 def test_c_cli_help_output():
     """Test C CLI help output consistency."""
     # Test main help
-    result = subprocess.run(["./c/bin/whitespace-stego", "--help"], 
-                          capture_output=True, text=True, check=True)
+    result = subprocess.run(
+        ["./c/bin/whitespace-stego", "--help"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
     assert "Usage:" in result.stdout
     assert "encode" in result.stdout
     assert "decode" in result.stdout
     assert "help" in result.stdout
 
     # Test encode help
-    result = subprocess.run(["./c/bin/whitespace-stego", "help", "encode"], 
-                          capture_output=True, text=True, check=True)
+    result = subprocess.run(
+        ["./c/bin/whitespace-stego", "help", "encode"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
     assert "Usage:" in result.stdout
     assert "--message-file" in result.stdout
     assert "--carrier-file" in result.stdout
@@ -288,8 +301,12 @@ def test_c_cli_help_output():
     assert "--password" in result.stdout
 
     # Test decode help
-    result = subprocess.run(["./c/bin/whitespace-stego", "help", "decode"], 
-                          capture_output=True, text=True, check=True)
+    result = subprocess.run(
+        ["./c/bin/whitespace-stego", "help", "decode"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
     assert "Usage:" in result.stdout
     assert "--carrier-file" in result.stdout
     assert "--output" in result.stdout
@@ -338,4 +355,4 @@ def test_c_cli_output_consistency(message, carrier):
         # Both outputs should be identical
         output1 = enc_path1.read_text(encoding="utf-8")
         output2 = enc_path2.read_text(encoding="utf-8")
-        assert output1 == output2 
+        assert output1 == output2

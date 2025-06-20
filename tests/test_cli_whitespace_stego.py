@@ -21,7 +21,7 @@ def test_cli_roundtrip_whitespace_stego(backend, message, carrier, password):
         car_path.write_text(carrier, encoding="utf-8")
 
         encode_cmd = [
-            "python3",
+            ".venv/bin/python",
             "-m",
             "whitespace_stego.cli",
             "--backend",
@@ -39,7 +39,7 @@ def test_cli_roundtrip_whitespace_stego(backend, message, carrier, password):
         subprocess.run(encode_cmd, check=True)
 
         decode_cmd = [
-            "python3",
+            ".venv/bin/python",
             "-m",
             "whitespace_stego.cli",
             "--backend",
@@ -62,8 +62,12 @@ def test_cli_roundtrip_whitespace_stego(backend, message, carrier, password):
 @pytest.mark.parametrize("decode_backend", ["python", "rust"])
 @pytest.mark.parametrize("message", MESSAGES)
 @pytest.mark.parametrize("carrier", CARRIERS)
-@pytest.mark.parametrize("password", [None])  # Only test without passwords for cross-backend compatibility
-def test_cli_cross_backend_roundtrip(encode_backend, decode_backend, message, carrier, password):
+@pytest.mark.parametrize(
+    "password", [None]
+)  # Only test without passwords for cross-backend compatibility
+def test_cli_cross_backend_roundtrip(
+    encode_backend, decode_backend, message, carrier, password
+):
     """Test cross-backend roundtrips for Python CLI."""
     with tempfile.TemporaryDirectory() as tmpdir:
         msg_path = Path(tmpdir) / "msg.txt"
@@ -76,7 +80,7 @@ def test_cli_cross_backend_roundtrip(encode_backend, decode_backend, message, ca
 
         # Encode with first backend
         encode_cmd = [
-            "python3",
+            ".venv/bin/python",
             "-m",
             "whitespace_stego.cli",
             "--backend",
@@ -95,7 +99,7 @@ def test_cli_cross_backend_roundtrip(encode_backend, decode_backend, message, ca
 
         # Decode with second backend
         decode_cmd = [
-            "python3",
+            ".venv/bin/python",
             "-m",
             "whitespace_stego.cli",
             "--backend",
@@ -118,7 +122,9 @@ def test_cli_cross_backend_roundtrip(encode_backend, decode_backend, message, ca
 @pytest.mark.parametrize("decode_tool", ["python", "rust-cli"])
 @pytest.mark.parametrize("message", MESSAGES)
 @pytest.mark.parametrize("carrier", CARRIERS)
-@pytest.mark.parametrize("password", [None])  # Only test without passwords for cross-tool compatibility
+@pytest.mark.parametrize(
+    "password", [None]
+)  # Only test without passwords for cross-tool compatibility
 def test_cli_cross_tool_roundtrip(encode_tool, decode_tool, message, carrier, password):
     """Test cross-tool roundtrips between Python CLI and Rust CLI."""
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -133,7 +139,7 @@ def test_cli_cross_tool_roundtrip(encode_tool, decode_tool, message, carrier, pa
         # Encode with first tool
         if encode_tool == "python":
             encode_cmd = [
-                "python3",
+                ".venv/bin/python",
                 "-m",
                 "whitespace_stego.cli",
                 "--backend",
@@ -161,13 +167,13 @@ def test_cli_cross_tool_roundtrip(encode_tool, decode_tool, message, carrier, pa
             ]
             if password:
                 encode_cmd += ["-p", password]
-        
+
         subprocess.run(encode_cmd, check=True)
 
         # Decode with second tool
         if decode_tool == "python":
             decode_cmd = [
-                "python3",
+                ".venv/bin/python",
                 "-m",
                 "whitespace_stego.cli",
                 "--backend",
@@ -191,7 +197,7 @@ def test_cli_cross_tool_roundtrip(encode_tool, decode_tool, message, carrier, pa
             ]
             if password:
                 decode_cmd += ["-p", password]
-        
+
         subprocess.run(decode_cmd, check=True)
 
         result = dec_path.read_text(encoding="utf-8")
