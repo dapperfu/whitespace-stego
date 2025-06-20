@@ -51,7 +51,8 @@ services:
     image: whitespace-stego:python-test
     volumes:
       - .:/workspace
-    command: pytest --maxfail=1 --disable-warnings -v
+    working_dir: /workspace
+    command: pytest tests/ --maxfail=1 --disable-warnings -v
     profiles:
       - testing
 
