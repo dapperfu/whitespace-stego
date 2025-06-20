@@ -55,8 +55,8 @@ static void debug_log(const char* format, ...) {
     va_end(args);
 }
 
-static char* read_file(const char* filename) {
-    FILE* file = fopen(filename, "r");
+static char* read_file(const char* filename, size_t* data_len) {
+    FILE* file = fopen(filename, "rb");
     if (!file) {
         fprintf(stderr, "Error opening file '%s': %s\n", filename, strerror(errno));
         return NULL;
@@ -93,33 +93,32 @@ static char* read_file(const char* filename) {
         return NULL;
     }
 
-    // Handle empty files - return empty string instead of NULL
+    // Handle empty files - return empty buffer instead of NULL
     if (!buffer) {
         buffer = malloc(1);
         if (!buffer) {
             fclose(file);
             return NULL;
         }
-        buffer[0] = '\0';
-    } else {
-        buffer[buffer_pos] = '\0';
+        buffer_pos = 0;
     }
+    
+    *data_len = buffer_pos;
     fclose(file);
     return buffer;
 }
 
-static bool write_file(const char* filename, const char* content) {
-    FILE* file = fopen(filename, "w");
+static bool write_file(const char* filename, const char* content, size_t content_len) {
+    FILE* file = fopen(filename, "wb");
     if (!file) {
         fprintf(stderr, "Error opening file '%s' for writing: %s\n", filename, strerror(errno));
         return false;
     }
     
-    size_t len = strlen(content);
-    size_t written = fwrite(content, 1, len, file);
+    size_t written = fwrite(content, 1, content_len, file);
     fclose(file);
     
-    if (written != len) {
+    if (written != content_len) {
         fprintf(stderr, "Error writing to file '%s'\n", filename);
         return false;
     }
@@ -177,12 +176,13 @@ static int handle_encode(int argc, char* argv[]) {
     }
     
     // Read input files
-    char* message = read_file(message_file);
+    size_t message_len, carrier_len;
+    char* message = read_file(message_file, &message_len);
     if (!message) {
         return 1;
     }
     
-    char* carrier = read_file(carrier_file);
+    char* carrier = read_file(carrier_file, &carrier_len);
     if (!carrier) {
         free(message);
         return 1;
@@ -191,10 +191,17 @@ static int handle_encode(int argc, char* argv[]) {
     debug_log("Encoding message from file: %s", message_file);
     debug_log("Using carrier from file: %s", carrier_file);
     debug_log("Using password: %s", password ? password : "None");
+    debug_log("Carrier length: %zu bytes", carrier_len);
+    if (carrier_len > 0) {
+        debug_log("First carrier byte: 0x%02x", (unsigned char)carrier[0]);
+        if (carrier_len > 1) debug_log("Second carrier byte: 0x%02x", (unsigned char)carrier[1]);
+        if (carrier_len > 2) debug_log("Third carrier byte: 0x%02x", (unsigned char)carrier[2]);
+        if (carrier_len > 3) debug_log("Fourth carrier byte: 0x%02x", (unsigned char)carrier[3]);
+    }
     
     // Encode the message
     char* result = NULL;
-    if (!whitespace_stego_encode(carrier, message, password, &result)) {
+    if (!whitespace_stego_encode(carrier, carrier_len, message, password, &result)) {
         fprintf(stderr, "Error encoding message: %s\n", whitespace_stego_last_error());
         free(message);
         free(carrier);
@@ -202,7 +209,8 @@ static int handle_encode(int argc, char* argv[]) {
     }
     
     // Write the result
-    if (!write_file(output_file, result)) {
+    size_t result_len = strlen(result);
+    if (!write_file(output_file, result, result_len)) {
         free(message);
         free(carrier);
         free(result);
@@ -257,7 +265,8 @@ static int handle_decode(int argc, char* argv[]) {
     }
     
     // Read carrier file
-    char* carrier = read_file(carrier_file);
+    size_t carrier_len;
+    char* carrier = read_file(carrier_file, &carrier_len);
     if (!carrier) {
         return 1;
     }
@@ -267,14 +276,15 @@ static int handle_decode(int argc, char* argv[]) {
     
     // Decode the message
     char* result = NULL;
-    if (!whitespace_stego_decode(carrier, password, &result)) {
+    if (!whitespace_stego_decode(carrier, carrier_len, password, &result)) {
         fprintf(stderr, "Error decoding message: %s\n", whitespace_stego_last_error());
         free(carrier);
         return 1;
     }
     
     // Write the result
-    if (!write_file(output_file, result)) {
+    size_t result_len = strlen(result);
+    if (!write_file(output_file, result, result_len)) {
         free(carrier);
         free(result);
         return 1;

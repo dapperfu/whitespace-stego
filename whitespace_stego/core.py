@@ -82,6 +82,7 @@ def encode(message: str, carrier: str = "", password: Optional[str] = None) -> s
         key = base64.urlsafe_b64encode(password.encode("utf-8").ljust(32)[:32])
         logger.debug("Derived Fernet key: %s", key.decode())
         from cryptography.fernet import Fernet
+
         f = Fernet(key)
         encoded = f.encrypt(encoded)
 

@@ -4,7 +4,7 @@
 //! using zero-width Unicode whitespace characters.
 
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
-use fernet::{DecryptionError, Fernet};
+use fernet::Fernet;
 use thiserror::Error;
 
 /// Error type for steganography operations

@@ -6,10 +6,14 @@ from whitespace_stego_backend import encode as encode_rust, decode as decode_rus
 
 @pytest.mark.parametrize("message", MESSAGES)
 @pytest.mark.parametrize("carrier", CARRIERS)
-@pytest.mark.parametrize("password", [None])  # Only test without passwords for cross-compatibility
-def test_roundtrip_python_to_rust(message: str, carrier: str, password: str | None) -> None:
+@pytest.mark.parametrize(
+    "password", [None]
+)  # Only test without passwords for cross-compatibility
+def test_roundtrip_python_to_rust(
+    message: str, carrier: str, password: str | None
+) -> None:
     """Test roundtrip encoding with Python and decoding with Rust.
-    
+
     Parameters
     ----------
     message : str
@@ -26,10 +30,14 @@ def test_roundtrip_python_to_rust(message: str, carrier: str, password: str | No
 
 @pytest.mark.parametrize("message", MESSAGES)
 @pytest.mark.parametrize("carrier", CARRIERS)
-@pytest.mark.parametrize("password", [None])  # Only test without passwords for cross-compatibility
-def test_roundtrip_rust_to_python(message: str, carrier: str, password: str | None) -> None:
+@pytest.mark.parametrize(
+    "password", [None]
+)  # Only test without passwords for cross-compatibility
+def test_roundtrip_rust_to_python(
+    message: str, carrier: str, password: str | None
+) -> None:
     """Test roundtrip encoding with Rust and decoding with Python.
-    
+
     Parameters
     ----------
     message : str

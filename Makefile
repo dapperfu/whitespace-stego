@@ -40,26 +40,28 @@ clean:
 
 # Run tests with coverage reporting
 coverage: venv maturin-develop rust
-	${VENV}/bin/pip install -e .
-	${VENV}/bin/pip install -r requirements-dev.txt
-	${VENV}/bin/pytest --cov=whitespace_stego --cov=whitespace_stego_backend --cov-report=term-missing --cov-report=html --cov-report=xml
+	.venv/bin/pip install -e .
+	.venv/bin/pip install -r requirements-dev.txt
+	.venv/bin/pytest --cov=whitespace_stego --cov=whitespace_stego_backend --cov-report=term-missing --cov-report=html --cov-report=xml
 
 # Format code (Rust and Python)
-format: ${VENV}/bin/ruff
-	${VENV}/bin/ruff format .
+format: .venv/bin/ruff
+	.venv/bin/ruff format .
 
 # Install Python package and dependencies
 install: venv
-	${VENV}/bin/pip install -e .
-	${VENV}/bin/pip install -r requirements-dev.txt
+	.venv/bin/pip install -e .
+	.venv/bin/pip install -r requirements-dev.txt
 
 # Install Rust extension in development mode
+VENV_ABS:=$(abspath ${VENV})
+
 maturin-develop: ${VENV}/bin/maturin
-	cd whitespace-stego-backend && ../${VENV}/bin/maturin develop
+	PATH="${VENV_ABS}/bin:$$PATH" PYTHON_SYS_EXECUTABLE="${VENV_ABS}/bin/python3" cd whitespace-stego-backend && ../${VENV}/bin/maturin develop
 
 # Build Python wheel from Rust extension
 maturin-build: ${VENV}/bin/maturin
-	cd whitespace-stego-backend && ../${VENV}/bin/maturin build --release
+	PATH="${VENV_ABS}/bin:$$PATH" PYTHON_SYS_EXECUTABLE="${VENV_ABS}/bin/python3" cd whitespace-stego-backend && ../${VENV}/bin/maturin build --release
 
 # Build Rust CLI in release mode and copy to top-level directory
 rust:
@@ -68,19 +70,18 @@ rust:
 
 # Run tests
 test: venv maturin-develop rust
-	${VENV}/bin/pip install -e .
-	${VENV}/bin/pip install -r requirements-dev.txt
-	${VENV}/bin/pytest
+	.venv/bin/pip install -e .
+	.venv/bin/pip install -r requirements-dev.txt
+	.venv/bin/pytest
 
 # Create Python virtual environment
 venv:
 	python3 -m venv ${VENV}
 
-# ... existing code ...
-${VENV}/bin/ruff: venv
-	${VENV}/bin/pip install ruff
+.venv/bin/ruff: venv
+	.venv/bin/pip install ruff
 
-${VENV}/bin/maturin: venv
-	${VENV}/bin/pip install maturin
+.venv/bin/maturin: venv
+	.venv/bin/pip install maturin
 
 # ... existing code ... 

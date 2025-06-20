@@ -2,7 +2,7 @@ use clap::{Parser, Subcommand};
 use std::fs;
 use std::io::{self, Read};
 use std::path::PathBuf;
-use whitespace_stego::{decode, encode, StegoError};
+use whitespace_stego::{decode, encode};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]

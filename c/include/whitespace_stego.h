@@ -8,23 +8,25 @@
  * @brief Encode a message into carrier text using whitespace steganography
  *
  * @param carrier The carrier text to encode into
+ * @param carrier_len Length of the carrier text in bytes
  * @param message The message to encode
  * @param password Optional password for encryption (NULL if not used)
  * @param result Pointer to store the resulting encoded text
  * @return true if encoding was successful, false otherwise
  */
-bool whitespace_stego_encode(const char* carrier, const char* message, 
+bool whitespace_stego_encode(const char* carrier, size_t carrier_len, const char* message, 
                            const char* password, char** result);
 
 /**
  * @brief Decode a message from carrier text using whitespace steganography
  *
  * @param carrier The carrier text containing the encoded message
+ * @param carrier_len Length of the carrier text in bytes
  * @param password Optional password for decryption (NULL if not used)
  * @param result Pointer to store the decoded message
  * @return true if decoding was successful, false otherwise
  */
-bool whitespace_stego_decode(const char* carrier, const char* password, 
+bool whitespace_stego_decode(const char* carrier, size_t carrier_len, const char* password, 
                            char** result);
 
 /**

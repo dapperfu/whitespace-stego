@@ -37,23 +37,26 @@ CARRIERS = [
 @pytest.mark.parametrize("message", MESSAGES)
 @pytest.mark.parametrize("password", PASSWORDS)
 @pytest.mark.parametrize("carrier", CARRIERS)
-def test_encode_decode(message: str, password: str | None, carrier: str, debug_logger) -> None:
+def test_encode_decode(
+    message: str, password: str | None, carrier: str, debug_logger
+) -> None:
     """Test that encoding and decoding preserves the original message."""
     debug_logger.debug("Testing encode/decode with carrier: %s", carrier)
     debug_logger.debug("Password: %s", password)
     debug_logger.debug("Message: %s", message)
-    
+
     # Encode the message
     encoded = encode(message, carrier, password)
     debug_logger.debug("Encoded result: %s", encoded)
-    
+
     # Decode the message
     decoded = decode(encoded, password)
     debug_logger.debug("Decoded result: %s", decoded)
-    
+
     assert decoded == message
-    debug_logger.info("Test passed: encode/decode with %s", 
-                     "password" if password else "no password")
+    debug_logger.info(
+        "Test passed: encode/decode with %s", "password" if password else "no password"
+    )
 
 
 @pytest.mark.parametrize("message", MESSAGES)
@@ -127,12 +130,12 @@ def test_no_carrier_no_password(message: str) -> None:
     """Test encoding and decoding with no carrier and no password."""
     # Encode without carrier or password
     encoded = encode(message)
-    
+
     # Verify the encoded message contains only the markers and encoded content
     assert encoded.startswith(START_MARKER)
     assert encoded.endswith(END_MARKER)
     assert len(encoded) > len(message)  # Should be longer due to encoding
-    
+
     # Decode and verify
     decoded = decode(encoded)
     assert decoded == message
@@ -142,19 +145,21 @@ def test_no_carrier_no_password(message: str) -> None:
 def test_no_carrier_with_password(message: str) -> None:
     """Test encoding and decoding with no carrier but with password."""
     password = "test_password"
-    
+
     # Encode without carrier but with password
     encoded = encode(message, password=password)
-    
+
     # Verify the encoded message contains only the markers and encoded content
     assert encoded.startswith(START_MARKER)
     assert encoded.endswith(END_MARKER)
-    assert len(encoded) > len(message)  # Should be longer due to encoding and encryption
-    
+    assert len(encoded) > len(
+        message
+    )  # Should be longer due to encoding and encryption
+
     # Decode and verify
     decoded = decode(encoded, password=password)
     assert decoded == message
-    
+
     # Verify wrong password fails
     with pytest.raises(ValueError):
         decode(encoded, password="wrong_password")
@@ -203,7 +208,7 @@ def test_with_carrier_with_password(message: str) -> None:
     # Decode and check
     decoded = decode(encoded, password=password)
     assert decoded == message
-    
+
     # Verify wrong password fails
     with pytest.raises(ValueError):
         decode(encoded, password="wrong_password")

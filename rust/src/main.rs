@@ -2,7 +2,7 @@ use clap::{App, Arg, SubCommand};
 use std::error::Error;
 use log::{info, LevelFilter};
 use env_logger;
-use base64::{Engine as _, engine::general_purpose::{STANDARD, STANDARD_NO_PAD, URL_SAFE}};
+use base64::{Engine as _, engine::general_purpose::STANDARD};
 use fernet::Fernet;
 use sha2::{Sha256, Digest};
 use std::fs;

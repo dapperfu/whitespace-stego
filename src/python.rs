@@ -1,24 +1,6 @@
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
-use crate::{decode, encode, extract_encoded, StegoError};
-
-/// Python wrapper for the encode function
-#[pyfunction]
-fn py_encode(message: &str, carrier: &str, password: Option<&str>) -> PyResult<String> {
-    encode(message, carrier, password).map_err(|e| PyStegoError::new_err(e.to_string()))
-}
-
-/// Python wrapper for the decode function
-#[pyfunction]
-fn py_decode(carrier: &str, password: Option<&str>) -> PyResult<String> {
-    decode(carrier, password).map_err(|e| PyStegoError::new_err(e.to_string()))
-}
-
-/// Python wrapper for the extract_encoded function
-#[pyfunction]
-fn py_extract_encoded(carrier: &str) -> PyResult<(String, String)> {
-    extract_encoded(carrier).map_err(|e| PyStegoError::new_err(e.to_string()))
-}
+use crate::{decode, encode, extract_encoded};
 
 /// Python error type for steganography operations
 #[pyclass]
@@ -42,6 +24,24 @@ impl PyStegoError {
     fn __str__(&self) -> &str {
         &self.message
     }
+}
+
+/// Python wrapper for the encode function
+#[pyfunction]
+fn py_encode(message: &str, carrier: &str, password: Option<&str>) -> PyResult<String> {
+    encode(message, carrier, password).map_err(|e| PyStegoError::new_err(e.to_string()))
+}
+
+/// Python wrapper for the decode function
+#[pyfunction]
+fn py_decode(carrier: &str, password: Option<&str>) -> PyResult<String> {
+    decode(carrier, password).map_err(|e| PyStegoError::new_err(e.to_string()))
+}
+
+/// Python wrapper for the extract_encoded function
+#[pyfunction]
+fn py_extract_encoded(carrier: &str) -> PyResult<(String, String)> {
+    extract_encoded(carrier).map_err(|e| PyStegoError::new_err(e.to_string()))
 }
 
 /// Add Python bindings to the module
