@@ -201,6 +201,7 @@ cython_debug/
 # Project-specific ignores
 .benchmarks/
 .github/
+!.github/workflows/
 .ruff_cache/
 Cargo.lock
 py_fernet_key*.log

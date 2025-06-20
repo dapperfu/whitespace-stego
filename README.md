@@ -10,7 +10,7 @@ This project implements a whitespace steganography tool that encodes messages us
 - **Password protection**: Optional encryption for your hidden messages
 - **Cross-compatibility**: Messages encoded with one implementation can be decoded with another
 - **Comprehensive testing**: 743+ tests ensuring reliability
-- **Command-line interface**: Easy-to-use CLI for all implementations
+- **Advanced CLI interface**: Feature-rich command-line interface with mutually exclusive options, stdout support, and comprehensive error handling
 - **Interactive examples**: Jupyter notebooks for learning and experimentation
 - **Docker support**: Individual containers for each implementation
 
@@ -197,6 +197,208 @@ To modify the WASM implementation:
 - No password protection in the current WASM version (simplified for browser compatibility)
 - Encoded text can be detected by analyzing Unicode character patterns
 - Always use strong passwords for sensitive messages in other implementations
+
+## Command Line Interface (CLI)
+
+The Python CLI provides a comprehensive, feature-rich interface with advanced options and robust error handling.
+
+### CLI Features
+
+- **🔧 Mutually Exclusive Options**: Prevents conflicting input methods
+- **📤 Stdout Output**: Direct output to terminal or pipeline
+- **🔒 Password Protection**: Optional encryption for sensitive messages
+- **🌍 Unicode Support**: Full support for international characters and emojis
+- **🔍 Verbose Mode**: Detailed logging for debugging
+- **⚡ Multiple Backends**: Choose between Python and Rust implementations
+- **📁 File & Command Line Input**: Flexible input methods
+- **🚫 Comprehensive Error Handling**: Clear, helpful error messages
+- **🔗 Pipeline Support**: Seamless integration with Unix tools
+
+### CLI Usage
+
+#### Basic Commands
+
+```bash
+# Get help
+python3 -m whitespace_stego.cli --help
+python3 -m whitespace_stego.cli encode --help
+python3 -m whitespace_stego.cli decode --help
+
+# Encode a message
+python3 -m whitespace_stego.cli encode \
+  --message "Secret message" \
+  --carrier "This is innocent text"
+
+# Decode a message
+python3 -m whitespace_stego.cli decode \
+  --carrier-file encoded_text.txt
+```
+
+#### Input Options (Mutually Exclusive)
+
+**Message Input:**
+```bash
+# From command line
+python3 -m whitespace_stego.cli encode \
+  --message "Secret message" \
+  --carrier "Carrier text"
+
+# From file
+python3 -m whitespace_stego.cli encode \
+  --message-file secret.txt \
+  --carrier "Carrier text"
+
+# ❌ Error: Cannot use both
+python3 -m whitespace_stego.cli encode \
+  --message "test" \
+  --message-file test.txt \
+  --carrier "carrier"
+```
+
+**Carrier Input:**
+```bash
+# From command line
+python3 -m whitespace_stego.cli encode \
+  --message "Secret" \
+  --carrier "Carrier text"
+
+# From file
+python3 -m whitespace_stego.cli encode \
+  --message "Secret" \
+  --carrier-file carrier.txt
+
+# ❌ Error: Cannot use both
+python3 -m whitespace_stego.cli encode \
+  --message "test" \
+  --carrier "carrier" \
+  --carrier-file test.txt
+```
+
+#### Output Options
+
+```bash
+# Output to file
+python3 -m whitespace_stego.cli encode \
+  --message "Secret" \
+  --carrier "Carrier" \
+  --output encoded.txt
+
+# Output to stdout (default)
+python3 -m whitespace_stego.cli encode \
+  --message "Secret" \
+  --carrier "Carrier"
+
+# Explicit stdout output
+python3 -m whitespace_stego.cli encode \
+  --message "Secret" \
+  --carrier "Carrier" \
+  --output -
+```
+
+#### Password Protection
+
+```bash
+# Encode with password
+python3 -m whitespace_stego.cli encode \
+  --message "Secret" \
+  --carrier "Carrier" \
+  --password "mypassword" \
+  --output secure.txt
+
+# Decode with password
+python3 -m whitespace_stego.cli decode \
+  --carrier-file secure.txt \
+  --password "mypassword"
+```
+
+#### Backend Selection
+
+```bash
+# Use Python backend (default)
+python3 -m whitespace_stego.cli --backend python encode \
+  --message "test" \
+  --carrier "carrier"
+
+# Use Rust backend
+python3 -m whitespace_stego.cli --backend rust encode \
+  --message "test" \
+  --carrier "carrier"
+```
+
+#### Verbose Mode
+
+```bash
+# Enable verbose logging
+python3 -m whitespace_stego.cli --verbose encode \
+  --message "Secret" \
+  --carrier "Carrier" \
+  --output -
+```
+
+#### Short Options
+
+```bash
+# All short options
+python3 -m whitespace_stego.cli -b python -v encode \
+  -m "Secret" \
+  -c "Carrier" \
+  -o -
+```
+
+#### Pipeline Usage
+
+```bash
+# Encode and immediately decode
+python3 -m whitespace_stego.cli encode \
+  --message "Pipeline test" \
+  --carrier "Carrier text" | \
+python3 -m whitespace_stego.cli decode \
+  --carrier-file -
+
+# Use in scripts
+HIDDEN_MSG=$(python3 -m whitespace_stego.cli decode \
+  --carrier-file secret_file.txt)
+echo "Hidden message: $HIDDEN_MSG"
+```
+
+### Error Handling
+
+The CLI provides comprehensive error handling with clear, helpful messages:
+
+```bash
+# Missing required options
+python3 -m whitespace_stego.cli encode --output test.txt
+# Error: Either --message/-m or --message-file/-mf must be provided.
+
+# Invalid backend
+python3 -m whitespace_stego.cli --backend invalid encode \
+  --message "test" \
+  --carrier "carrier"
+# Error: Invalid value for '--backend' / '-b': 'invalid' is not one of 'python', 'rust'.
+
+# Wrong password
+python3 -m whitespace_stego.cli decode \
+  --carrier-file secure.txt \
+  --password "wrongpassword"
+# Error: Invalid password or corrupted data
+```
+
+### Testing
+
+The CLI includes comprehensive test suites:
+
+```bash
+# Run pytest tests
+python -m pytest tests/test_cli_comprehensive.py -v
+
+# Run shell script tests
+bash tests/test_cli_shell.sh
+
+# Run demonstration
+python3 demo_cli_features.py
+```
+
+For detailed practical examples, see [examples/practical_use_cases.md](examples/practical_use_cases.md).
 
 ## Quick Start Examples
 
@@ -389,12 +591,6 @@ python -m whitespace_stego.cli --backend rust encode \
   --message-file message.txt \
   --carrier-file carrier.txt \
   --output rust_encoded.txt
-
-# Use C backend
-python -m whitespace_stego.cli --backend c encode \
-  --message-file message.txt \
-  --carrier-file carrier.txt \
-  --output c_encoded.txt
 ```
 
 #### 4. Cross-Implementation Compatibility
