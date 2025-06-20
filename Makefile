@@ -1,5 +1,5 @@
 VENV?=.venv
-.PHONY: help venv install test coverage maturin-develop maturin-build cargo-build cargo-clean clean format rust
+.PHONY: help venv install test coverage maturin-develop maturin-build cargo-build cargo-clean clean format rust wasi-web
 # Default target
 help:
 	@echo "Available targets:"
@@ -15,6 +15,7 @@ help:
 	@echo "  clean           - Remove all build artifacts and virtual environment"
 	@echo "  format          - Format code (Rust and Python)"
 	@echo "  rust            - Build Rust CLI in release mode and copy to top-level directory"
+	@echo "  wasi-web        - Build WASI web app and serve it at http://localhost:8000"
 
 # Build pure Rust CLI binary
 cargo-build:
@@ -83,5 +84,10 @@ venv:
 
 .venv/bin/maturin: venv
 	.venv/bin/pip install maturin
+
+# Build WASI web app and serve it with Python
+wasi-web:
+	cd wasi && ./build.sh
+	cd wasi/pkg && python3 -m http.server 8000
 
 # ... existing code ... 
