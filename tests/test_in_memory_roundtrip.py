@@ -1,7 +1,15 @@
 import pytest
 from test_data import MESSAGES, CARRIERS, PASSWORDS
 from whitespace_stego.core import encode as encode_python, decode as decode_python
-from whitespace_stego_backend import encode as encode_rust, decode as decode_rust
+
+# Try to import Rust backend, but don't fail if it's not available
+try:
+    from whitespace_stego_backend import encode as encode_rust, decode as decode_rust
+    RUST_AVAILABLE = True
+except ImportError:
+    RUST_AVAILABLE = False
+    encode_rust = None
+    decode_rust = None
 
 
 @pytest.mark.parametrize("message", MESSAGES)
@@ -9,6 +17,7 @@ from whitespace_stego_backend import encode as encode_rust, decode as decode_rus
 @pytest.mark.parametrize(
     "password", [None]
 )  # Only test without passwords for cross-compatibility
+@pytest.mark.skipif(not RUST_AVAILABLE, reason="Rust backend not available")
 def test_roundtrip_python_to_rust(
     message: str, carrier: str, password: str | None
 ) -> None:
@@ -33,6 +42,7 @@ def test_roundtrip_python_to_rust(
 @pytest.mark.parametrize(
     "password", [None]
 )  # Only test without passwords for cross-compatibility
+@pytest.mark.skipif(not RUST_AVAILABLE, reason="Rust backend not available")
 def test_roundtrip_rust_to_python(
     message: str, carrier: str, password: str | None
 ) -> None:

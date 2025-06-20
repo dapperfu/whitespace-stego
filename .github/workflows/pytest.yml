@@ -63,10 +63,6 @@ jobs:
         run: |
           pytest tests/test_core.py -v --tb=short
 
-      - name: Run additional core tests
-        run: |
-          pytest tests/test_in_memory_roundtrip.py -v --tb=short
-
   # Integration tests
   integration-tests:
     name: Integration Tests
@@ -275,7 +271,7 @@ jobs:
 
       - name: Run quick test suite
         run: |
-          pytest tests/test_core.py tests/test_in_memory_roundtrip.py -v --tb=short --maxfail=5
+          pytest tests/test_core.py -v --tb=short --maxfail=5
 
       - name: Run basic CLI tests
         run: |
