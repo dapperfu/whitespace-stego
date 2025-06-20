@@ -10,6 +10,9 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
     git \
+    pkg-config \
+    libssl-dev \
+    patchelf \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Rust for building the Rust backend
@@ -19,23 +22,27 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 # Set working directory
 WORKDIR /app
 
-# Copy Python dependencies
-COPY pyproject.toml requirements-dev.txt ./
+# Copy Python dependencies and README
+COPY pyproject.toml requirements-dev.txt README.md ./
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements-dev.txt
-RUN pip install --no-cache-dir -e .
+RUN pip install --no-cache-dir maturin
+
+# Copy source code first
+COPY whitespace_stego/ ./whitespace_stego/
 
 # Copy Rust backend and build it
+COPY whitespace-stego-core/ ./whitespace-stego-core/
 COPY whitespace-stego-backend/ ./whitespace-stego-backend/
-RUN cd whitespace-stego-backend && maturin develop --release
+RUN cd whitespace-stego-backend && maturin build --release
+RUN pip install --no-cache-dir whitespace-stego-backend/target/wheels/*.whl
 
-# Copy source code
-COPY whitespace_stego/ ./whitespace_stego/
+# Install the package
+RUN pip install --no-cache-dir -e .
 
 # Copy notebooks for interactive use
 COPY *.ipynb ./
-COPY README.md ./
 
 # Create data directory
 RUN mkdir -p /app/data

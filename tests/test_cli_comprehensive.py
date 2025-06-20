@@ -47,7 +47,7 @@ class TestCLIComprehensive:
 
     def test_cli_help(self, runner):
         """Test main CLI help."""
-        result = runner.invoke(cli, ['--help'])
+        result = runner.invoke(cli, ['--help'], catch_exceptions=False)
         assert result.exit_code == 0
         assert "Whitespace steganography tool" in result.output
         assert "encode" in result.output
@@ -56,7 +56,7 @@ class TestCLIComprehensive:
 
     def test_encode_help(self, runner):
         """Test encode command help."""
-        result = runner.invoke(cli, ['encode', '--help'])
+        result = runner.invoke(cli, ['encode', '--help'], catch_exceptions=False)
         assert result.exit_code == 0
         assert "Encode a message into a carrier" in result.output
         assert "--message" in result.output
@@ -67,7 +67,7 @@ class TestCLIComprehensive:
 
     def test_decode_help(self, runner):
         """Test decode command help."""
-        result = runner.invoke(cli, ['decode', '--help'])
+        result = runner.invoke(cli, ['decode', '--help'], catch_exceptions=False)
         assert result.exit_code == 0
         assert "Decode a message from a carrier" in result.output
         assert "--carrier" in result.output
@@ -77,16 +77,16 @@ class TestCLIComprehensive:
     def test_backend_validation(self, runner):
         """Test backend option validation."""
         # Test invalid backend
-        result = runner.invoke(cli, ['--backend', 'invalid', 'encode', '--help'])
+        result = runner.invoke(cli, ['--backend', 'invalid', 'encode', '--help'], catch_exceptions=False)
         assert result.exit_code == 2
         assert "Invalid value for '--backend'" in result.output
         assert "'invalid' is not one of 'python', 'rust'" in result.output
 
         # Test valid backends
-        result = runner.invoke(cli, ['--backend', 'python', 'encode', '--help'])
+        result = runner.invoke(cli, ['--backend', 'python', 'encode', '--help'], catch_exceptions=False)
         assert result.exit_code == 0
 
-        result = runner.invoke(cli, ['--backend', 'rust', 'encode', '--help'])
+        result = runner.invoke(cli, ['--backend', 'rust', 'encode', '--help'], catch_exceptions=False)
         assert result.exit_code == 0
 
     def test_mutually_exclusive_message_options(self, runner, temp_files):
@@ -97,7 +97,7 @@ class TestCLIComprehensive:
             '--message-file', str(temp_files['msg_file']),
             '--carrier', 'carrier',
             '--output', 'test.out'
-        ])
+        ], catch_exceptions=False)
         assert result.exit_code == 2
         assert "mutually exclusive" in result.output
 
@@ -109,7 +109,7 @@ class TestCLIComprehensive:
             '--carrier', 'carrier',
             '--carrier-file', str(temp_files['carrier_file']),
             '--output', 'test.out'
-        ])
+        ], catch_exceptions=False)
         assert result.exit_code == 2
         assert "mutually exclusive" in result.output
 
@@ -120,7 +120,7 @@ class TestCLIComprehensive:
             '--carrier', 'carrier',
             '--carrier-file', str(temp_files['carrier_file']),
             '--output', 'test.out'
-        ])
+        ], catch_exceptions=False)
         assert result.exit_code == 2
         assert "mutually exclusive" in result.output
 
@@ -130,7 +130,7 @@ class TestCLIComprehensive:
             'encode',
             '--carrier', 'carrier',
             '--output', 'test.out'
-        ])
+        ], catch_exceptions=False)
         assert result.exit_code == 1
         assert "Either --message/-m or --message-file/-mf must be provided" in result.output
 
@@ -140,7 +140,7 @@ class TestCLIComprehensive:
             'encode',
             '--message', 'test',
             '--output', 'test.out'
-        ])
+        ], catch_exceptions=False)
         assert result.exit_code == 1
         assert "Either --carrier/-c or --carrier-file/-cf must be provided" in result.output
 
@@ -149,7 +149,7 @@ class TestCLIComprehensive:
         result = runner.invoke(cli, [
             'decode',
             '--output', 'test.out'
-        ])
+        ], catch_exceptions=False)
         assert result.exit_code == 1
         assert "Either --carrier/-c or --carrier-file/-cf must be provided" in result.output
 
@@ -312,7 +312,7 @@ class TestCLIComprehensive:
             'decode',
             '--carrier-file', str(encoded_file),
             '--password', 'wrongpassword'
-        ])
+        ], catch_exceptions=False)
         assert result.exit_code == 1
         assert "Invalid password or corrupted data" in result.output
 
@@ -358,7 +358,7 @@ class TestCLIComprehensive:
             'encode',
             '--message', 'test',
             '--carrier', 'carrier'
-        ])
+        ], catch_exceptions=False)
         # The test passes if it either fails (no Rust backend) or succeeds (Rust backend available)
         assert result.exit_code in [0, 1]
 
