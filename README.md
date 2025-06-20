@@ -1,15 +1,15 @@
 # Whitespace Steganography
 
-This project implements a whitespace steganography tool that encodes messages using zero-width Unicode whitespace characters. It supports both Python and Rust implementations, with a CLI interface for each. The tool can hide secret messages within seemingly innocent text using invisible Unicode characters.
+This project implements a whitespace steganography tool that encodes messages using zero-width Unicode whitespace characters. It supports Python, Rust, and C implementations, with a CLI interface for each. The tool can hide secret messages within seemingly innocent text using invisible Unicode characters.
 
 ## Features
 
-- **Multi-language support**: Python and Rust implementations
+- **Multi-language support**: Python, Rust, and C implementations
 - **Unicode support**: Works with any text including emojis and international characters
 - **Password protection**: Optional encryption for your hidden messages
 - **Cross-compatibility**: Messages encoded with one implementation can be decoded with another
 - **Comprehensive testing**: 743+ tests ensuring reliability
-- **Command-line interface**: Easy-to-use CLI for both implementations
+- **Command-line interface**: Easy-to-use CLI for all implementations
 
 ## Installation
 
@@ -52,6 +52,21 @@ This project implements a whitespace steganography tool that encodes messages us
    make rust
    ```
 
+### C Implementation
+
+1. Ensure you have a C compiler (gcc/clang) and make installed.
+
+2. Clone the repository and navigate to the project directory:
+   ```bash
+   git clone <repository-url>
+   cd whitespace-stego3
+   ```
+
+3. Build the C CLI:
+   ```bash
+   make c
+   ```
+
 ## Quick Start Examples
 
 ### Basic Usage
@@ -60,7 +75,7 @@ This project implements a whitespace steganography tool that encodes messages us
 
 **Encode a simple message:**
 ```bash
-python -m whitespace_stego.cli encode --message "Secret message" --carrier "Hello world!" --output encoded.txt
+python -m whitespace_stego.cli encode --message-file message.txt --carrier-file carrier.txt --output encoded.txt
 ```
 
 **Decode the message:**
@@ -72,12 +87,24 @@ python -m whitespace_stego.cli decode --carrier-file encoded.txt --output decode
 
 **Encode a simple message:**
 ```bash
-./whitespace-stego-rs encode --mf message.txt --cf carrier.txt -o encoded.txt
+./rust/target/release/whitespace-stego-rs encode --mf message.txt --cf carrier.txt -o encoded.txt
 ```
 
 **Decode the message:**
 ```bash
-./whitespace-stego-rs decode --cf encoded.txt -o decoded.txt
+./rust/target/release/whitespace-stego-rs decode --cf encoded.txt -o decoded.txt
+```
+
+#### C CLI
+
+**Encode a simple message:**
+```bash
+./c/bin/whitespace-stego encode --message-file message.txt --carrier-file carrier.txt --output encoded.txt
+```
+
+**Decode the message:**
+```bash
+./c/bin/whitespace-stego decode --carrier-file encoded.txt --output decoded.txt
 ```
 
 ### Advanced Examples
@@ -88,8 +115,8 @@ python -m whitespace_stego.cli decode --carrier-file encoded.txt --output decode
 ```bash
 # Encode with emojis and international text
 python -m whitespace_stego.cli encode \
-  --message "こんにちは! Hello! ¡Hola! Привет! 🚀" \
-  --carrier "This is a normal text message." \
+  --message-file international_message.txt \
+  --carrier-file carrier.txt \
   --output international_encoded.txt
 
 # Decode
@@ -100,17 +127,30 @@ python -m whitespace_stego.cli decode \
 
 **Rust CLI:**
 ```bash
-# Create message file
-echo "こんにちは! Hello! ¡Hola! Привет! 🚀" > message.txt
-
-# Create carrier file
-echo "This is a normal text message." > carrier.txt
-
-# Encode
-./whitespace-stego-rs encode --mf message.txt --cf carrier.txt -o international_encoded.txt
+# Encode with emojis and international text
+./rust/target/release/whitespace-stego-rs encode \
+  --mf international_message.txt \
+  --cf carrier.txt \
+  -o international_encoded.txt
 
 # Decode
-./whitespace-stego-rs decode --cf international_encoded.txt -o international_decoded.txt
+./rust/target/release/whitespace-stego-rs decode \
+  --cf international_encoded.txt \
+  -o international_decoded.txt
+```
+
+**C CLI:**
+```bash
+# Encode with emojis and international text
+./c/bin/whitespace-stego encode \
+  --message-file international_message.txt \
+  --carrier-file carrier.txt \
+  --output international_encoded.txt
+
+# Decode
+./c/bin/whitespace-stego decode \
+  --carrier-file international_encoded.txt \
+  --output international_decoded.txt
 ```
 
 #### 2. Password Protection
@@ -119,8 +159,8 @@ echo "This is a normal text message." > carrier.txt
 ```bash
 # Encode with password
 python -m whitespace_stego.cli encode \
-  --message "Top secret information" \
-  --carrier "Meeting notes for tomorrow" \
+  --message-file secret_message.txt \
+  --carrier-file meeting_notes.txt \
   --password "mysecretpassword" \
   --output secret_encoded.txt
 
@@ -134,17 +174,33 @@ python -m whitespace_stego.cli decode \
 **Rust CLI:**
 ```bash
 # Encode with password
-./whitespace-stego-rs encode \
+./rust/target/release/whitespace-stego-rs encode \
   --mf secret_message.txt \
   --cf meeting_notes.txt \
   -p "mysecretpassword" \
   -o secret_encoded.txt
 
 # Decode with password
-./whitespace-stego-rs decode \
+./rust/target/release/whitespace-stego-rs decode \
   --cf secret_encoded.txt \
   -p "mysecretpassword" \
   -o secret_decoded.txt
+```
+
+**C CLI:**
+```bash
+# Encode with password
+./c/bin/whitespace-stego encode \
+  --message-file secret_message.txt \
+  --carrier-file meeting_notes.txt \
+  --password "mysecretpassword" \
+  --output secret_encoded.txt
+
+# Decode with password
+./c/bin/whitespace-stego decode \
+  --carrier-file secret_encoded.txt \
+  --password "mysecretpassword" \
+  --output secret_decoded.txt
 ```
 
 #### 3. Backend Selection (Python CLI)
@@ -154,15 +210,21 @@ The Python CLI supports multiple backends:
 ```bash
 # Use Python backend (default)
 python -m whitespace_stego.cli --backend python encode \
-  --message "Message using Python backend" \
-  --carrier "Carrier text" \
+  --message-file message.txt \
+  --carrier-file carrier.txt \
   --output python_encoded.txt
 
 # Use Rust backend
 python -m whitespace_stego.cli --backend rust encode \
-  --message "Message using Rust backend" \
-  --carrier "Carrier text" \
+  --message-file message.txt \
+  --carrier-file carrier.txt \
   --output rust_encoded.txt
+
+# Use C backend
+python -m whitespace_stego.cli --backend c encode \
+  --message-file message.txt \
+  --carrier-file carrier.txt \
+  --output c_encoded.txt
 ```
 
 #### 4. Cross-Implementation Compatibility
@@ -172,12 +234,88 @@ Messages encoded with one implementation can be decoded with another:
 ```bash
 # Encode with Python CLI using Rust backend
 python -m whitespace_stego.cli --backend rust encode \
-  --message "Cross-compatible message" \
-  --carrier "Carrier text" \
+  --message-file message.txt \
+  --carrier-file carrier.txt \
   --output cross_encoded.txt
 
 # Decode with Rust CLI
-./whitespace-stego-rs decode --cf cross_encoded.txt -o cross_decoded.txt
+./rust/target/release/whitespace-stego-rs decode --cf cross_encoded.txt -o cross_decoded.txt
+
+# Decode with C CLI
+./c/bin/whitespace-stego decode --carrier-file cross_encoded.txt --output cross_decoded_c.txt
+```
+
+#### 5. Inline Text Input (Rust CLI)
+
+The Rust CLI supports inline text input in addition to file input:
+
+```bash
+# Encode with inline text
+./rust/target/release/whitespace-stego-rs encode \
+  -m "Secret message" \
+  -c "This is innocent text" \
+  -o encoded.txt
+
+# Decode with inline text
+./rust/target/release/whitespace-stego-rs decode \
+  -c "$(cat encoded.txt)" \
+  -o decoded.txt
+```
+
+#### 6. Output to stdout
+
+All implementations support output to stdout:
+
+**Python CLI:**
+```bash
+python -m whitespace_stego.cli encode \
+  --message-file message.txt \
+  --carrier-file carrier.txt \
+  --output -
+```
+
+**Rust CLI:**
+```bash
+./rust/target/release/whitespace-stego-rs encode \
+  --mf message.txt \
+  --cf carrier.txt \
+  -o -
+```
+
+**C CLI:**
+```bash
+./c/bin/whitespace-stego encode \
+  --message-file message.txt \
+  --carrier-file carrier.txt \
+  --output -
+```
+
+#### 7. Verbose Output
+
+All implementations support verbose output for debugging:
+
+**Python CLI:**
+```bash
+python -m whitespace_stego.cli --verbose encode \
+  --message-file message.txt \
+  --carrier-file carrier.txt \
+  --output encoded.txt
+```
+
+**Rust CLI:**
+```bash
+./rust/target/release/whitespace-stego-rs --verbose encode \
+  --mf message.txt \
+  --cf carrier.txt \
+  -o encoded.txt
+```
+
+**C CLI:**
+```bash
+./c/bin/whitespace-stego --verbose encode \
+  --message-file message.txt \
+  --carrier-file carrier.txt \
+  --output encoded.txt
 ```
 
 ## API Usage
@@ -233,35 +371,98 @@ fn main() {
 python -m whitespace_stego.cli --help
 ```
 
-**Encode options:**
-- `--message-file, -m`: Path to file containing message to encode
-- `--carrier-file, -c`: Path to carrier file
-- `--output, -o`: Output file path
-- `--password, -p`: Optional password for encryption
-- `--backend, -b`: Backend to use (python, rust)
+**Global options:**
+- `--verbose, -v`: Enable verbose output
+- `--backend, -b`: Backend implementation to use (python, c, rust)
+- `--help`: Show help message
 
-**Decode options:**
-- `--carrier-file, -c`: Path to encoded carrier file
-- `--output, -o`: Output file path
+**Encode command:**
+```bash
+python -m whitespace_stego.cli encode --help
+```
+
+- `--message-file, -m`: Path to file containing message to encode **[required]**
+- `--carrier-file, -c`: Path to carrier file **[required]**
+- `--output, -o`: Output file path **[required]**
+- `--password, -p`: Optional password for encryption
+- `--help`: Show help message
+
+**Decode command:**
+```bash
+python -m whitespace_stego.cli decode --help
+```
+
+- `--carrier-file, -c`: Path to encoded carrier file **[required]**
+- `--output, -o`: Output file path **[required]**
 - `--password, -p`: Password for decryption (if used during encoding)
-- `--backend, -b`: Backend to use (python, rust)
+- `--help`: Show help message
 
 ### Rust CLI
 
 ```bash
-./whitespace-stego-rs --help
+./rust/target/release/whitespace-stego-rs --help
 ```
 
-**Encode options:**
-- `--mf`: Message file path
-- `--cf`: Carrier file path
-- `-o`: Output file path
-- `-p`: Optional password for encryption
+**Global options:**
+- `--help, -h`: Show help message
+- `--version, -V`: Show version information
 
-**Decode options:**
-- `--cf`: Carrier file path
-- `-o`: Output file path
-- `-p`: Password for decryption (if used during encoding)
+**Encode command:**
+```bash
+./rust/target/release/whitespace-stego-rs encode --help
+```
+
+- `--message, -m`: Message to encode (inline text)
+- `--mf`: File containing message to encode
+- `--carrier, -c`: Carrier text (inline text)
+- `--cf`: File containing carrier text
+- `--output, -o`: Output file (default: stdout)
+- `--password, -p`: Password for encryption
+- `--help, -h`: Show help message
+- `--version, -V`: Show version information
+
+**Decode command:**
+```bash
+./rust/target/release/whitespace-stego-rs decode --help
+```
+
+- `--carrier, -c`: Carrier text (inline text)
+- `--cf`: File containing carrier text
+- `--output, -o`: Output file (default: stdout)
+- `--password, -p`: Password for decryption
+- `--help, -h`: Show help message
+- `--version, -V`: Show version information
+
+### C CLI
+
+```bash
+./c/bin/whitespace-stego --help
+```
+
+**Global options:**
+- `--verbose, -v`: Enable verbose output
+- `--help, -h`: Show help message
+
+**Encode command:**
+```bash
+./c/bin/whitespace-stego help encode
+```
+
+- `--message-file, -m`: Path to file containing message to encode **[required]**
+- `--carrier-file, -c`: Path to carrier file **[required]**
+- `--output, -o`: Path where encoded file will be saved **[required]**
+- `--password, -p`: Optional password for encryption
+- `--help, -h`: Show help message
+
+**Decode command:**
+```bash
+./c/bin/whitespace-stego help decode
+```
+
+- `--carrier-file, -c`: Path to encoded carrier file **[required]**
+- `--output, -o`: Path where decoded message will be saved **[required]**
+- `--password, -p`: Password for decryption (if used during encoding)
+- `--help, -h`: Show help message
 
 ## Testing
 
@@ -300,7 +501,7 @@ The message is:
 
 - **Password protection**: Uses Fernet encryption for password-protected messages
 - **Steganographic security**: Messages are hidden using invisible characters
-- **Cross-compatibility**: Messages work across Python and Rust implementations
+- **Cross-compatibility**: Messages work across Python, Rust, and C implementations
 - **No metadata**: No additional information is stored about the hidden message
 
 ## Contributing
