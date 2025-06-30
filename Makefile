@@ -1,5 +1,5 @@
 VENV?=.venv
-.PHONY: help venv install test coverage maturin-develop maturin-build cargo-build cargo-clean clean format rust wasi-web test-wasm test-wasm-only test-all
+.PHONY: help venv install test coverage maturin-develop maturin-build cargo-build cargo-clean clean format rust c wasi-web test-wasm test-wasm-only test-all
 # Default target
 help:
 	@echo "Available targets:"
@@ -18,6 +18,7 @@ help:
 	@echo "  clean           - Remove all build artifacts and virtual environment"
 	@echo "  format          - Format code (Rust and Python)"
 	@echo "  rust            - Build Rust CLI in release mode and copy to top-level directory"
+	@echo "  c               - Build C CLI in release mode and copy to top-level directory"
 	@echo "  wasi-web        - Build WASI web app and serve it at http://localhost:8000"
 
 # Build pure Rust CLI binary
@@ -38,6 +39,7 @@ clean:
 	rm -rf dist
 	rm -rf build
 	rm -f whitespace-stego-rs
+	rm -f whitespace-stego-c
 	rm -rf htmlcov
 	rm -f coverage.xml
 	cargo clean
@@ -70,7 +72,12 @@ maturin-build: ${VENV}/bin/maturin
 # Build Rust CLI in release mode and copy to top-level directory
 rust:
 	cargo build --release --manifest-path rust/Cargo.toml --target-dir rust/target
-	cp rust/target/release/whitespace-stego-rs ./whitespace-stego-rs 
+	cp rust/target/release/whitespace-stego-rs ./whitespace-stego-rs
+
+# Build C CLI in release mode and copy to top-level directory
+c:
+	cd c && make clean && make
+	cp c/bin/whitespace-stego-c ./whitespace-stego-c 
 
 # Run standard tests (excluding WASM website tests)
 test: venv maturin-develop rust

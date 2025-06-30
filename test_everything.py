@@ -273,7 +273,7 @@ class WhitespaceStegoTester:
     def test_c_cli(self) -> TestResult:
         """Test C CLI functionality."""
         # Check if C CLI exists
-        if not os.path.exists('./c/bin/whitespace-stego'):
+        if not os.path.exists('./whitespace-stego-c'):
             return TestResult(
                 "C CLI",
                 False,
@@ -282,7 +282,7 @@ class WhitespaceStegoTester:
             )
         
         # Test help
-        help_result = self.run_command(['./c/bin/whitespace-stego', '--help'], "C CLI help")
+        help_result = self.run_command(['./whitespace-stego-c', '--help'], "C CLI help")
         if not help_result.success:
             return help_result
         
@@ -292,7 +292,7 @@ class WhitespaceStegoTester:
         encoded_file = self.create_temp_file("")
         
         encode_result = self.run_command(
-            ['./c/bin/whitespace-stego', 'encode', '--message-file', message_file,
+            ['./whitespace-stego-c', 'encode', '--message-file', message_file,
              '--carrier-file', carrier_file, '--output', encoded_file],
             "C CLI encode"
         )
@@ -300,7 +300,7 @@ class WhitespaceStegoTester:
             return encode_result
         
         decode_result = self.run_command(
-            ['./c/bin/whitespace-stego', 'decode', '--carrier-file', encoded_file, '--output', '/dev/null'],
+            ['./whitespace-stego-c', 'decode', '--carrier-file', encoded_file, '--output', '/dev/null'],
             "C CLI decode"
         )
         

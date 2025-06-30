@@ -23,7 +23,7 @@ def test_c_cli_roundtrip(message, carrier, password):
 
         # Encode with C CLI
         encode_cmd = [
-            "./c/bin/whitespace-stego",
+            "./whitespace-stego-c",
             "encode",
             "--message-file",
             str(msg_path),
@@ -46,7 +46,7 @@ def test_c_cli_roundtrip(message, carrier, password):
 
         # Decode with C CLI
         decode_cmd = [
-            "./c/bin/whitespace-stego",
+            "./whitespace-stego-c",
             "decode",
             "--carrier-file",
             str(enc_path),
@@ -121,7 +121,7 @@ def test_cross_tool_roundtrip_with_c(
                 encode_cmd += ["-p", password]
         else:  # c-cli
             encode_cmd = [
-                "./c/bin/whitespace-stego",
+                "./whitespace-stego-c",
                 "encode",
                 "--message-file",
                 str(msg_path),
@@ -164,7 +164,7 @@ def test_cross_tool_roundtrip_with_c(
                 decode_cmd += ["-p", password]
         else:  # c-cli
             decode_cmd = [
-                "./c/bin/whitespace-stego",
+                "./whitespace-stego-c",
                 "decode",
                 "--carrier-file",
                 str(enc_path),
@@ -195,7 +195,7 @@ def test_c_cli_verbose_output(message, carrier, password):
 
         # Test verbose output during encoding
         encode_cmd = [
-            "./c/bin/whitespace-stego",
+            "./whitespace-stego-c",
             "--verbose",
             "encode",
             "--message-file",
@@ -231,7 +231,7 @@ def test_c_cli_error_handling(message, carrier, password):
 
         # Test missing message file
         encode_cmd = [
-            "./c/bin/whitespace-stego",
+            "./whitespace-stego-c",
             "encode",
             "--message-file",
             "nonexistent.txt",
@@ -249,7 +249,7 @@ def test_c_cli_error_handling(message, carrier, password):
 
         # Test missing carrier file
         encode_cmd = [
-            "./c/bin/whitespace-stego",
+            "./whitespace-stego-c",
             "encode",
             "--message-file",
             str(msg_path),
@@ -267,7 +267,7 @@ def test_c_cli_error_handling(message, carrier, password):
 
         # Test invalid command
         result = subprocess.run(
-            ["./c/bin/whitespace-stego", "invalid"], capture_output=True, text=True
+            ["./whitespace-stego-c", "invalid"], capture_output=True, text=True
         )
         assert result.returncode != 0
         assert "Unknown command" in result.stderr
@@ -277,7 +277,7 @@ def test_c_cli_help_output():
     """Test C CLI help output consistency."""
     # Test main help
     result = subprocess.run(
-        ["./c/bin/whitespace-stego", "--help"],
+        ["./whitespace-stego-c", "--help"],
         capture_output=True,
         text=True,
         check=True,
@@ -289,7 +289,7 @@ def test_c_cli_help_output():
 
     # Test encode help
     result = subprocess.run(
-        ["./c/bin/whitespace-stego", "help", "encode"],
+        ["./whitespace-stego-c", "help", "encode"],
         capture_output=True,
         text=True,
         check=True,
@@ -302,7 +302,7 @@ def test_c_cli_help_output():
 
     # Test decode help
     result = subprocess.run(
-        ["./c/bin/whitespace-stego", "help", "decode"],
+        ["./whitespace-stego-c", "help", "decode"],
         capture_output=True,
         text=True,
         check=True,
@@ -328,7 +328,7 @@ def test_c_cli_output_consistency(message, carrier):
 
         # First encoding
         encode_cmd1 = [
-            "./c/bin/whitespace-stego",
+            "./whitespace-stego-c",
             "encode",
             "--message-file",
             str(msg_path),
@@ -341,7 +341,7 @@ def test_c_cli_output_consistency(message, carrier):
 
         # Second encoding
         encode_cmd2 = [
-            "./c/bin/whitespace-stego",
+            "./whitespace-stego-c",
             "encode",
             "--message-file",
             str(msg_path),

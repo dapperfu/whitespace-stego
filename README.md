@@ -88,8 +88,8 @@ python3 -m whitespace_stego.cli decode --help
 ./whitespace-stego-rs encode --help
 
 # C CLI tests
-./c/bin/whitespace-stego --help
-./c/bin/whitespace-stego encode --help
+./whitespace-stego-c --help
+./whitespace-stego-c encode --help
 
 # WebAssembly tests
 make wasi-web
@@ -604,12 +604,12 @@ python -m whitespace_stego.cli decode --carrier-file encoded.txt --output decode
 
 **Encode a simple message:**
 ```bash
-./c/bin/whitespace-stego encode --message-file message.txt --carrier-file carrier.txt --output encoded.txt
+./whitespace-stego-c encode --message-file message.txt --carrier-file carrier.txt --output encoded.txt
 ```
 
 **Decode the message:**
 ```bash
-./c/bin/whitespace-stego decode --carrier-file encoded.txt --output decoded.txt
+./whitespace-stego-c decode --carrier-file encoded.txt --output decoded.txt
 ```
 
 #### WebAssembly Web Interface
@@ -670,13 +670,13 @@ python -m whitespace_stego.cli decode \
 **C CLI:**
 ```bash
 # Encode with emojis and international text
-./c/bin/whitespace-stego encode \
+./whitespace-stego-c encode \
   --message-file international_message.txt \
   --carrier-file carrier.txt \
   --output international_encoded.txt
 
 # Decode
-./c/bin/whitespace-stego decode \
+./whitespace-stego-c decode \
   --carrier-file international_encoded.txt \
   --output international_decoded.txt
 ```
@@ -734,14 +734,14 @@ python -m whitespace_stego.cli decode \
 **C CLI:**
 ```bash
 # Encode with password
-./c/bin/whitespace-stego encode \
+./whitespace-stego-c encode \
   --message-file secret_message.txt \
   --carrier-file meeting_notes.txt \
   --password "mysecretpassword" \
   --output secret_encoded.txt
 
 # Decode with password
-./c/bin/whitespace-stego decode \
+./whitespace-stego-c decode \
   --carrier-file secret_encoded.txt \
   --password "mysecretpassword" \
   --output secret_decoded.txt
@@ -780,7 +780,7 @@ python -m whitespace_stego.cli --backend rust encode \
 ./rust/target/release/whitespace-stego-rs decode --cf cross_encoded.txt -o cross_decoded.txt
 
 # Decode with C CLI
-./c/bin/whitespace-stego decode --carrier-file cross_encoded.txt --output cross_decoded_c.txt
+./whitespace-stego-c decode --carrier-file cross_encoded.txt --output cross_decoded_c.txt
 ```
 
 #### 5. Inline Text Input (Rust CLI)
@@ -822,7 +822,7 @@ python -m whitespace_stego.cli encode \
 
 **C CLI:**
 ```bash
-./c/bin/whitespace-stego encode \
+./whitespace-stego-c encode \
   --message-file message.txt \
   --carrier-file carrier.txt \
   --output -
@@ -850,7 +850,7 @@ python -m whitespace_stego.cli --verbose encode \
 
 **C CLI:**
 ```bash
-./c/bin/whitespace-stego --verbose encode \
+./whitespace-stego-c --verbose encode \
   --message-file message.txt \
   --carrier-file carrier.txt \
   --output encoded.txt
@@ -1118,7 +1118,7 @@ python -m whitespace_stego.cli decode --help
 ### C CLI
 
 ```bash
-./c/bin/whitespace-stego --help
+./whitespace-stego-c --help
 ```
 
 **Global options:**
@@ -1127,7 +1127,7 @@ python -m whitespace_stego.cli decode --help
 
 **Encode command:**
 ```bash
-./c/bin/whitespace-stego help encode
+./whitespace-stego-c help encode
 ```
 
 - `--message-file, -m`: Path to file containing message to encode **[required]**
@@ -1138,7 +1138,7 @@ python -m whitespace_stego.cli decode --help
 
 **Decode command:**
 ```bash
-./c/bin/whitespace-stego help decode
+./whitespace-stego-c help decode
 ```
 
 - `--carrier-file, -c`: Path to encoded carrier file **[required]**

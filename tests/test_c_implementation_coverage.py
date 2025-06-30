@@ -14,7 +14,7 @@ class TestCImplementationCoverage:
         """Test C CLI help functionality."""
         try:
             result = subprocess.run(
-                ["./c/bin/whitespace-stego", "--help"],
+                ["./whitespace-stego-c", "--help"],
                 capture_output=True,
                 text=True,
                 timeout=10
@@ -28,7 +28,7 @@ class TestCImplementationCoverage:
         """Test C CLI encode help."""
         try:
             result = subprocess.run(
-                ["./c/bin/whitespace-stego", "encode"],
+                ["./whitespace-stego-c", "encode"],
                 capture_output=True,
                 text=True,
                 timeout=10
@@ -42,7 +42,7 @@ class TestCImplementationCoverage:
         """Test C CLI decode help."""
         try:
             result = subprocess.run(
-                ["./c/bin/whitespace-stego", "decode"],
+                ["./whitespace-stego-c", "decode"],
                 capture_output=True,
                 text=True,
                 timeout=10
@@ -70,7 +70,7 @@ class TestCImplementationCoverage:
             try:
                 # Test encode
                 result = subprocess.run(
-                    ["./c/bin/whitespace-stego", "encode",
+                    ["./whitespace-stego-c", "encode",
                      "--message-file", message_file,
                      "--carrier-file", carrier_file,
                      "--output", output_file],
@@ -86,7 +86,7 @@ class TestCImplementationCoverage:
                     decode_output = f.name
                 
                 result = subprocess.run(
-                    ["./c/bin/whitespace-stego", "decode",
+                    ["./whitespace-stego-c", "decode",
                      "--carrier-file", output_file,
                      "--output", decode_output],
                     capture_output=True,
@@ -126,7 +126,7 @@ class TestCImplementationCoverage:
             try:
                 # Test encode with files
                 result = subprocess.run(
-                    ["./c/bin/whitespace-stego", "encode",
+                    ["./whitespace-stego-c", "encode",
                      "--message-file", message_file,
                      "--carrier-file", carrier_file,
                      "--output", output_file],
@@ -142,7 +142,7 @@ class TestCImplementationCoverage:
                     decode_output = f.name
                 
                 result = subprocess.run(
-                    ["./c/bin/whitespace-stego", "decode",
+                    ["./whitespace-stego-c", "decode",
                      "--carrier-file", output_file,
                      "--output", decode_output],
                     capture_output=True,
@@ -183,7 +183,7 @@ class TestCImplementationCoverage:
             try:
                 # Test encode with password
                 result = subprocess.run(
-                    ["./c/bin/whitespace-stego", "encode",
+                    ["./whitespace-stego-c", "encode",
                      "--message-file", message_file,
                      "--carrier-file", carrier_file,
                      "--output", output_file,
@@ -200,7 +200,7 @@ class TestCImplementationCoverage:
                     decode_output = f.name
                 
                 result = subprocess.run(
-                    ["./c/bin/whitespace-stego", "decode",
+                    ["./whitespace-stego-c", "decode",
                      "--carrier-file", output_file,
                      "--output", decode_output,
                      "--password", "testpassword"],
@@ -221,7 +221,7 @@ class TestCImplementationCoverage:
                     wrong_decode_output = f.name
                 
                 result = subprocess.run(
-                    ["./c/bin/whitespace-stego", "decode",
+                    ["./whitespace-stego-c", "decode",
                      "--carrier-file", output_file,
                      "--output", wrong_decode_output,
                      "--password", "wrongpassword"],
@@ -257,7 +257,7 @@ class TestCImplementationCoverage:
             try:
                 # Test encode with Unicode
                 result = subprocess.run(
-                    ["./c/bin/whitespace-stego", "encode",
+                    ["./whitespace-stego-c", "encode",
                      "--message-file", message_file,
                      "--carrier-file", carrier_file,
                      "--output", output_file],
@@ -273,7 +273,7 @@ class TestCImplementationCoverage:
                     decode_output = f.name
                 
                 result = subprocess.run(
-                    ["./c/bin/whitespace-stego", "decode",
+                    ["./whitespace-stego-c", "decode",
                      "--carrier-file", output_file,
                      "--output", decode_output],
                     capture_output=True,
@@ -301,7 +301,7 @@ class TestCImplementationCoverage:
         try:
             # Test missing message file
             result = subprocess.run(
-                ["./c/bin/whitespace-stego", "encode",
+                ["./whitespace-stego-c", "encode",
                  "--carrier-file", "/tmp/test.txt",
                  "--output", "/tmp/output.txt"],
                 capture_output=True,
@@ -312,7 +312,7 @@ class TestCImplementationCoverage:
             
             # Test missing carrier file
             result = subprocess.run(
-                ["./c/bin/whitespace-stego", "encode",
+                ["./whitespace-stego-c", "encode",
                  "--message-file", "/tmp/test.txt",
                  "--output", "/tmp/output.txt"],
                 capture_output=True,
@@ -323,7 +323,7 @@ class TestCImplementationCoverage:
             
             # Test missing output file
             result = subprocess.run(
-                ["./c/bin/whitespace-stego", "encode",
+                ["./whitespace-stego-c", "encode",
                  "--message-file", "/tmp/test.txt",
                  "--carrier-file", "/tmp/test.txt"],
                 capture_output=True,
@@ -334,7 +334,7 @@ class TestCImplementationCoverage:
             
             # Test invalid file
             result = subprocess.run(
-                ["./c/bin/whitespace-stego", "encode",
+                ["./whitespace-stego-c", "encode",
                  "--message-file", "/nonexistent/file.txt",
                  "--carrier-file", "/tmp/test.txt",
                  "--output", "/tmp/output.txt"],
@@ -365,7 +365,7 @@ class TestCImplementationCoverage:
             try:
                 # Test encode with verbose mode
                 result = subprocess.run(
-                    ["./c/bin/whitespace-stego", "--verbose", "encode",
+                    ["./whitespace-stego-c", "--verbose", "encode",
                      "--message-file", message_file,
                      "--carrier-file", carrier_file,
                      "--output", output_file],
@@ -409,7 +409,7 @@ class TestCCrossCompatibility:
             try:
                 # Encode with C
                 result = subprocess.run(
-                    ["./c/bin/whitespace-stego", "encode",
+                    ["./whitespace-stego-c", "encode",
                      "--message-file", message_file,
                      "--carrier-file", carrier_file,
                      "--output", c_output_file],
@@ -440,7 +440,7 @@ class TestCCrossCompatibility:
                 
                 # Decode with C
                 result = subprocess.run(
-                    ["./c/bin/whitespace-stego", "decode",
+                    ["./whitespace-stego-c", "decode",
                      "--carrier-file", py_output_file,
                      "--output", decode_output],
                     capture_output=True,
@@ -491,7 +491,7 @@ class TestCCrossCompatibility:
             try:
                 # Encode with C
                 result = subprocess.run(
-                    ["./c/bin/whitespace-stego", "encode",
+                    ["./whitespace-stego-c", "encode",
                      "--message-file", message_file,
                      "--carrier-file", carrier_file,
                      "--output", c_output_file],
@@ -520,7 +520,7 @@ class TestCCrossCompatibility:
                 
                 # Decode with C
                 result = subprocess.run(
-                    ["./c/bin/whitespace-stego", "decode",
+                    ["./whitespace-stego-c", "decode",
                      "--carrier-file", rust_output_file,
                      "--output", decode_output],
                     capture_output=True,

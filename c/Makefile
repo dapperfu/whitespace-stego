@@ -8,7 +8,7 @@ BIN_DIR = bin
 
 SRCS = $(wildcard $(SRC_DIR)/*.c)
 OBJS = $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
-TARGET = $(BIN_DIR)/whitespace-stego
+TARGET = $(BIN_DIR)/whitespace-stego-c
 
 .PHONY: all clean test
 

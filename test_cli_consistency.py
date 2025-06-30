@@ -36,7 +36,7 @@ def test_help_consistency():
         [sys.executable, "-m", "whitespace_stego.cli", "--help"]
     ).stdout
     rust_help = run_command(["./whitespace-stego-rs", "--help"]).stdout
-    c_help = run_command(["./c/bin/whitespace-stego", "--help"]).stdout
+    c_help = run_command(["./whitespace-stego-c", "--help"]).stdout
 
     # Normalize help output (remove version info, program names, etc.)
     def normalize_help(help_text):
@@ -69,7 +69,7 @@ def test_help_consistency():
         [sys.executable, "-m", "whitespace_stego.cli", "encode", "--help"]
     ).stdout
     rust_encode_help = run_command(["./whitespace-stego-rs", "encode", "--help"]).stdout
-    c_encode_help = run_command(["./c/bin/whitespace-stego", "help", "encode"]).stdout
+    c_encode_help = run_command(["./whitespace-stego-c", "help", "encode"]).stdout
 
     python_encode_normalized = normalize_help(python_encode_help)
     rust_encode_normalized = normalize_help(rust_encode_help)
@@ -82,7 +82,7 @@ def test_help_consistency():
         [sys.executable, "-m", "whitespace_stego.cli", "decode", "--help"]
     ).stdout
     rust_decode_help = run_command(["./whitespace-stego-rs", "decode", "--help"]).stdout
-    c_decode_help = run_command(["./c/bin/whitespace-stego", "help", "decode"]).stdout
+    c_decode_help = run_command(["./whitespace-stego-c", "help", "decode"]).stdout
 
     python_decode_normalized = normalize_help(python_decode_help)
     rust_decode_normalized = normalize_help(rust_decode_help)
@@ -148,7 +148,7 @@ def test_basic_functionality():
         c_output_file = tmp_path / "c_output.txt"
         run_command(
             [
-                "./c/bin/whitespace-stego",
+                "./whitespace-stego-c",
                 "encode",
                 "--message-file",
                 str(message_file),
@@ -209,7 +209,7 @@ def test_basic_functionality():
         c_decoded_file = tmp_path / "c_decoded.txt"
         run_command(
             [
-                "./c/bin/whitespace-stego",
+                "./whitespace-stego-c",
                 "decode",
                 "--carrier-file",
                 str(c_output_file),
@@ -295,7 +295,7 @@ def test_password_functionality():
         c_output_file = tmp_path / "c_output.txt"
         run_command(
             [
-                "./c/bin/whitespace-stego",
+                "./whitespace-stego-c",
                 "encode",
                 "--message-file",
                 str(message_file),
@@ -359,7 +359,7 @@ def test_password_functionality():
         c_decoded_file = tmp_path / "c_decoded.txt"
         run_command(
             [
-                "./c/bin/whitespace-stego",
+                "./whitespace-stego-c",
                 "decode",
                 "--carrier-file",
                 str(c_output_file),
@@ -396,7 +396,7 @@ def test_error_handling():
     for cli_name, cmd in [
         ("Python", [sys.executable, "-m", "whitespace_stego.cli", "encode"]),
         ("Rust", ["./whitespace-stego-rs", "encode"]),
-        ("C", ["./c/bin/whitespace-stego", "encode"]),
+        ("C", ["./whitespace-stego-c", "encode"]),
     ]:
         try:
             result = run_command(cmd, check=False)
@@ -412,7 +412,7 @@ def test_error_handling():
     for cli_name, cmd in [
         ("Python", [sys.executable, "-m", "whitespace_stego.cli", "invalid"]),
         ("Rust", ["./whitespace-stego-rs", "invalid"]),
-        ("C", ["./c/bin/whitespace-stego", "invalid"]),
+        ("C", ["./whitespace-stego-c", "invalid"]),
     ]:
         try:
             result = run_command(cmd, check=False)
@@ -499,7 +499,7 @@ def test_verbose_flag():
         # Test verbose flag with C CLI
         result = run_command(
             [
-                "./c/bin/whitespace-stego",
+                "./whitespace-stego-c",
                 "--verbose",
                 "encode",
                 "--message-file",
