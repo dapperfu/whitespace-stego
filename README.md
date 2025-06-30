@@ -12,7 +12,7 @@ This project implements a whitespace steganography tool that encodes messages us
 - **Comprehensive testing**: 1350+ tests ensuring reliability across all implementations
 - **Advanced CLI interface**: Feature-rich command-line interface with mutually exclusive options, stdout support, and comprehensive error handling
 - **Interactive examples**: Jupyter notebooks for learning and experimentation
-- **Docker support**: Individual containers for each implementation
+
 - **Automated testing**: Complete test suite with automated verification of all features
 
 ## Testing and Quality Assurance
@@ -125,7 +125,7 @@ curl http://localhost:8000
 - **Pipeline operations**: CLI commands in Unix pipelines
 - **File operations**: Reading from and writing to various file formats
 - **Web interface**: Browser-based encoding/decoding
-- **Docker containers**: Containerized implementations
+
 
 ### Test Results
 
@@ -209,28 +209,7 @@ python3 test_everything.py 2>&1 | tee test_output.log
 
 ## Installation
 
-### Docker (Recommended)
 
-The easiest way to get started is using Docker. Each implementation has its own container:
-
-```bash
-# Python implementation
-docker build -f Dockerfile.python -t whitespace-stego-python .
-docker run -it --rm -v $(pwd)/data:/app/data whitespace-stego-python
-
-# Rust implementation
-docker build -f Dockerfile.rust -t whitespace-stego-rust .
-docker run -it --rm -v $(pwd)/data:/app/data whitespace-stego-rust
-
-# C implementation
-docker build -f Dockerfile.c -t whitespace-stego-c .
-docker run -it --rm -v $(pwd)/data:/app/data whitespace-stego-c
-
-# Jupyter notebook environment
-docker-compose -f docker-compose.individual.yml --profile jupyter up
-```
-
-For detailed Docker usage, see [DOCKER.md](DOCKER.md).
 
 ### Python Implementation
 
