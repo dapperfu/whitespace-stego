@@ -221,3 +221,8 @@ test_*.txt
 test_*.out
 encoded*.txt
 out.txt
+# Test artifacts
+test_*_encoded.txt
+test_*_decoded.txt
+encoded*.txt
+.coverage*

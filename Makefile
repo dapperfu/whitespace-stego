@@ -1,5 +1,5 @@
 VENV?=.venv
-.PHONY: help venv install test coverage maturin-develop maturin-build cargo-build cargo-clean clean format rust c wasi-web test-wasm test-wasm-only test-all
+.PHONY: help venv install test coverage maturin-develop maturin-build cargo-build cargo-clean clean format rust c wasi-web test-wasm test-wasm-only test-all git-clean
 # Default target
 help:
 	@echo "Available targets:"
@@ -20,6 +20,7 @@ help:
 	@echo "  rust            - Build Rust CLI in release mode and copy to top-level directory"
 	@echo "  c               - Build C CLI in release mode and copy to top-level directory"
 	@echo "  wasi-web        - Build WASI web app and serve it at http://localhost:8000"
+	@echo "  git-clean       - Clean all untracked files and directories (use with caution)"
 
 # Build pure Rust CLI binary
 cargo-build:
@@ -42,6 +43,9 @@ clean:
 	rm -f whitespace-stego-c
 	rm -rf htmlcov
 	rm -f coverage.xml
+	rm -f .coverage*
+	rm -f test_*_encoded.txt test_*_decoded.txt
+	rm -f encoded*.txt
 	cargo clean
 
 # Run tests with coverage reporting
@@ -121,4 +125,15 @@ venv:
 # Build WASI web app and serve it with Python
 wasi-web:
 	cd wasi && ./build.sh
-	cd wasi/pkg && python3 -m http.server 8000 
+	cd wasi/pkg && python3 -m http.server 8000
+
+# Clean all untracked files and directories (use with caution)
+git-clean:
+	@echo "Cleaning all untracked files and directories..."
+	@echo "This will remove:"
+	@echo "  - All .coverage.* files"
+	@echo "  - All untracked files and directories"
+	@echo "  - All ignored files"
+	@echo "Are you sure? [y/N]"
+	@read -p "" confirm && [ "$$confirm" = "y" ] || exit 1
+	git clean -xfd 
