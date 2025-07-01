@@ -29,6 +29,7 @@ def get_backend_implementation(backend: str):
     """Get the appropriate backend implementation."""
     if backend == "python":
         from whitespace_stego.core import encode as py_encode, decode as py_decode
+
         return py_encode, py_decode
     elif backend == "rust":
         try:
@@ -36,13 +37,18 @@ def get_backend_implementation(backend: str):
                 encode as rust_encode,
                 decode as rust_decode,
             )
+
             return rust_encode, rust_decode
         except ImportError:
             logger.error("Rust backend not available. Please ensure it is installed.")
             sys.exit(1)
     elif backend == "c":
         try:
-            from whitespace_stego.c_backend import encode as c_encode, decode as c_decode
+            from whitespace_stego.c_backend import (
+                encode as c_encode,
+                decode as c_decode,
+            )
+
             return c_encode, c_decode
         except ImportError:
             logger.error("C backend not available. Please ensure it is installed.")
@@ -53,15 +59,15 @@ def get_backend_implementation(backend: str):
 
 class MutuallyExclusiveOption(click.Option):
     """Custom option class to handle mutually exclusive options."""
-    
+
     def __init__(self, *args, **kwargs):
-        self.mutually_exclusive = set(kwargs.pop('mutually_exclusive', []))
-        help = kwargs.get('help', '')
+        self.mutually_exclusive = set(kwargs.pop("mutually_exclusive", []))
+        help = kwargs.get("help", "")
         if self.mutually_exclusive:
-            ex_str = ', '.join(self.mutually_exclusive)
-            kwargs['help'] = help + (
-                ' NOTE: This option is mutually exclusive with '
-                ' options: [' + ex_str + '].'
+            ex_str = ", ".join(self.mutually_exclusive)
+            kwargs["help"] = help + (
+                " NOTE: This option is mutually exclusive with "
+                " options: [" + ex_str + "]."
             )
         super(MutuallyExclusiveOption, self).__init__(*args, **kwargs)
 
@@ -72,9 +78,7 @@ class MutuallyExclusiveOption(click.Option):
                 f"options {self.mutually_exclusive}."
             )
 
-        return super(MutuallyExclusiveOption, self).handle_parse_result(
-            ctx, opts, args
-        )
+        return super(MutuallyExclusiveOption, self).handle_parse_result(ctx, opts, args)
 
 
 @click.group()
@@ -103,14 +107,14 @@ def cli(verbose: bool, backend: str) -> None:
     "--message",
     "-m",
     cls=MutuallyExclusiveOption,
-    mutually_exclusive=['message_file'],
+    mutually_exclusive=["message_file"],
     help="Message to encode (mutually exclusive with --message-file)",
 )
 @click.option(
     "--message-file",
     "-mf",
     cls=MutuallyExclusiveOption,
-    mutually_exclusive=['message'],
+    mutually_exclusive=["message"],
     type=click.Path(exists=True, path_type=Path),
     help="Path to the file containing the message to encode (mutually exclusive with --message)",
 )
@@ -118,14 +122,14 @@ def cli(verbose: bool, backend: str) -> None:
     "--carrier",
     "-c",
     cls=MutuallyExclusiveOption,
-    mutually_exclusive=['carrier_file'],
+    mutually_exclusive=["carrier_file"],
     help="Carrier text to encode into (mutually exclusive with --carrier-file)",
 )
 @click.option(
     "--carrier-file",
     "-cf",
     cls=MutuallyExclusiveOption,
-    mutually_exclusive=['carrier'],
+    mutually_exclusive=["carrier"],
     type=click.Path(exists=True, path_type=Path),
     help="Path to the carrier file (mutually exclusive with --carrier)",
 )
@@ -142,7 +146,7 @@ def encode(
     carrier: Optional[str],
     carrier_file: Optional[Path],
     output: Optional[Path],
-    password: Optional[str]
+    password: Optional[str],
 ):
     """Encode a message into a carrier using whitespace steganography."""
     try:
@@ -155,7 +159,7 @@ def encode(
             raise click.UsageError(
                 "--message/-m and --message-file/-mf are mutually exclusive."
             )
-        
+
         # Validate that exactly one carrier option is provided
         if carrier is None and carrier_file is None:
             raise click.UsageError(
@@ -208,14 +212,14 @@ def encode(
     "--carrier",
     "-c",
     cls=MutuallyExclusiveOption,
-    mutually_exclusive=['carrier_file'],
+    mutually_exclusive=["carrier_file"],
     help="Carrier text containing the encoded message (mutually exclusive with --carrier-file)",
 )
 @click.option(
     "--carrier-file",
     "-cf",
     cls=MutuallyExclusiveOption,
-    mutually_exclusive=['carrier'],
+    mutually_exclusive=["carrier"],
     type=click.Path(exists=True, path_type=Path),
     help="Path to the encoded carrier file (mutually exclusive with --carrier)",
 )
@@ -230,7 +234,7 @@ def decode(
     carrier: Optional[str],
     carrier_file: Optional[Path],
     output: Optional[Path],
-    password: Optional[str]
+    password: Optional[str],
 ):
     """Decode a message from a carrier using whitespace steganography."""
     try:

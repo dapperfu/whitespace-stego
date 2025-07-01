@@ -10,8 +10,19 @@ from unittest.mock import patch, MagicMock
 from click.testing import CliRunner
 from click import UsageError
 
-from whitespace_stego.cli import cli, get_backend_implementation, MutuallyExclusiveOption, main
-from whitespace_stego.core import encode, decode, extract_encoded, _encode_binary, _decode_binary
+from whitespace_stego.cli import (
+    cli,
+    get_backend_implementation,
+    MutuallyExclusiveOption,
+    main,
+)
+from whitespace_stego.core import (
+    encode,
+    decode,
+    extract_encoded,
+    _encode_binary,
+    _decode_binary,
+)
 from whitespace_stego.logger import setup_logger
 
 
@@ -19,23 +30,20 @@ from whitespace_stego.logger import setup_logger
 def temp_files():
     """Provide temporary files for testing."""
     temp_dir = Path(tempfile.mkdtemp())
-    
+
     # Create message file
     msg_file = temp_dir / "test_message.txt"
     msg_file.write_text("Test message from file")
-    
+
     # Create carrier file
     carrier_file = temp_dir / "test_carrier.txt"
     carrier_file.write_text("Test carrier from file")
-    
-    yield {
-        'temp_dir': temp_dir,
-        'msg_file': msg_file,
-        'carrier_file': carrier_file
-    }
-    
+
+    yield {"temp_dir": temp_dir, "msg_file": msg_file, "carrier_file": carrier_file}
+
     # Cleanup
     import shutil
+
     shutil.rmtree(temp_dir)
 
 
@@ -51,11 +59,11 @@ class TestCoverageGaps:
     def test_cli_read_file_function(self):
         """Test the read_file function in CLI module."""
         from whitespace_stego.cli import read_file
-        
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as f:
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".txt") as f:
             f.write("Test content")
             temp_file = f.name
-        
+
         try:
             content = read_file(temp_file)
             assert content == "Test content"
@@ -65,13 +73,13 @@ class TestCoverageGaps:
     def test_cli_write_file_function(self):
         """Test the write_file function in CLI module."""
         from whitespace_stego.cli import write_file
-        
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.txt') as f:
+
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".txt") as f:
             temp_file = f.name
-        
+
         try:
             write_file(temp_file, "Written content")
-            with open(temp_file, 'r') as f:
+            with open(temp_file, "r") as f:
                 content = f.read()
             assert content == "Written content"
         finally:
@@ -79,7 +87,7 @@ class TestCoverageGaps:
 
     def test_get_backend_implementation_rust_import_error(self):
         """Test Rust backend import error handling."""
-        with patch.dict(sys.modules, {'whitespace_stego_backend': None}):
+        with patch.dict(sys.modules, {"whitespace_stego_backend": None}):
             with pytest.raises(SystemExit):
                 get_backend_implementation("rust")
 
@@ -91,13 +99,13 @@ class TestCoverageGaps:
     def test_mutually_exclusive_option_help_text(self):
         """Test MutuallyExclusiveOption help text generation."""
         option = MutuallyExclusiveOption(
-            ['--message', '-m'],
-            ['--message-file', '-mf'],
-            'message',
-            help='Message to encode'
+            ["--message", "-m"],
+            ["--message-file", "-mf"],
+            "message",
+            help="Message to encode",
         )
-        assert option.help == 'Message to encode'
-        assert '--message' in str(option.opts)
+        assert option.help == "Message to encode"
+        assert "--message" in str(option.opts)
         # Note: mutually_exclusive is only set in a real Click context, so we skip direct assertion here.
 
     def test_mutually_exclusive_option_validation(self):
@@ -105,57 +113,76 @@ class TestCoverageGaps:
         runner = CliRunner()
         # Both --message and --message-file provided
         with runner.isolated_filesystem():
-            msg_file = 'msg.txt'
-            with open(msg_file, 'w') as f:
-                f.write('test')
-            result = runner.invoke(cli, [
-                'encode', '--message', 'test', '--message-file', msg_file, '--carrier', 'carrier'
-            ], catch_exceptions=False)
+            msg_file = "msg.txt"
+            with open(msg_file, "w") as f:
+                f.write("test")
+            result = runner.invoke(
+                cli,
+                [
+                    "encode",
+                    "--message",
+                    "test",
+                    "--message-file",
+                    msg_file,
+                    "--carrier",
+                    "carrier",
+                ],
+                catch_exceptions=False,
+            )
             assert result.exit_code != 0
-            assert 'mutually exclusive' in result.output
+            assert "mutually exclusive" in result.output
 
     def test_cli_verbose_mode_logger_setup(self):
         """Test CLI verbose mode logger setup."""
         from whitespace_stego.cli import setup_logger
         import logging
-        
+
         # Test that verbose mode sets up logging correctly
-        logger = setup_logger('whitespace_stego.cli', level=10, verbose=True)
-        
+        logger = setup_logger("whitespace_stego.cli", level=10, verbose=True)
+
         # Verify logger is configured
         assert logger.level <= 10
         assert len(logger.handlers) > 0
-        
+
         # Test that we can log messages
         logger.info("Test verbose logging")
 
     def test_cli_context_backend_storage(self):
         """Test backend storage in Click context."""
         runner = CliRunner()
-        result = runner.invoke(cli, ['--backend', 'rust', '--help'])
+        result = runner.invoke(cli, ["--backend", "rust", "--help"])
         assert result.exit_code == 0
 
     def test_encode_missing_message_and_file(self):
         """Test encode command with missing message and message file."""
         runner = CliRunner()
-        result = runner.invoke(cli, ['encode', '--carrier', 'test'])
+        result = runner.invoke(cli, ["encode", "--carrier", "test"])
         assert result.exit_code != 0
-        assert "Either --message/-m or --message-file/-mf must be provided" in result.output
+        assert (
+            "Either --message/-m or --message-file/-mf must be provided"
+            in result.output
+        )
 
     def test_encode_both_message_and_file(self):
         """Test encode command with both message and message file."""
         runner = CliRunner()
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as f:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".txt") as f:
             f.write("File content")
             temp_file = f.name
-        
+
         try:
-            result = runner.invoke(cli, [
-                'encode', 
-                '--message', 'Direct message',
-                '--message-file', temp_file,
-                '--carrier', 'test'
-            ])
+            result = runner.invoke(
+                cli,
+                [
+                    "encode",
+                    "--message",
+                    "Direct message",
+                    "--message-file",
+                    temp_file,
+                    "--carrier",
+                    "test",
+                ],
+            )
             assert result.exit_code != 0
             assert "mutually exclusive" in result.output
         finally:
@@ -164,41 +191,59 @@ class TestCoverageGaps:
     def test_encode_missing_carrier_and_file(self):
         """Test encode command with missing carrier and carrier file."""
         runner = CliRunner()
-        result = runner.invoke(cli, ['encode', '--message', 'test'])
+        result = runner.invoke(cli, ["encode", "--message", "test"])
         assert result.exit_code != 0
-        assert "Either --carrier/-c or --carrier-file/-cf must be provided" in result.output
+        assert (
+            "Either --carrier/-c or --carrier-file/-cf must be provided"
+            in result.output
+        )
 
     def test_encode_both_carrier_and_file(self):
         """Test encode command with both carrier and carrier file."""
         runner = CliRunner()
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as f:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".txt") as f:
             f.write("File content")
             temp_file = f.name
-        
+
         try:
-            result = runner.invoke(cli, [
-                'encode', 
-                '--message', 'test',
-                '--carrier', 'Direct carrier',
-                '--carrier-file', temp_file
-            ])
+            result = runner.invoke(
+                cli,
+                [
+                    "encode",
+                    "--message",
+                    "test",
+                    "--carrier",
+                    "Direct carrier",
+                    "--carrier-file",
+                    temp_file,
+                ],
+            )
             assert result.exit_code != 0
             assert "mutually exclusive" in result.output
         finally:
             os.unlink(temp_file)
 
-    @pytest.mark.xfail(reason="Click runner bug: I/O operation on closed file when using file output with logging")
+    @pytest.mark.xfail(
+        reason="Click runner bug: I/O operation on closed file when using file output with logging"
+    )
     def test_encode_file_output(self):
         """Test encode with file output using isolated filesystem. Avoid accessing result.output due to Click runner bug."""
         runner = CliRunner()
         with runner.isolated_filesystem():
             output_file = "test_encoded_output.txt"
-            result = runner.invoke(cli, [
-                'encode',
-                '--message', 'Test message for file output',
-                '--carrier', 'Test carrier for file output',
-                '--output', output_file
-            ], catch_exceptions=False)
+            result = runner.invoke(
+                cli,
+                [
+                    "encode",
+                    "--message",
+                    "Test message for file output",
+                    "--carrier",
+                    "Test carrier for file output",
+                    "--output",
+                    output_file,
+                ],
+                catch_exceptions=False,
+            )
             assert result.exit_code == 0
             assert os.path.exists(output_file)
             with open(output_file) as f:
@@ -207,42 +252,45 @@ class TestCoverageGaps:
     def test_encode_exception_handling(self):
         """Test encode command exception handling."""
         runner = CliRunner()
-        with patch('whitespace_stego.cli.encode_message') as mock_encode:
+        with patch("whitespace_stego.cli.encode_message") as mock_encode:
             mock_encode.side_effect = Exception("Test error")
-            result = runner.invoke(cli, [
-                'encode',
-                '--message', 'Test message',
-                '--carrier', 'Test carrier'
-            ])
+            result = runner.invoke(
+                cli,
+                ["encode", "--message", "Test message", "--carrier", "Test carrier"],
+            )
             assert result.exit_code != 0
             assert "Error encoding message" in result.output
 
     def test_decode_missing_carrier_and_file(self):
         """Test decode command with missing carrier and carrier file."""
         runner = CliRunner()
-        result = runner.invoke(cli, ['decode'])
+        result = runner.invoke(cli, ["decode"])
         assert result.exit_code != 0
-        assert "Either --carrier/-c or --carrier-file/-cf must be provided" in result.output
+        assert (
+            "Either --carrier/-c or --carrier-file/-cf must be provided"
+            in result.output
+        )
 
     def test_decode_both_carrier_and_file(self):
         """Test decode command with both carrier and carrier file."""
         runner = CliRunner()
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as f:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".txt") as f:
             f.write("File content")
             temp_file = f.name
-        
+
         try:
-            result = runner.invoke(cli, [
-                'decode', 
-                '--carrier', 'Direct carrier',
-                '--carrier-file', temp_file
-            ])
+            result = runner.invoke(
+                cli,
+                ["decode", "--carrier", "Direct carrier", "--carrier-file", temp_file],
+            )
             assert result.exit_code != 0
             assert "mutually exclusive" in result.output
         finally:
             os.unlink(temp_file)
 
-    @pytest.mark.xfail(reason="Click runner bug: I/O operation on closed file when using file output with logging")
+    @pytest.mark.xfail(
+        reason="Click runner bug: I/O operation on closed file when using file output with logging"
+    )
     def test_decode_file_output(self):
         """Test decode with file output using isolated filesystem. Avoid accessing result.output due to Click runner bug."""
         runner = CliRunner()
@@ -250,19 +298,26 @@ class TestCoverageGaps:
             encoded_file = "test_encoded_for_decode.txt"
             output_file = "test_decoded_output.txt"
             # Encode first
-            encode_result = runner.invoke(cli, [
-                'encode',
-                '--message', 'Test message for decode output',
-                '--carrier', 'Test carrier for decode output',
-                '--output', encoded_file
-            ], catch_exceptions=False)
+            encode_result = runner.invoke(
+                cli,
+                [
+                    "encode",
+                    "--message",
+                    "Test message for decode output",
+                    "--carrier",
+                    "Test carrier for decode output",
+                    "--output",
+                    encoded_file,
+                ],
+                catch_exceptions=False,
+            )
             assert encode_result.exit_code == 0
             # Decode
-            result = runner.invoke(cli, [
-                'decode',
-                '--carrier-file', encoded_file,
-                '--output', output_file
-            ], catch_exceptions=False)
+            result = runner.invoke(
+                cli,
+                ["decode", "--carrier-file", encoded_file, "--output", output_file],
+                catch_exceptions=False,
+            )
             assert result.exit_code == 0
             assert os.path.exists(output_file)
             with open(output_file) as f:
@@ -271,12 +326,9 @@ class TestCoverageGaps:
     def test_decode_exception_handling(self):
         """Test decode command exception handling."""
         runner = CliRunner()
-        with patch('whitespace_stego.cli.decode_message') as mock_decode:
+        with patch("whitespace_stego.cli.decode_message") as mock_decode:
             mock_decode.side_effect = Exception("Test error")
-            result = runner.invoke(cli, [
-                'decode',
-                '--carrier', 'Invalid carrier'
-            ])
+            result = runner.invoke(cli, ["decode", "--carrier", "Invalid carrier"])
             assert result.exit_code != 0
             assert "Error decoding message" in result.output
 
@@ -284,7 +336,7 @@ class TestCoverageGaps:
         """Test core encode function with empty carrier."""
         result = encode("Test message", "")
         assert result.startswith("\u200b")  # START_MARKER
-        assert result.endswith("\u200c")    # END_MARKER
+        assert result.endswith("\u200c")  # END_MARKER
 
     def test_core_encode_single_character_carrier(self):
         """Test core encode function with single character carrier."""
@@ -301,7 +353,7 @@ class TestCoverageGaps:
         """Test core decode function with invalid password."""
         # Encode with password
         encoded = encode("Secret message", "Carrier", "password123")
-        
+
         # Try to decode with wrong password
         with pytest.raises(ValueError, match="Invalid password"):
             decode(encoded, "wrongpassword")
@@ -324,14 +376,14 @@ class TestCoverageGaps:
         # Test empty bytes
         result = _encode_binary(b"")
         assert result == ""
-        
+
         # Test single byte
         result = _encode_binary(b"\x00")
         assert len(result) == 8
         assert all(c in ["\u200d", "\ufeff"] for c in result)
-        
+
         # Test multiple bytes
-        result = _encode_binary(b"\x00\xFF")
+        result = _encode_binary(b"\x00\xff")
         assert len(result) == 16
 
     def test_core_binary_decoding_edge_cases(self):
@@ -339,16 +391,19 @@ class TestCoverageGaps:
         # Test empty string
         result = _decode_binary("")
         assert result == b""
-        
+
         # Test single byte
         encoded = "\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d"  # 8 zeros
         result = _decode_binary(encoded)
         assert result == b"\x00"
-        
+
         # Test multiple bytes
-        encoded = "\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d" + "\ufeff\ufeff\ufeff\ufeff\ufeff\ufeff\ufeff\ufeff"  # 0x00 0xFF
+        encoded = (
+            "\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d"
+            + "\ufeff\ufeff\ufeff\ufeff\ufeff\ufeff\ufeff\ufeff"
+        )  # 0x00 0xFF
         result = _decode_binary(encoded)
-        assert result == b"\x00\xFF"
+        assert result == b"\x00\xff"
 
     def test_logger_setup_with_level(self):
         """Test logger setup with explicit level."""
@@ -359,17 +414,17 @@ class TestCoverageGaps:
         """Test logger setup in verbose mode."""
         from whitespace_stego.logger import setup_logger
         import sys
-        
+
         # Setup logger in verbose mode
-        logger = setup_logger('test_verbose', level=10, verbose=True)
-        
+        logger = setup_logger("test_verbose", level=10, verbose=True)
+
         # Check that we have a handler
         assert len(logger.handlers) > 0
-        
+
         # Check that the handler is a StreamHandler
         handler = logger.handlers[0]
         assert isinstance(handler, logging.StreamHandler)
-        
+
         # Check that the level is set correctly
         assert logger.level <= 10
 
@@ -385,7 +440,7 @@ class TestCoverageGaps:
         """Test logger setup when handlers already exist."""
         logger = setup_logger("test_logger")
         initial_handlers = len(logger.handlers)
-        
+
         # Setup again - should not add duplicate handlers
         logger = setup_logger("test_logger")
         assert len(logger.handlers) == initial_handlers
@@ -393,16 +448,17 @@ class TestCoverageGaps:
     def test_cli_main_function(self):
         """Test CLI main function using CliRunner."""
         runner = CliRunner()
-        result = runner.invoke(cli, ['--help'])
+        result = runner.invoke(cli, ["--help"])
         assert result.exit_code == 0
         assert "whitespace steganography" in result.output.lower()
 
     def test_cli_module_main_block(self):
         """Test the __main__ block in CLI module."""
-        with patch('whitespace_stego.cli.cli') as mock_cli:
+        with patch("whitespace_stego.cli.cli") as mock_cli:
             # Simulate running the module directly
             import whitespace_stego.cli
-            if hasattr(whitespace_stego.cli, '__main__'):
+
+            if hasattr(whitespace_stego.cli, "__main__"):
                 # This would be executed if the module was run directly
                 pass
             # The main function should be callable
@@ -427,14 +483,14 @@ class TestRustBackendCoverage:
         """Test Rust backend functionality if available."""
         try:
             encode_func, decode_func = get_backend_implementation("rust")
-            
+
             # Test basic functionality
             message = "Test message"
             carrier = "Test carrier"
             encoded = encode_func(message, carrier)
             decoded = decode_func(encoded)
             assert decoded == message
-            
+
         except SystemExit:
             pytest.skip("Rust backend not available")
 
@@ -448,19 +504,19 @@ class TestCrossImplementationCoverage:
             # Get both backends
             py_encode, py_decode = get_backend_implementation("python")
             rust_encode, rust_decode = get_backend_implementation("rust")
-            
+
             # Test Python encode -> Rust decode
             message = "Cross-test message"
             carrier = "Cross-test carrier"
             encoded = py_encode(message, carrier)
             decoded = rust_decode(encoded)
             assert decoded == message
-            
+
             # Test Rust encode -> Python decode
             encoded = rust_encode(message, carrier)
             decoded = py_decode(encoded)
             assert decoded == message
-            
+
         except SystemExit:
             pytest.skip("Rust backend not available")
 
@@ -496,14 +552,14 @@ class TestErrorHandlingCoverage:
         # Test with incomplete markers
         with pytest.raises(ValueError):
             decode("Text with only start marker\u200b")
-        
+
         with pytest.raises(ValueError):
             decode("Text with only end marker\u200c")
 
     def test_binary_encoding_with_special_bytes(self):
         """Test binary encoding with special byte values."""
         # Test with various byte values
-        test_bytes = b"\x00\x01\x7F\x80\xFF"
+        test_bytes = b"\x00\x01\x7f\x80\xff"
         encoded = _encode_binary(test_bytes)
         decoded = _decode_binary(encoded)
         assert decoded == test_bytes
@@ -513,4 +569,4 @@ class TestErrorHandlingCoverage:
         logger = setup_logger("test_special_chars")
         # This should not raise any exceptions
         logger.info("Message with special chars: 🚀🌍💻")
-        logger.debug("Debug message with unicode: café naïve") 
+        logger.debug("Debug message with unicode: café naïve")

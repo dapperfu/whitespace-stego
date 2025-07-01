@@ -54,12 +54,14 @@ class TestCLIErrorHandling:
             # Mock the setup_logger to return a mock logger
             mock_logger = MagicMock()
             mock_setup_logger.return_value = mock_logger
-            
+
             # Call a command that actually executes the CLI function
             result = runner.invoke(cli, ["--verbose", "encode", "--help"])
-            
+
             # Verify setup_logger was called with debug level
-            mock_setup_logger.assert_called_with("whitespace_stego.cli", level=logging.DEBUG, verbose=True)
+            mock_setup_logger.assert_called_with(
+                "whitespace_stego.cli", level=logging.DEBUG, verbose=True
+            )
             assert result.exit_code == 0
 
     def test_cli_backend_context_storage(self):

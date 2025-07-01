@@ -5,6 +5,7 @@ from whitespace_stego.core import encode as encode_python, decode as decode_pyth
 # Try to import Rust backend, but don't fail if it's not available
 try:
     from whitespace_stego_backend import encode as encode_rust, decode as decode_rust
+
     RUST_AVAILABLE = True
 except ImportError:
     RUST_AVAILABLE = False
