@@ -49,8 +49,40 @@
             padding: 40px;
         }
 
-        .form-section {
+        .sections-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
             margin-bottom: 30px;
+        }
+
+        .section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid #e9ecef;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .section-header h2 {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin-left: 10px;
+        }
+
+        .encode-section .section-header {
+            color: #667eea;
+        }
+
+        .decode-section .section-header {
+            color: #f093fb;
         }
 
         .form-group {
@@ -265,29 +297,6 @@
             margin-bottom: 5px;
         }
 
-        @media (max-width: 768px) {
-            .container {
-                margin: 10px;
-                border-radius: 15px;
-            }
-
-            .main-content {
-                padding: 20px;
-            }
-
-            .header h1 {
-                font-size: 2rem;
-            }
-
-            .button-group {
-                flex-direction: column;
-            }
-
-            .btn {
-                width: 100%;
-            }
-        }
-
         .loading {
             display: inline-block;
             width: 20px;
@@ -302,6 +311,34 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .sections-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -325,42 +362,72 @@
                 </ul>
             </div>
 
-            <div class="form-section">
-                <div class="form-group">
-                    <label for="message">Secret Message:</label>
-                    <textarea id="message" placeholder="Enter the message you want to hide..."></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="carrier">Carrier Text (where to hide the message):</label>
-                    <textarea id="carrier" placeholder="Enter the text where you want to hide your message..."></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="password">Password (optional):</label>
-                    <input type="text" id="password" placeholder="Password encryption not yet supported in WASM version">
-                    <div class="file-info">Note: Password encryption is not yet supported in the WebAssembly version. Use Python, Rust, or C implementations for password protection.</div>
-                </div>
-
-                <div class="form-group">
-                    <label for="file-upload">Upload File for Decoding (optional):</label>
-                    <div class="file-upload-container">
-                        <input type="file" id="file-upload" accept=".txt,.md,.html,.js,.py,.rs,.c,.cpp,.h,.hpp,.json,.xml,.csv">
-                        <button class="btn btn-warning" onclick="loadFileContent()">📁 Load File</button>
+            <div class="sections-container">
+                <!-- Encode Section -->
+                <div class="section encode-section">
+                    <div class="section-header">
+                        <span style="font-size: 1.5rem;">🔒</span>
+                        <h2>Encode</h2>
                     </div>
-                    <div class="file-info" id="file-info"></div>
+                    
+                    <div class="form-group">
+                        <label for="message">Secret Message:</label>
+                        <textarea id="message" placeholder="Enter the message you want to hide..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="carrier-encode">Carrier Text (where to hide the message):</label>
+                        <textarea id="carrier-encode" placeholder="Enter the text where you want to hide your message..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password-encode">Password (optional):</label>
+                        <input type="text" id="password-encode" placeholder="Password encryption not yet supported in WASM version">
+                        <div class="file-info">Note: Password encryption is not yet supported in the WebAssembly version. Use Python, Rust, or C implementations for password protection.</div>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="encodeMessage()">
+                            <span id="encode-loading" class="loading" style="display: none;"></span>
+                            🔒 Encode Message
+                        </button>
+                        <button class="btn btn-success" onclick="clearEncode()">🗑️ Clear</button>
+                    </div>
                 </div>
 
-                <div class="button-group">
-                    <button class="btn btn-primary" onclick="encodeMessage()">
-                        <span id="encode-loading" class="loading" style="display: none;"></span>
-                        🔒 Encode Message
-                    </button>
-                    <button class="btn btn-secondary" onclick="decodeMessage()">
-                        <span id="decode-loading" class="loading" style="display: none;"></span>
-                        🔓 Decode Message
-                    </button>
-                    <button class="btn btn-success" onclick="clearAll()">🗑️ Clear All</button>
+                <!-- Decode Section -->
+                <div class="section decode-section">
+                    <div class="section-header">
+                        <span style="font-size: 1.5rem;">🔓</span>
+                        <h2>Decode</h2>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="carrier-decode">Text to Decode:</label>
+                        <textarea id="carrier-decode" placeholder="Enter text that contains hidden messages..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="file-upload">Upload File for Decoding (optional):</label>
+                        <div class="file-upload-container">
+                            <input type="file" id="file-upload" accept=".txt,.md,.html,.js,.py,.rs,.c,.cpp,.h,.hpp,.json,.xml,.csv">
+                            <button class="btn btn-warning" onclick="loadFileContent()">📁 Load File</button>
+                        </div>
+                        <div class="file-info" id="file-info"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password-decode">Password (if message was encrypted):</label>
+                        <input type="text" id="password-decode" placeholder="Enter password if the message was encrypted">
+                    </div>
+
+                    <div class="button-group">
+                        <button class="btn btn-secondary" onclick="decodeMessage()">
+                            <span id="decode-loading" class="loading" style="display: none;"></span>
+                            🔓 Decode Message
+                        </button>
+                        <button class="btn btn-success" onclick="clearDecode()">🗑️ Clear</button>
+                    </div>
                 </div>
             </div>
 
@@ -399,8 +466,8 @@
             }
 
             const message = document.getElementById('message').value.trim();
-            const carrier = document.getElementById('carrier').value.trim();
-            const password = document.getElementById('password').value.trim();
+            const carrier = document.getElementById('carrier-encode').value.trim();
+            const password = document.getElementById('password-encode').value.trim();
 
             if (!message) {
                 showStatus('Error: Please enter a message to encode.', 'error');
@@ -434,8 +501,8 @@
                 return;
             }
 
-            const carrier = document.getElementById('carrier').value.trim();
-            const password = document.getElementById('password').value.trim();
+            const carrier = document.getElementById('carrier-decode').value.trim();
+            const password = document.getElementById('password-decode').value.trim();
 
             if (!carrier) {
                 showStatus('Error: Please enter text to decode.', 'error');
@@ -477,7 +544,7 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 const content = e.target.result;
-                document.getElementById('carrier').value = content;
+                document.getElementById('carrier-decode').value = content;
                 document.getElementById('file-info').textContent = `Loaded: ${file.name} (${file.size} bytes)`;
                 showStatus(`✅ File "${file.name}" loaded successfully!`, 'success');
             };
@@ -508,13 +575,23 @@
             showStatus('✅ File downloaded successfully!', 'success');
         };
 
-        window.clearAll = function() {
+        window.clearEncode = function() {
             document.getElementById('message').value = '';
-            document.getElementById('carrier').value = '';
-            document.getElementById('password').value = '';
-            document.getElementById('output').value = '';
+            document.getElementById('carrier-encode').value = '';
+            document.getElementById('password-encode').value = '';
+        };
+
+        window.clearDecode = function() {
+            document.getElementById('carrier-decode').value = '';
+            document.getElementById('password-decode').value = '';
             document.getElementById('file-upload').value = '';
             document.getElementById('file-info').textContent = '';
+        };
+
+        window.clearAll = function() {
+            clearEncode();
+            clearDecode();
+            document.getElementById('output').value = '';
             document.getElementById('status').innerHTML = '';
             document.getElementById('download-btn').style.display = 'none';
         };
