@@ -49,37 +49,6 @@ def encode_message(message: str, carrier: str, password: Optional[str] = None) -
 
 
 def _encode_python(message: str, carrier: str, password: Optional[str] = None) -> str:
-    """Original Python implementation."""
-    # Convert message to bytes and then base64
-    message_bytes = message.encode("utf-8")
-    message_b64 = base64.b64encode(message_bytes)
-
-    # If password is provided, encrypt the base64 bytes
-    if password:
-        password_bytes = password.encode("utf-8")
-        encrypted = bytearray()
-        for i, b in enumerate(message_b64):
-            encrypted.append(b ^ password_bytes[i % len(password_bytes)])
-        message_b64 = bytes(encrypted)
-
-    # Convert base64 bytes to binary string
-    binary = "".join(format(b, "08b") for b in message_b64)
-
-    # Add length prefix (32 bits) to know how many bits to decode
-    length_binary = format(len(binary), "032b")
-    binary = length_binary + binary
-
-    # Encode binary data into zero-width characters
-    encoded_data = "".join(ONE_BIT if bit == "1" else ZERO_BIT for bit in binary)
-
-    # Add start and end markers
-    encoded_message = START_MARKER + encoded_data + END_MARKER
-
-    # Handle zero-length carrier case
-    if not carrier:
-        return encoded_message
-
-    # For non-zero carrier, insert after first character
-    if len(carrier) == 1:
-        return carrier + encoded_message
-    return carrier[0] + encoded_message + carrier[1:]
+    """Original Python implementation - now uses core implementation for consistency."""
+    # Use the core implementation to ensure consistency across all backends
+    return core_encode(message, carrier, password)
