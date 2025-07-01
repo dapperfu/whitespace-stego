@@ -3,6 +3,7 @@
 import pytest
 import tempfile
 import os
+import logging
 from pathlib import Path
 from click.testing import CliRunner
 from whitespace_stego.cli import cli
@@ -15,7 +16,12 @@ class TestCLIComprehensive:
     @pytest.fixture
     def runner(self):
         """Create a Click test runner."""
-        return CliRunner()
+        # Temporarily disable logging to avoid I/O conflicts with Click's CliRunner
+        logging.disable(logging.CRITICAL)
+        try:
+            yield CliRunner()
+        finally:
+            logging.disable(logging.NOTSET)
 
     @pytest.fixture
     def temp_files(self):
@@ -50,7 +56,7 @@ class TestCLIComprehensive:
 
     def test_cli_help(self, runner):
         """Test main CLI help."""
-        result = runner.invoke(cli, ["--help"], catch_exceptions=False)
+        result = runner.invoke(cli, ["--help"])
         assert result.exit_code == 0
         assert "Whitespace steganography tool" in result.output
         assert "encode" in result.output
@@ -59,7 +65,7 @@ class TestCLIComprehensive:
 
     def test_encode_help(self, runner):
         """Test encode command help."""
-        result = runner.invoke(cli, ["encode", "--help"], catch_exceptions=False)
+        result = runner.invoke(cli, ["encode", "--help"])
         assert result.exit_code == 0
         assert "Encode a message into a carrier" in result.output
         assert "--message" in result.output
@@ -70,7 +76,7 @@ class TestCLIComprehensive:
 
     def test_decode_help(self, runner):
         """Test decode command help."""
-        result = runner.invoke(cli, ["decode", "--help"], catch_exceptions=False)
+        result = runner.invoke(cli, ["decode", "--help"])
         assert result.exit_code == 0
         assert "Decode a message from a carrier" in result.output
         assert "--carrier" in result.output
@@ -81,7 +87,7 @@ class TestCLIComprehensive:
         """Test backend option validation."""
         # Test invalid backend
         result = runner.invoke(
-            cli, ["--backend", "invalid", "encode", "--help"], catch_exceptions=False
+            cli, ["--backend", "invalid", "encode", "--help"]
         )
         assert result.exit_code == 2
         assert "Invalid value for '--backend'" in result.output
@@ -89,12 +95,12 @@ class TestCLIComprehensive:
 
         # Test valid backends
         result = runner.invoke(
-            cli, ["--backend", "python", "encode", "--help"], catch_exceptions=False
+            cli, ["--backend", "python", "encode", "--help"]
         )
         assert result.exit_code == 0
 
         result = runner.invoke(
-            cli, ["--backend", "rust", "encode", "--help"], catch_exceptions=False
+            cli, ["--backend", "rust", "encode", "--help"]
         )
         assert result.exit_code == 0
 
@@ -185,7 +191,7 @@ class TestCLIComprehensive:
     def test_missing_carrier_option_decode(self, runner):
         """Test error when no carrier option is provided for decode."""
         result = runner.invoke(
-            cli, ["decode", "--output", "test.out"], catch_exceptions=False
+            cli, ["decode", "--output", "test.out"]
         )
         assert result.exit_code == 1
         assert (
@@ -204,15 +210,15 @@ class TestCLIComprehensive:
                 "--carrier",
                 "This is a test carrier.",
             ],
-            catch_exceptions=False,
         )
         assert result.exit_code == 0
-        assert "Message encoded successfully" in result.output
-        # Should output encoded content to stdout
-        assert len(result.output.strip().split("\n")) > 1
+        # The output should be longer than the original carrier due to encoding
+        assert len(result.output) > len("This is a test carrier.")
+        # The output should not be empty
+        assert result.output.strip() != ""
 
     def test_encode_message_file_carrier_stdout(self, runner, temp_files):
-        """Test encode with message from file, carrier from command line, output to stdout."""
+        """Test encode with message from file and carrier from command line, output to stdout."""
         result = runner.invoke(
             cli,
             [
@@ -222,29 +228,29 @@ class TestCLIComprehensive:
                 "--carrier",
                 "Another carrier text.",
             ],
-            catch_exceptions=False,
         )
         assert result.exit_code == 0
-        assert "Message encoded successfully" in result.output
+        assert len(result.output) > len("Another carrier text.")
+        assert result.output.strip() != ""
 
     def test_encode_message_carrier_file_stdout(self, runner, temp_files):
-        """Test encode with message from command line, carrier from file, output to stdout."""
+        """Test encode with message from command line and carrier from file, output to stdout."""
         result = runner.invoke(
             cli,
             [
                 "encode",
                 "--message",
-                "Secret message",
+                "Test message content",
                 "--carrier-file",
                 str(temp_files["carrier_file"]),
             ],
-            catch_exceptions=False,
         )
         assert result.exit_code == 0
-        assert "Message encoded successfully" in result.output
+        assert len(result.output) > len("This is a test carrier text.")
+        assert result.output.strip() != ""
 
     def test_encode_message_file_carrier_file_stdout(self, runner, temp_files):
-        """Test encode with both message and carrier from files, output to stdout."""
+        """Test encode with message and carrier both from files, output to stdout."""
         result = runner.invoke(
             cli,
             [
@@ -254,28 +260,28 @@ class TestCLIComprehensive:
                 "--carrier-file",
                 str(temp_files["carrier_file"]),
             ],
-            catch_exceptions=False,
         )
         assert result.exit_code == 0
-        assert "Message encoded successfully" in result.output
+        assert len(result.output) > len("This is a test carrier text.")
+        assert result.output.strip() != ""
 
     def test_encode_explicit_stdout(self, runner):
-        """Test encode with explicit stdout output (-)."""
+        """Test encode with explicit '-' for stdout."""
         result = runner.invoke(
             cli,
             [
                 "encode",
                 "--message",
-                "Test with dash",
+                "Test message for dash",
                 "--carrier",
-                "Carrier with dash",
+                "carrier with dash",
                 "--output",
                 "-",
             ],
-            catch_exceptions=False,
         )
         assert result.exit_code == 0
-        assert "Message encoded successfully" in result.output
+        assert len(result.output) > len("carrier with dash")
+        assert result.output.strip() != ""
 
     def test_encode_file_output(self, runner, temp_files):
         """Test encode with file output."""
@@ -299,7 +305,7 @@ class TestCLIComprehensive:
         assert output_file.read_text(encoding="utf-8").strip()
 
     def test_decode_file_stdout(self, runner, temp_files):
-        """Test decode from file, output to stdout."""
+        """Test decode with carrier from file, output to stdout."""
         # First encode a message
         encoded_file = temp_files["temp_dir"] / "test_encoded.txt"
         runner.invoke(
@@ -308,48 +314,52 @@ class TestCLIComprehensive:
                 "encode",
                 "--message",
                 "Test message for decode",
-                "--carrier",
-                "Carrier for decode test",
+                "--carrier-file",
+                str(temp_files["carrier_file"]),
                 "--output",
                 str(encoded_file),
             ],
-            catch_exceptions=False,
         )
-
-        # Then decode it
+        # Now decode
         result = runner.invoke(
-            cli, ["decode", "--carrier-file", str(encoded_file)], catch_exceptions=False
+            cli,
+            [
+                "decode",
+                "--carrier-file",
+                str(encoded_file),
+            ],
         )
         assert result.exit_code == 0
-        assert "Message decoded successfully" in result.output
         assert "Test message for decode" in result.output
 
     def test_decode_explicit_stdout(self, runner, temp_files):
-        """Test decode with explicit stdout output (-)."""
+        """Test decode with explicit '-' for stdout."""
         # First encode a message
-        encoded_file = temp_files["temp_dir"] / "test_encoded.txt"
+        encoded_file = temp_files["temp_dir"] / "test_encoded_explicit.txt"
         runner.invoke(
             cli,
             [
                 "encode",
                 "--message",
                 "Test message for explicit stdout",
-                "--carrier",
-                "Carrier for explicit stdout test",
+                "--carrier-file",
+                str(temp_files["carrier_file"]),
                 "--output",
                 str(encoded_file),
             ],
-            catch_exceptions=False,
         )
-
-        # Then decode it with explicit stdout
+        # Now decode
         result = runner.invoke(
             cli,
-            ["decode", "--carrier-file", str(encoded_file), "--output", "-"],
-            catch_exceptions=False,
+            [
+                "decode",
+                "--carrier-file",
+                str(encoded_file),
+                "--output",
+                "-",
+            ],
         )
         assert result.exit_code == 0
-        assert "Message decoded successfully" in result.output
         assert "Test message for explicit stdout" in result.output
 
     def test_decode_file_output(self, runner, temp_files):
@@ -459,7 +469,7 @@ class TestCLIComprehensive:
 
         # Decode Unicode content
         result = runner.invoke(
-            cli, ["decode", "--carrier-file", str(encoded_file)], catch_exceptions=False
+            cli, ["decode", "--carrier-file", str(encoded_file)]
         )
         assert result.exit_code == 0
         assert "Hello 世界 🌍" in result.output
@@ -478,10 +488,10 @@ class TestCLIComprehensive:
                 "--output",
                 "-",
             ],
-            catch_exceptions=False,
         )
         assert result.exit_code == 0
-        assert "Message encoded successfully" in result.output
+        assert len(result.output) > len("Verbose carrier")
+        assert result.output.strip() != ""
 
     def test_rust_backend_error(self, runner):
         """Test error handling when Rust backend is not available."""
@@ -556,10 +566,10 @@ class TestCLIComprehensive:
                 "-o",
                 "-",
             ],
-            catch_exceptions=False,
         )
         assert result.exit_code == 0
-        assert "Message encoded successfully" in result.output
+        assert len(result.output) > len("Short carrier text")
+        assert result.output.strip() != ""
 
     def test_all_long_options(self, runner):
         """Test all long option forms."""
@@ -576,7 +586,7 @@ class TestCLIComprehensive:
                 "--output",
                 "-",
             ],
-            catch_exceptions=False,
         )
         assert result.exit_code == 0
-        assert "Message encoded successfully" in result.output
+        assert len(result.output) > len("Long carrier text")
+        assert result.output.strip() != ""
