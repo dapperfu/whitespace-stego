@@ -4,6 +4,7 @@ members = [
     "whitespace-stego-cli", 
     "whitespace-stego-python",
     "whitespace-stego-backend",
+    "rust",
     "wasi",
 ]
 
@@ -22,7 +23,7 @@ base64 = "0.21.7"
 fernet = "0.2.0"
 thiserror = "1.0"
 clap = { version = "4.5.1", features = ["derive"] }
-pyo3 = { version = "0.20.3", features = ["extension-module"] }
+pyo3 = { version = "0.21.0", features = ["extension-module"] }
 maturin = "1.4"
 proptest = "1.4"
 criterion = "0.5"

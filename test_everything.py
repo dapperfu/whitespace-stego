@@ -154,7 +154,12 @@ class WhitespaceStegoTester:
             return encode_result
 
         # Create temp file with encoded content
-        encoded_content = encode_result.details.split("Output: ")[1].split("...")[0]
+        # The encoded content is in stdout, extract it from the details
+        output_part = encode_result.details.split('Output: ')[1].split('...')[0]
+        # Remove any log messages that might be mixed in
+        lines = output_part.strip().split('\n')
+        # Take the last non-empty line (should be the encoded content)
+        encoded_content = [line for line in lines if line.strip()][-1]
         temp_file = self.create_temp_file(encoded_content)
 
         # Test decode

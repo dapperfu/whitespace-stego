@@ -420,7 +420,7 @@
                     <div class="form-group">
                         <label for="password-encode">Password (optional):</label>
                         <input type="password" id="password-encode" placeholder="Enter password to encrypt the message">
-                        <div class="file-info">Note: Password encryption uses XOR encryption for WASM compatibility.</div>
+                        <div class="file-info">Note: Password encryption uses Fernet (AES-128) and is compatible with Python, Rust, and C implementations.</div>
                     </div>
 
                     <div class="button-group">

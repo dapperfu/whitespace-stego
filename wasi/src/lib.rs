@@ -3,9 +3,14 @@
 //! This module provides the core functionality for encoding and decoding messages
 //! using zero-width Unicode whitespace characters, compiled to WebAssembly.
 
-use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
+use aes::Aes128;
+use base64::{engine::general_purpose::{STANDARD as BASE64, URL_SAFE_NO_PAD}, Engine};
+use hmac::{Hmac, Mac};
+use sha2::Sha256;
 use thiserror::Error;
 use wasm_bindgen::prelude::*;
+use block_modes::{BlockMode, Cbc};
+use block_modes::block_padding::Pkcs7;
 
 /// Error type for steganography operations
 #[derive(Error, Debug)]
@@ -61,67 +66,135 @@ fn decode_binary(encoded: &str) -> Vec<u8> {
     result
 }
 
-/// Derive a key from a password
+/// Derive a Fernet key from a password
 ///
-/// This function creates a key from a password by:
+/// This function creates a Fernet key from a password by:
 /// 1. Converting the password to UTF-8 bytes
-/// 2. Repeating the password bytes to create a key stream
-fn derive_key(password: &str) -> Vec<u8> {
+/// 2. Padding or truncating to exactly 32 bytes
+/// 3. Base64 URL-safe encoding without padding
+///
+/// This is compatible with Python's implementation:
+/// `base64.urlsafe_b64encode(password.encode('utf-8').ljust(32)[:32])`
+fn derive_fernet_key(password: &str) -> String {
+    let mut key_bytes = [0u8; 32];
     let pw_bytes = password.as_bytes();
-    if pw_bytes.is_empty() {
-        return vec![0u8; 16]; // Default key if password is empty
+    
+    // Copy password bytes, truncating if longer than 32 bytes
+    for (i, &b) in pw_bytes.iter().enumerate().take(32) {
+        key_bytes[i] = b;
     }
-    pw_bytes.to_vec()
+    
+    // If password is shorter than 32 bytes, pad with spaces (like Python's ljust)
+    if pw_bytes.len() < 32 {
+        for i in pw_bytes.len()..32 {
+            key_bytes[i] = b' ';
+        }
+    }
+    
+    URL_SAFE_NO_PAD.encode(&key_bytes)
 }
 
-/// Encrypt data using XOR with password-derived key
-fn encrypt_data(data: &[u8], password: &str) -> Result<Vec<u8>, StegoError> {
-    let key = derive_key(password);
-    if key.is_empty() {
-        return Err(StegoError::EncodingFailed("Invalid password".to_string()));
+/// Fernet-compatible encryption using AES-128-CBC + PKCS7
+fn fernet_encrypt(data: &[u8], key: &str) -> Result<Vec<u8>, StegoError> {
+    // Decode the base64 key
+    let key_bytes = URL_SAFE_NO_PAD.decode(key)
+        .map_err(|e| StegoError::EncodingFailed(format!("Invalid key: {}", e)))?;
+    if key_bytes.len() != 32 {
+        return Err(StegoError::EncodingFailed("Invalid key length".to_string()));
     }
-    
-    let mut encrypted = Vec::with_capacity(data.len() + 4);
-    
-    // Add a magic header to identify encrypted data
-    encrypted.extend_from_slice(b"XOR1");
-    
-    // XOR encrypt the data
-    for (i, &byte) in data.iter().enumerate() {
-        let key_byte = key[i % key.len()];
-        encrypted.push(byte ^ key_byte);
-    }
-    
-    Ok(encrypted)
+    // Split key into encryption and signing keys
+    let encryption_key = &key_bytes[..16];
+    let signing_key = &key_bytes[16..];
+    // Generate random IV
+    let mut iv = [0u8; 16];
+    getrandom::getrandom(&mut iv)
+        .map_err(|e| StegoError::EncodingFailed(format!("Failed to generate IV: {}", e)))?;
+    // Encrypt the data using AES-128-CBC + PKCS7
+    let cipher = Cbc::<Aes128, Pkcs7>::new_from_slices(encryption_key, &iv)
+        .map_err(|e| StegoError::EncodingFailed(format!("Failed to create cipher: {}", e)))?;
+    let encrypted = cipher.encrypt_vec(data);
+    // Create timestamp (current time in seconds since epoch)
+    let timestamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs() as u64;
+    // Fernet token: version (1 byte, always 0x80), timestamp (8 bytes, big-endian), IV (16 bytes), ciphertext, HMAC (32 bytes)
+    let mut token = Vec::new();
+    token.push(0x80); // Fernet version
+    token.extend_from_slice(&timestamp.to_be_bytes());
+    token.extend_from_slice(&iv);
+    token.extend_from_slice(&encrypted);
+    // Calculate HMAC-SHA256
+    let mut mac = Hmac::<Sha256>::new_from_slice(signing_key)
+        .map_err(|e| StegoError::EncodingFailed(format!("Failed to create HMAC: {}", e)))?;
+    mac.update(&token);
+    let signature = mac.finalize().into_bytes();
+    token.extend_from_slice(&signature);
+    // Base64 encode the entire token
+    Ok(BASE64.encode(&token).as_bytes().to_vec())
 }
 
-/// Decrypt data using XOR with password-derived key
-fn decrypt_data(data: &[u8], password: &str) -> Result<Vec<u8>, StegoError> {
-    let key = derive_key(password);
-    if key.is_empty() {
-        return Err(StegoError::DecryptionFailed("Invalid password".to_string()));
+/// Fernet-compatible decryption using AES-128-CBC + PKCS7
+fn fernet_decrypt(data: &[u8], key: &str) -> Result<Vec<u8>, StegoError> {
+    // Decode the base64 key
+    let key_bytes = URL_SAFE_NO_PAD.decode(key)
+        .map_err(|e| StegoError::DecryptionFailed(format!("Invalid key: {}", e)))?;
+    if key_bytes.len() != 32 {
+        return Err(StegoError::DecryptionFailed("Invalid key length".to_string()));
     }
-    
-    // Check for magic header
-    if data.len() < 4 || &data[0..4] != b"XOR1" {
-        return Err(StegoError::DecryptionFailed("Invalid encrypted data format".to_string()));
+    // Split key into encryption and signing keys
+    let encryption_key = &key_bytes[..16];
+    let signing_key = &key_bytes[16..];
+    // Decode the token
+    let token_str = std::str::from_utf8(data)
+        .map_err(|e| StegoError::DecryptionFailed(format!("Invalid UTF-8 in token: {}", e)))?;
+    let token = BASE64.decode(token_str)
+        .map_err(|e| StegoError::DecryptionFailed(format!("Invalid base64 token: {}", e)))?;
+    if token.len() < 57 { // 1+8+16+32 = 57 minimum
+        return Err(StegoError::DecryptionFailed("Token too short".to_string()));
     }
-    
-    let mut decrypted = Vec::with_capacity(data.len() - 4);
-    
-    // XOR decrypt the data (skip the 4-byte header)
-    for (i, &byte) in data[4..].iter().enumerate() {
-        let key_byte = key[i % key.len()];
-        decrypted.push(byte ^ key_byte);
+    // Extract components
+    let version = token[0];
+    if version != 0x80 {
+        return Err(StegoError::DecryptionFailed("Invalid Fernet version byte".to_string()));
     }
-    
+    let _timestamp = u64::from_be_bytes(token[1..9].try_into().unwrap());
+    let iv = &token[9..25];
+    let sig_start = token.len() - 32;
+    let ciphertext = &token[25..sig_start];
+    let signature = &token[sig_start..];
+    // Verify HMAC
+    let mut mac = Hmac::<Sha256>::new_from_slice(signing_key)
+        .map_err(|e| StegoError::DecryptionFailed(format!("Failed to create HMAC: {}", e)))?;
+    mac.update(&token[..sig_start]);
+    let expected_signature = mac.finalize().into_bytes();
+    if signature != expected_signature.as_slice() {
+        return Err(StegoError::DecryptionFailed("Invalid signature".to_string()));
+    }
+    // Decrypt the data using AES-128-CBC + PKCS7
+    let cipher = Cbc::<Aes128, Pkcs7>::new_from_slices(encryption_key, iv)
+        .map_err(|e| StegoError::DecryptionFailed(format!("Failed to create cipher: {}", e)))?;
+    let decrypted = cipher.decrypt_vec(ciphertext)
+        .map_err(|e| StegoError::DecryptionFailed(format!("Decryption failed: {}", e)))?;
     Ok(decrypted)
 }
 
-/// Check if data appears to be encrypted (XOR encrypted data)
+/// Encrypt data using Fernet
+fn encrypt_data(data: &[u8], password: &str) -> Result<Vec<u8>, StegoError> {
+    let key = derive_fernet_key(password);
+    fernet_encrypt(data, &key)
+}
+
+/// Decrypt data using Fernet
+fn decrypt_data(data: &[u8], password: &str) -> Result<Vec<u8>, StegoError> {
+    let key = derive_fernet_key(password);
+    fernet_decrypt(data, &key)
+}
+
+/// Check if data appears to be encrypted (Fernet encrypted data)
 fn is_encrypted(data: &[u8]) -> bool {
-    // XOR encrypted data starts with "XOR1" magic header
-    data.len() >= 4 && &data[0..4] == b"XOR1"
+    // Fernet tokens start with 'g' in base64
+    data.len() > 0 && data[0] == b'g'
 }
 
 /// Encode a message into carrier text using zero-width characters
@@ -267,8 +340,8 @@ pub fn debug_encode(message: &str, carrier: &str, password: Option<String>) -> R
         let message_bytes = message.as_bytes();
         let encrypted = encrypt_data(message_bytes, pwd)
             .map_err(|e| JsValue::from_str(&format!("Encryption failed: {}", e)))?;
-        let key = derive_key(pwd);
-        (encrypted, "XOR Encrypted", Some(format!("{:?}", key)))
+        let key = derive_fernet_key(pwd);
+        (encrypted, "Fernet Encrypted", Some(key))
     } else {
         // Base64 encode the message if no password
         let encoded = BASE64.encode(message.as_bytes());
@@ -303,7 +376,7 @@ pub fn debug_encode(message: &str, carrier: &str, password: Option<String>) -> R
         message.len(),
         message.as_bytes(),
         encoding_type,
-        if aes_key.is_some() { "XOR Key" } else { "Base64 Encoded" },
+        if aes_key.is_some() { "Fernet Key" } else { "Base64 Encoded" },
         aes_key.unwrap_or_else(|| BASE64.encode(message.as_bytes())),
         data.iter()
             .map(|&byte| format!("{:08b}", byte))
@@ -361,8 +434,8 @@ pub fn debug_decode(carrier: &str, password: Option<String>) -> Result<String, J
         if let Some(pwd) = password_ref {
             let decrypted = decrypt_data(&data, pwd)
                 .map_err(|e| JsValue::from_str(&format!("Decryption failed: {}", e)))?;
-            let key = derive_key(pwd);
-            (decrypted, "XOR Decrypted", Some(format!("{:?}", key)))
+            let key = derive_fernet_key(pwd);
+            (decrypted, "Fernet Decrypted", Some(key))
         } else {
             return Err(JsValue::from_str("Encrypted data found but no password provided"));
         }
@@ -406,7 +479,7 @@ pub fn debug_decode(carrier: &str, password: Option<String>) -> Result<String, J
             .collect::<Vec<_>>()
             .join(" "),
         decoding_type,
-        if aes_key.is_some() { "XOR Key" } else { "Base64 Decoded" },
+        if aes_key.is_some() { "Fernet Key" } else { "Base64 Decoded" },
         aes_key.unwrap_or_else(|| String::from_utf8_lossy(&data).to_string()),
         message,
         message.len(),

@@ -95,8 +95,8 @@ def run_c_binary_encode(message: str, carrier: str, password: Optional[str] = No
         output_file_path = output_file.name
     
     try:
-        cmd.extend(["--message", msg_file_path])
-        cmd.extend(["--carrier", carrier_file_path])
+        cmd.extend(["--message-file", msg_file_path])
+        cmd.extend(["--carrier-file", carrier_file_path])
         cmd.extend(["--output", output_file_path])
         
         if password:
@@ -127,16 +127,16 @@ def run_c_binary_decode(encoded_text: str, password: Optional[str] = None) -> st
     
     cmd = [str(C_BINARY_PATH), "decode"]
     
-    # Create temporary files for input/output
-    with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as input_file:
-        input_file.write(encoded_text)
-        input_file_path = input_file.name
+    # Create temporary file for carrier (encoded) input
+    with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as carrier_file:
+        carrier_file.write(encoded_text)
+        carrier_file_path = carrier_file.name
     
     with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as output_file:
         output_file_path = output_file.name
     
     try:
-        cmd.extend(["--input", input_file_path])
+        cmd.extend(["--carrier-file", carrier_file_path])
         cmd.extend(["--output", output_file_path])
         
         if password:
@@ -153,7 +153,7 @@ def run_c_binary_decode(encoded_text: str, password: Optional[str] = None) -> st
     
     finally:
         # Clean up temporary files
-        for path in [input_file_path, output_file_path]:
+        for path in [carrier_file_path, output_file_path]:
             try:
                 os.unlink(path)
             except OSError:

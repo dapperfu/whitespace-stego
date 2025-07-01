@@ -1,5 +1,5 @@
 VENV?=.venv
-.PHONY: help venv install test coverage maturin-develop maturin-build cargo-build cargo-clean clean format rust c wasi-web test-wasm test-wasm-only test-all git-clean
+.PHONY: help venv install test coverage coverage-report coverage-analyze maturin-develop maturin-build cargo-build cargo-clean clean format rust c wasi-web test-wasm test-wasm-only test-all git-clean
 # Default target
 help:
 	@echo "Available targets:"
@@ -14,7 +14,9 @@ help:
 	@echo "  test-wasm-only  - Run only WASM website Selenium tests"
 	@echo "  test-all        - Run all tests (including WASM website tests)"
 	@echo "  test-reports    - Generate HTML and Markdown test reports"
-	@echo "  coverage        - Run tests with coverage reporting"
+	@echo "  coverage        - Run tests with coverage reporting (HTML + XML reports)"
+	@echo "  coverage-report - Generate coverage report from existing test data"
+	@echo "  coverage-analyze - Analyze coverage gaps and suggest improvements"
 	@echo "  maturin-develop - Install Rust extension in development mode"
 	@echo "  maturin-build   - Build Python wheel from Rust extension"
 	@echo "  cargo-build     - Build pure Rust CLI binary"
@@ -57,7 +59,15 @@ clean:
 coverage: venv maturin-develop rust
 	.venv/bin/pip install -e .
 	.venv/bin/pip install -r requirements-dev.txt
-	.venv/bin/pytest --cov=whitespace_stego --cov=whitespace_stego_backend --cov-report=term-missing --cov-report=html --cov-report=xml
+	@echo "Running tests with coverage reporting..."
+	@echo "Running parallel tests with coverage (excluding CLI and WASM tests)..."
+	.venv/bin/pytest -m "not cli" -k "not test_wasm_website" -n auto --dist loadfile
+	@echo "Running CLI tests with coverage sequentially..."
+	.venv/bin/pytest -m cli -k "not test_wasm_website" -n 0
+	@echo "Coverage reports generated:"
+	@echo "  - Terminal output (above)"
+	@echo "  - HTML report: htmlcov/index.html"
+	@echo "  - XML report: coverage.xml"
 
 # Format code (Rust and Python)
 format: .venv/bin/ruff
@@ -173,6 +183,25 @@ venv:
 wasi-web:
 	cd wasi && ./build.sh
 	cd wasi/pkg && python3 -m http.server 8000
+
+# Generate coverage report from existing test data
+coverage-report: venv
+	.venv/bin/pip install -e .
+	.venv/bin/pip install -r requirements-dev.txt
+	@echo "Generating coverage report from existing test data..."
+	.venv/bin/coverage report --show-missing
+	.venv/bin/coverage html
+	.venv/bin/coverage xml
+	@echo "Coverage reports generated:"
+	@echo "  - HTML report: htmlcov/index.html"
+	@echo "  - XML report: coverage.xml"
+
+# Run coverage analysis with custom options
+coverage-analyze: venv
+	.venv/bin/pip install -e .
+	.venv/bin/pip install -r requirements-dev.txt
+	@echo "Running coverage analysis..."
+	.venv/bin/python scripts/run_coverage.py --analyze-gaps
 
 # Clean all untracked files and directories (use with caution)
 git-clean:
