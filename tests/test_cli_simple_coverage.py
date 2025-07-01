@@ -39,6 +39,7 @@ def test_get_backend_implementation_unknown_backend():
         get_backend_implementation("invalid")
 
 
+@pytest.mark.cli
 def test_cli_verbose_logging():
     """Test line 40: Verbose flag sets debug logging."""
     from click.testing import CliRunner
@@ -50,6 +51,7 @@ def test_cli_verbose_logging():
     assert result.exit_code == 0
 
 
+@pytest.mark.cli
 def test_cli_backend_context_storage():
     """Test line 53: Backend is stored in context."""
     from click.testing import CliRunner
@@ -70,6 +72,7 @@ def test_cli_main_entry_point():
         mock_cli.assert_called_once()
 
 
+@pytest.mark.cli
 def test_cli_with_all_backend_choices():
     """Test CLI with all backend choices to ensure they work."""
     from click.testing import CliRunner
@@ -82,6 +85,7 @@ def test_cli_with_all_backend_choices():
         assert result.exit_code == 0
 
 
+@pytest.mark.cli
 def test_cli_help_output():
     """Test CLI help output."""
     from click.testing import CliRunner
@@ -94,6 +98,7 @@ def test_cli_help_output():
     assert "decode" in result.output
 
 
+@pytest.mark.cli
 def test_encode_help_output():
     """Test encode command help output."""
     from click.testing import CliRunner
@@ -107,6 +112,7 @@ def test_encode_help_output():
     assert "output" in result.output
 
 
+@pytest.mark.cli
 def test_decode_help_output():
     """Test decode command help output."""
     from click.testing import CliRunner

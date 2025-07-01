@@ -6,7 +6,10 @@ help:
 	@echo "  help            - Show this help message"
 	@echo "  venv            - Create Python virtual environment"
 	@echo "  install         - Install Python package and dependencies"
-	@echo "  test            - Run tests using pytest"
+	@echo "  test            - Run tests: parallel for most, sequential for CLI tests"
+	@echo "  test-parallel   - Run all tests with maximum parallelization (unsafe for CLI tests)"
+	@echo "  test-workers    - Run tests with 8 workers"
+	@echo "  test-seq        - Run all tests sequentially (for debugging)"
 	@echo "  test-wasm       - Run WASM website Selenium tests"
 	@echo "  test-wasm-only  - Run only WASM website Selenium tests"
 	@echo "  test-all        - Run all tests (including WASM website tests)"
@@ -87,7 +90,10 @@ c:
 test: venv maturin-develop rust
 	.venv/bin/pip install -e .
 	.venv/bin/pip install -r requirements-dev.txt
-	.venv/bin/pytest -k "not test_wasm_website"
+	@echo "Running parallel tests (excluding CLI and WASM tests)..."
+	.venv/bin/pytest -m "not cli" -k "not test_wasm_website" -n auto --dist loadfile
+	@echo "Running CLI tests sequentially..."
+	.venv/bin/pytest -m cli -k "not test_wasm_website" -n 0
 
 # Run WASM website Selenium tests
 test-wasm: venv wasi-web
@@ -111,6 +117,27 @@ test-wasm-only: venv
 
 # Run all tests (including WASM website tests)
 test-all: test test-wasm
+
+# Run tests with maximum parallelization (all tests)
+test-parallel: venv maturin-develop rust
+	.venv/bin/pip install -e .
+	.venv/bin/pip install -r requirements-dev.txt
+	@echo "Running all tests with maximum parallelization..."
+	.venv/bin/pytest -n auto --dist loadfile --max-worker-restart 3
+
+# Run tests with specific number of workers
+test-workers: venv maturin-develop rust
+	.venv/bin/pip install -e .
+	.venv/bin/pip install -r requirements-dev.txt
+	@echo "Running tests with 8 workers..."
+	.venv/bin/pytest -n 8 --dist loadfile
+
+# Run tests sequentially (for debugging)
+test-seq: venv maturin-develop rust
+	.venv/bin/pip install -e .
+	.venv/bin/pip install -r requirements-dev.txt
+	@echo "Running tests sequentially..."
+	.venv/bin/pytest -n 0
 
 # Create Python virtual environment
 venv:

@@ -11,6 +11,7 @@ import logging
 from whitespace_stego.cli import cli, get_backend_implementation
 
 
+@pytest.mark.cli
 class TestCLIErrorHandling:
     """Test CLI error handling branches."""
 

@@ -8,6 +8,7 @@ from click.testing import CliRunner
 from whitespace_stego.cli import cli
 
 
+@pytest.mark.cli
 class TestCLIComprehensive:
     """Comprehensive CLI tests using Click testing utilities."""
 

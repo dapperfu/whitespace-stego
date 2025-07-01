@@ -10,6 +10,7 @@ from click.testing import CliRunner
 from whitespace_stego.cli import cli, write_file, main
 
 
+@pytest.mark.cli
 class TestCLIMissingLines:
     """Test cases to cover missing lines in cli.py."""
 

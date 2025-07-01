@@ -53,6 +53,7 @@ def runner():
     return CliRunner()
 
 
+@pytest.mark.cli
 class TestCoverageGaps:
     """Test cases to cover missing lines in coverage report."""
 
