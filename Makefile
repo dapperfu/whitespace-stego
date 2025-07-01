@@ -74,7 +74,7 @@ maturin-build: ${VENV}/bin/maturin
 	PATH="${VENV_ABS}/bin:$$PATH" PYTHON_SYS_EXECUTABLE="${VENV_ABS}/bin/python3" cd whitespace-stego-backend && ../${VENV}/bin/maturin build --release
 
 # Build Rust CLI in release mode and copy to top-level directory
-rust:
+rust: venv
 	cargo build --release --manifest-path rust/Cargo.toml --target-dir rust/target
 	cp rust/target/release/whitespace-stego-rs ./whitespace-stego-rs
 
