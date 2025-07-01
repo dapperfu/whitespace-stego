@@ -60,6 +60,33 @@ make wasi-web
 
 ---
 
+## 📝 Example (See the Magic in Action!)
+
+Here's a simple example showing how whitespace steganography works. The secret message is hidden using invisible Unicode characters, but we can visualize them using debug methods:
+
+**Message:** `Hello, World!`  
+**Carrier:** `This is innocent text that contains a secret message.`
+
+**Encoded Text (with visible whitespace):**
+```
+T[START][0][1][0][1][0][0][1][1][0][1][0][0][0][1][1][1][0][1][0][1][0][1][1][0][0][1][1][1][0][0][1][1][0][1][1][0][0][0][1][0][0][1][0][0][0][1][1][1][0][0][1][1][1][0][0][0][0][1][1][1][0][0][1][1][0][1][0][0][1][0][0][1][0][1][0][0][0][1][1][0][0][1][1][0][0][1][0][0][0][1][1][1][0][1][1][0][0][1][1][0][0][0][1][1][0][1][1][0][1][1][0][1][0][1][1][1][1][0][0][0][0][1][1][0][1][0][1][1][0][1][0][0][1][0][0][1][0][1][0][1][0][0][0][1][0][0][1][1][1][1][0][1][0][0][1][1][1][1][0][1][END]his[SPACE]is[SPACE]innocent[SPACE]text[SPACE]that[SPACE]contains[SPACE]a[SPACE]secret[SPACE]message.
+```
+
+**What's happening here?**
+- `[START]` and `[END]` mark the beginning and end of the hidden data
+- `[0]` and `[1]` represent the binary data (your message converted to bits)
+- `[SPACE]` shows regular spaces in the carrier text
+- The actual encoded text looks completely normal to the human eye!
+
+**Try it yourself:**
+```bash
+# Save the encoded text to a file and decode it
+echo "T​‍﻿‍﻿‍‍﻿﻿‍﻿‍‍‍﻿﻿﻿‍﻿‍﻿‍﻿﻿‍‍﻿﻿﻿‍‍﻿﻿‍﻿﻿‍‍‍﻿‍‍﻿‍‍‍﻿﻿﻿‍‍﻿﻿﻿‍‍‍‍﻿﻿﻿‍‍﻿﻿‍﻿‍‍﻿‍‍﻿‍﻿‍‍‍﻿﻿‍‍﻿﻿‍‍﻿‍‍‍﻿﻿﻿‍﻿﻿‍‍﻿﻿‍‍‍﻿﻿‍﻿﻿‍﻿﻿‍﻿‍﻿﻿﻿﻿‍‍‍‍﻿﻿‍﻿‍﻿﻿‍﻿‍‍﻿‍‍﻿‍﻿‍﻿‍‍‍﻿‍‍﻿﻿﻿﻿‍﻿‍‍﻿﻿﻿﻿‍﻿‌his is innocent text that contains a secret message." > example.txt
+python3 -m whitespace_stego.cli decode --carrier-file example.txt
+```
+
+---
+
 ## 🥚 Easter Egg Hunt! 
 
 **Hidden Message Challenge:** Try decoding this innocent-looking "Hello World" message. You might discover something... *special*! 🕵️‍♂️
