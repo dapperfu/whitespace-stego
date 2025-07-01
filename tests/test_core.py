@@ -213,3 +213,69 @@ def test_with_carrier_with_password(message: str) -> None:
     # Verify wrong password fails
     with pytest.raises(ValueError):
         decode(encoded, password="wrong_password")
+
+
+def test_has_encoded_message() -> None:
+    """Test the has_encoded_message function."""
+    from whitespace_stego.core import has_encoded_message
+    
+    # Test with no markers
+    assert not has_encoded_message("plain text")
+    assert not has_encoded_message("text with start\u200b")
+    assert not has_encoded_message("text with end\u200c")
+    
+    # Test with both markers
+    assert has_encoded_message("text with both\u200bdata\u200c")
+    
+    # Test with encoded message
+    message = "Hello, World!"
+    encoded = encode(message, "carrier")
+    assert has_encoded_message(encoded)
+    
+    # Test with empty string
+    assert not has_encoded_message("")
+
+
+def test_get_encoded_message_size() -> None:
+    """Test the get_encoded_message_size function."""
+    from whitespace_stego.core import get_encoded_message_size
+    
+    # Test with no message
+    assert get_encoded_message_size("plain text") is None
+    assert get_encoded_message_size("text with start\u200b") is None
+    assert get_encoded_message_size("text with end\u200c") is None
+    
+    # Test with encoded message
+    message = "test"
+    encoded = encode(message, "carrier")
+    size = get_encoded_message_size(encoded)
+    assert size is not None
+    assert size > 0  # Should be the size of base64 encoded data
+    
+    # Test with empty string
+    assert get_encoded_message_size("") is None
+    
+    # Test with malformed markers (end before start)
+    malformed = "text\u200cdata\u200b"
+    assert get_encoded_message_size(malformed) is None
+
+
+def test_has_encoded_message_edge_cases() -> None:
+    """Test edge cases for has_encoded_message."""
+    from whitespace_stego.core import has_encoded_message
+    
+    # Test with markers only
+    assert has_encoded_message("\u200b\u200c")
+    
+    # Test with markers in wrong order
+    assert has_encoded_message("text\u200cdata\u200b")
+    
+    # Test with multiple markers
+    assert has_encoded_message("text\u200bdata\u200cmore\u200bdata\u200c")
+    
+    # Test with Unicode characters
+    assert has_encoded_message("你好\u200b世界\u200c")
+    
+    # Test with very long text
+    long_text = "a" * 1000 + "\u200b" + "b" * 1000 + "\u200c" + "c" * 1000
+    assert has_encoded_message(long_text)

@@ -193,3 +193,54 @@ def extract_encoded(carrier: str) -> Tuple[str, str]:
     remaining = carrier[:start] + carrier[end + 1 :]
 
     return encoded, remaining
+
+
+def has_encoded_message(text: str) -> bool:
+    """Check if text contains an encoded message.
+
+    This function checks if the text contains both the start and end markers
+    that indicate the presence of an encoded message using zero-width characters.
+
+    Parameters
+    ----------
+    text : str
+        The text to check for encoded messages.
+
+    Returns
+    -------
+    bool
+        True if the text contains both start and end markers, False otherwise.
+    """
+    return START_MARKER in text and END_MARKER in text
+
+
+def get_encoded_message_size(text: str) -> Optional[int]:
+    """Get the size of an encoded message in bytes.
+
+    This function extracts the encoded message and calculates its size in bytes.
+    Note that this is the size of the encoded data, not the original message.
+
+    Parameters
+    ----------
+    text : str
+        The text containing the encoded message.
+
+    Returns
+    -------
+    Optional[int]
+        The size of the encoded message in bytes, or None if no message found.
+    """
+    start = text.find(START_MARKER)
+    end = text.find(END_MARKER)
+    
+    if start == -1 or end == -1 or end <= start:
+        return None
+    
+    # Extract the encoded data between markers
+    encoded = text[start + len(START_MARKER):end]
+    
+    # Count only the zero-width characters (ZERO_BIT and ONE_BIT)
+    zero_width_count = sum(1 for char in encoded if char in (ZERO_BIT, ONE_BIT))
+    
+    # Each byte is encoded as 8 zero-width characters
+    return zero_width_count // 8 if zero_width_count > 0 else None
