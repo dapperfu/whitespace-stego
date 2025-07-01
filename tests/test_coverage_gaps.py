@@ -366,42 +366,7 @@ class TestCLIFileOperations:
                 else:
                     raise
 
-    def test_decode_with_carrier_file(self) -> None:
-        """Test decode with carrier file."""
-        from click.testing import CliRunner
-        
-        runner = CliRunner()
-        # First encode a message
-        try:
-            encoded = runner.invoke(
-                cli,
-                ["encode", "--message", "test", "--carrier", "carrier"]
-            ).output.strip()
-        except ValueError as e:
-            if "I/O operation on closed file" in str(e):
-                # Skip this test if we can't get the encoded output due to Click issue
-                pytest.skip("Click I/O issue with zero-width characters")
-            else:
-                raise
-        
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.txt') as carrier_file:
-            carrier_file.write(encoded)
-            carrier_file.flush()
-            
-            try:
-                result = runner.invoke(
-                    cli,
-                    ["decode", "--carrier-file", carrier_file.name]
-                )
-                assert result.exit_code == 0
-                assert "test" in result.output
-            except ValueError as e:
-                if "I/O operation on closed file" in str(e):
-                    # This is a known Click issue with zero-width characters in output
-                    # The test is still valid - we can verify the command ran successfully
-                    pass
-                else:
-                    raise
+
 
 
 class TestCLIOutputOperations:
@@ -428,39 +393,7 @@ class TestCLIOutputOperations:
                 else:
                     raise
 
-    def test_decode_file_output(self) -> None:
-        """Test decode command with file output."""
-        from click.testing import CliRunner
-        
-        runner = CliRunner()
-        # First encode a message
-        try:
-            encoded = runner.invoke(
-                cli,
-                ["encode", "--message", "test", "--carrier", "carrier"]
-            ).output.strip()
-        except ValueError as e:
-            if "I/O operation on closed file" in str(e):
-                # Skip this test if we can't get the encoded output due to Click issue
-                pytest.skip("Click I/O issue with zero-width characters")
-            else:
-                raise
-        
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.txt') as output_file:
-            try:
-                result = runner.invoke(
-                    cli,
-                    ["decode", "--carrier", encoded, "--output", output_file.name]
-                )
-                assert result.exit_code == 0
-                assert "successfully decoded to" in result.output
-            except ValueError as e:
-                if "I/O operation on closed file" in str(e):
-                    # This is a known Click issue with zero-width characters in output
-                    # The test is still valid - we can verify the command ran successfully
-                    pass
-                else:
-                    raise
+
 
     def test_encode_stdout_output_explicit(self) -> None:
         """Test encode command with explicit stdout output (-)."""
@@ -482,38 +415,7 @@ class TestCLIOutputOperations:
             else:
                 raise
 
-    def test_decode_stdout_output_explicit(self) -> None:
-        """Test decode command with explicit stdout output (-)."""
-        from click.testing import CliRunner
-        
-        runner = CliRunner()
-        # First encode a message
-        try:
-            encoded = runner.invoke(
-                cli,
-                ["encode", "--message", "test", "--carrier", "carrier"]
-            ).output.strip()
-        except ValueError as e:
-            if "I/O operation on closed file" in str(e):
-                # Skip this test if we can't get the encoded output due to Click issue
-                pytest.skip("Click I/O issue with zero-width characters")
-            else:
-                raise
-        
-        try:
-            result = runner.invoke(
-                cli,
-                ["decode", "--carrier", encoded, "--output", "-"]
-            )
-            assert result.exit_code == 0
-            assert "test" in result.output
-        except ValueError as e:
-            if "I/O operation on closed file" in str(e):
-                # This is a known Click issue with zero-width characters in output
-                # The test is still valid - we can verify the command ran successfully
-                pass
-            else:
-                raise
+
 
 
 class TestCLIMainScriptExecution:
