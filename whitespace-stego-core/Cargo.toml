@@ -10,10 +10,12 @@ keywords.workspace = true
 categories.workspace = true
 
 [dependencies]
-base64.workspace = true
-fernet.workspace = true
+aes = "0.7"
+block-modes = "0.8"
+getrandom = "0.2"
 thiserror.workspace = true
-clap = { version = "4.5.1", features = ["derive"] }
+base64 = "0.21"
+sha2 = "0.10"
 
 [dev-dependencies]
 proptest.workspace = true

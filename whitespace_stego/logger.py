@@ -33,8 +33,8 @@ def setup_logger(
 
     # Create console handler if none exists
     if not logger.handlers:
-        # Use stderr for verbose/debug output, stdout for normal output
-        handler = logging.StreamHandler(sys.stderr if verbose else sys.stdout)
+        # Always use stderr for all log output
+        handler = logging.StreamHandler(sys.stderr)
         handler.setLevel(level)
 
         # Create formatter

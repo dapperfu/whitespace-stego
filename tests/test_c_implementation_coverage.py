@@ -567,6 +567,7 @@ class TestCCrossCompatibility:
                 py_encoded = encode("Cross-test message", "Cross-test carrier")
 
                 # Write Python encoded content to file
+                py_output_file = None
                 with tempfile.NamedTemporaryFile(
                     mode="w", delete=False, suffix=".txt"
                 ) as f:
@@ -603,7 +604,7 @@ class TestCCrossCompatibility:
                     py_output_file,
                     decode_output,
                 ]:
-                    if Path(file_path).exists():
+                    if file_path and Path(file_path).exists():
                         os.unlink(file_path)
 
         except (FileNotFoundError, subprocess.TimeoutExpired):
@@ -671,6 +672,7 @@ class TestCCrossCompatibility:
                 rust_encoded = rust_encode("C-Rust cross-test", "C-Rust carrier")
 
                 # Write Rust encoded content to file
+                rust_output_file = None
                 with tempfile.NamedTemporaryFile(
                     mode="w", delete=False, suffix=".txt"
                 ) as f:
@@ -707,7 +709,7 @@ class TestCCrossCompatibility:
                     rust_output_file,
                     decode_output,
                 ]:
-                    if Path(file_path).exists():
+                    if file_path and Path(file_path).exists():
                         os.unlink(file_path)
 
         except (FileNotFoundError, subprocess.TimeoutExpired):

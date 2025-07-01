@@ -14,6 +14,7 @@ help:
 	@echo "  test-wasm-only  - Run only WASM website Selenium tests"
 	@echo "  test-all        - Run all tests (including WASM website tests)"
 	@echo "  test-reports    - Generate HTML and Markdown test reports"
+	@echo "  md-reports      - Generate markdown test reports only"
 	@echo "  coverage        - Run tests with coverage reporting (HTML + XML reports)"
 	@echo "  coverage-report - Generate coverage report from existing test data"
 	@echo "  coverage-analyze - Analyze coverage gaps and suggest improvements"
@@ -138,15 +139,35 @@ test-reports: venv maturin-develop rust
 	.venv/bin/pip install -r requirements-dev.txt
 	@echo "Running tests and generating reports..."
 	@echo "Running parallel tests (excluding CLI and WASM tests)..."
-	.venv/bin/pytest -m "not cli" -k "not test_wasm_website" -n auto --dist loadfile --html=results/test_results.html --self-contained-html
+	.venv/bin/pytest -m "not cli" -k "not test_wasm_website" -n auto --dist loadfile --html=results/test_results.html --self-contained-html --md-report
 	@echo "Running CLI tests sequentially..."
-	.venv/bin/pytest -m cli -k "not test_wasm_website" -n 0 --html=results/test_results_cli.html --self-contained-html
+	.venv/bin/pytest -m cli -k "not test_wasm_website" -n 0 --html=results/test_results_cli.html --self-contained-html --md-report
 	@echo "Generating markdown report..."
 	.venv/bin/python scripts/generate_markdown_report.py results/test_results.json results/test_results.md
 	@echo "Reports generated in results/ directory:"
 	@echo "  - results/test_results.html (parallel tests)"
 	@echo "  - results/test_results_cli.html (CLI tests)"
 	@echo "  - results/test_results.md (combined markdown report)"
+	@echo "  - results/test_summary.md (summary report with badges)"
+
+# Generate markdown test reports only
+md-reports: venv maturin-develop rust
+	.venv/bin/pip install -e .
+	.venv/bin/pip install -r requirements-dev.txt
+	@echo "Generating markdown test reports..."
+	@echo "Running tests with markdown reporting..."
+	.venv/bin/pytest tests/ -v --md-report --maxfail=10
+	@echo "Generating additional reports..."
+	.venv/bin/pytest tests/test_core.py -v --md-report --json-report-file=results/core_tests.json
+	.venv/bin/pytest tests/test_cli_simple_coverage.py -v --md-report --json-report-file=results/cli_tests.json
+	.venv/bin/pytest tests/test_in_memory_roundtrip.py -v --md-report --json-report-file=results/integration_tests.json
+	@echo "Generating combined report..."
+	.venv/bin/python scripts/generate_markdown_report.py results/test_results.json results/combined_report.md
+	@echo "Markdown reports generated in results/ directory:"
+	@echo "  - results/test_summary.md (summary with badges)"
+	@echo "  - results/test_results.md (detailed report)"
+	@echo "  - results/combined_report.md (comprehensive report)"
+	@echo "  - results/*.json (raw test data)"
 
 # Run tests with maximum parallelization (all tests)
 test-parallel: venv maturin-develop rust

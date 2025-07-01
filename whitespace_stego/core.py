@@ -5,20 +5,27 @@ using zero-width Unicode whitespace characters.
 """
 
 import base64
-from typing import Optional, Tuple, Union
+import logging
+from typing import Optional, Tuple
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.backends import default_backend
+import os
+from cryptography.hazmat.primitives import padding
+
 from .logger import setup_logger
 
+# Create logger instance
 logger = setup_logger(__name__)
 
 # Zero-width characters for encoding
-START_MARKER = "\u200b"  # Zero-width space
-END_MARKER = "\u200c"  # Zero-width non-joiner
-ZERO_BIT = "\u200d"  # Zero-width joiner
-ONE_BIT = "\ufeff"  # Zero-width no-break space
+ZERO_BIT = "\u200b"  # Zero-width space
+ONE_BIT = "\u200d"   # Zero-width joiner
+START_MARKER = "\ufeff"  # Zero-width no-break space
+END_MARKER = "\u200c"    # Zero-width non-joiner
 
 
 def _encode_binary(data: bytes) -> str:
-    """Convert bytes to a string of zero-width characters.
+    """Encode binary data into zero-width characters.
 
     Parameters
     ----------
@@ -28,19 +35,19 @@ def _encode_binary(data: bytes) -> str:
     Returns
     -------
     str
-        A string containing zero-width characters representing the binary data.
+        The encoded binary data as zero-width characters.
     """
-    binary = "".join(format(byte, "08b") for byte in data)
+    binary = "".join(format(b, "08b") for b in data)
     return "".join(ONE_BIT if bit == "1" else ZERO_BIT for bit in binary)
 
 
 def _decode_binary(encoded: str) -> bytes:
-    """Convert a string of zero-width characters back to bytes.
+    """Decode zero-width characters back to binary data.
 
     Parameters
     ----------
     encoded : str
-        The string containing zero-width characters.
+        The encoded binary data as zero-width characters.
 
     Returns
     -------
@@ -49,6 +56,99 @@ def _decode_binary(encoded: str) -> bytes:
     """
     binary = "".join("1" if char == ONE_BIT else "0" for char in encoded)
     return bytes(int(binary[i : i + 8], 2) for i in range(0, len(binary), 8))
+
+
+def derive_key(password: str) -> bytes:
+    """Derive a 32-byte key from password (same as C implementation).
+    
+    Parameters
+    ----------
+    password : str
+        The password to derive the key from.
+        
+    Returns
+    -------
+    bytes
+        A 32-byte key derived from the password.
+    """
+    # Convert password to UTF-8 bytes and hash to get consistent 32-byte key
+    import hashlib
+    password_bytes = password.encode('utf-8')
+    key_hash = hashlib.sha256(password_bytes).digest()
+    return key_hash
+
+
+def encrypt_data(data: bytes, password: str) -> bytes:
+    """Encrypt data using AES-256-CBC with PKCS7 padding (same as C/Rust implementation).
+    
+    Parameters
+    ----------
+    data : bytes
+        The data to encrypt.
+    password : str
+        The password to use for encryption.
+        
+    Returns
+    -------
+    bytes
+        The encrypted data (IV + ciphertext).
+    """
+    key = derive_key(password)
+    
+    # Generate random IV
+    iv = os.urandom(16)
+    
+    # Create cipher with PKCS7 padding (same as C/Rust)
+    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
+    encryptor = cipher.encryptor()
+    
+    # PKCS7 padder
+    padder = padding.PKCS7(128).padder()
+    padded_data = padder.update(data) + padder.finalize()
+    
+    # Encrypt with automatic PKCS7 padding
+    ciphertext = encryptor.update(padded_data) + encryptor.finalize()
+    
+    # Return IV + ciphertext
+    return iv + ciphertext
+
+
+def decrypt_data(data: bytes, password: str) -> bytes:
+    """Decrypt data using AES-256-CBC with PKCS7 padding (same as C/Rust implementation).
+    
+    Parameters
+    ----------
+    data : bytes
+        The encrypted data (IV + ciphertext).
+    password : str
+        The password to use for decryption.
+        
+    Returns
+    -------
+    bytes
+        The decrypted data.
+    """
+    if len(data) < 16:
+        raise ValueError("Invalid encrypted data")
+    
+    key = derive_key(password)
+    
+    # Extract IV and ciphertext
+    iv = data[:16]
+    ciphertext = data[16:]
+    
+    # Create cipher with PKCS7 padding (same as C/Rust)
+    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
+    decryptor = cipher.decryptor()
+    
+    # Decrypt with automatic PKCS7 padding removal
+    padded_data = decryptor.update(ciphertext) + decryptor.finalize()
+    
+    # PKCS7 unpadder
+    unpadder = padding.PKCS7(128).unpadder()
+    data = unpadder.update(padded_data) + unpadder.finalize()
+    
+    return data
 
 
 def encode(message: str, carrier: str = "", password: Optional[str] = None) -> str:
@@ -79,12 +179,7 @@ def encode(message: str, carrier: str = "", password: Optional[str] = None) -> s
     # Add password encryption if provided
     if password:
         logger.debug("Using password protection")
-        key = base64.urlsafe_b64encode(password.encode("utf-8").ljust(32)[:32])
-        logger.debug("Derived Fernet key: %s", key.decode())
-        from cryptography.fernet import Fernet
-
-        f = Fernet(key)
-        encoded = f.encrypt(encoded)
+        encoded = encrypt_data(encoded, password)
 
     # Convert to zero-width characters
     zero_width = _encode_binary(encoded)
@@ -147,14 +242,10 @@ def decode(carrier: str, password: Optional[str] = None) -> str:
 
     # Decrypt if password provided
     if password:
-        from cryptography.fernet import Fernet, InvalidToken
-
-        key = base64.urlsafe_b64encode(password.encode("utf-8").ljust(32)[:32])
-        f = Fernet(key)
         try:
-            data = f.decrypt(data)
-        except InvalidToken:
-            raise ValueError("Invalid password or corrupted data")
+            data = decrypt_data(data, password)
+        except Exception as e:
+            raise ValueError(f"Invalid password or corrupted data: {e}")
 
     # Base64 decode and convert to string
     try:

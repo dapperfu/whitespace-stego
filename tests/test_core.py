@@ -217,15 +217,15 @@ def test_with_carrier_with_password(message: str) -> None:
 
 def test_has_encoded_message() -> None:
     """Test the has_encoded_message function."""
-    from whitespace_stego.core import has_encoded_message
+    from whitespace_stego.core import has_encoded_message, START_MARKER, END_MARKER
     
     # Test with no markers
     assert not has_encoded_message("plain text")
-    assert not has_encoded_message("text with start\u200b")
-    assert not has_encoded_message("text with end\u200c")
+    assert not has_encoded_message(f"text with start{START_MARKER}")
+    assert not has_encoded_message(f"text with end{END_MARKER}")
     
     # Test with both markers
-    assert has_encoded_message("text with both\u200bdata\u200c")
+    assert has_encoded_message(f"text with both{START_MARKER}data{END_MARKER}")
     
     # Test with encoded message
     message = "Hello, World!"
@@ -262,20 +262,20 @@ def test_get_encoded_message_size() -> None:
 
 def test_has_encoded_message_edge_cases() -> None:
     """Test edge cases for has_encoded_message."""
-    from whitespace_stego.core import has_encoded_message
+    from whitespace_stego.core import has_encoded_message, START_MARKER, END_MARKER
     
     # Test with markers only
-    assert has_encoded_message("\u200b\u200c")
+    assert has_encoded_message(f"{START_MARKER}{END_MARKER}")
     
     # Test with markers in wrong order
-    assert has_encoded_message("text\u200cdata\u200b")
+    assert has_encoded_message(f"text{END_MARKER}data{START_MARKER}")
     
     # Test with multiple markers
-    assert has_encoded_message("text\u200bdata\u200cmore\u200bdata\u200c")
+    assert has_encoded_message(f"text{START_MARKER}data{END_MARKER}more{START_MARKER}data{END_MARKER}")
     
     # Test with Unicode characters
-    assert has_encoded_message("你好\u200b世界\u200c")
+    assert has_encoded_message(f"你好{START_MARKER}世界{END_MARKER}")
     
     # Test with very long text
-    long_text = "a" * 1000 + "\u200b" + "b" * 1000 + "\u200c" + "c" * 1000
+    long_text = "a" * 1000 + START_MARKER + "b" * 1000 + END_MARKER + "c" * 1000
     assert has_encoded_message(long_text)

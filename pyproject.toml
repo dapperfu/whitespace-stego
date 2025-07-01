@@ -28,6 +28,9 @@ whitespace-stego = "whitespace_stego.cli:main"
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 addopts = "-v --strict-markers"
+md_report = true
+md_report_verbose = 0
+md_report_color = "auto"
 
 [tool.mypy]
 python_version = "3.8"

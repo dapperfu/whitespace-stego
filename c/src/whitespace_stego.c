@@ -76,19 +76,18 @@ bool whitespace_stego_encode(const char* carrier, size_t carrier_len, const char
     unsigned char* data = NULL;
     size_t data_len = 0;
     char* b64 = NULL;
-    bool encrypted = false;
 
     // Encrypt if password
     if (password && password[0]) {
         if (!crypto_encrypt((const unsigned char*)message, strlen(message), password, &data, &data_len)) {
             return false;
         }
+        // Base64 encode the Fernet token (same as Python/Rust)
         if (!to_base64(data, data_len, &b64)) {
             crypto_free(data);
             return false;
         }
         crypto_free(data);
-        encrypted = true;
     } else {
         if (!to_base64((const unsigned char*)message, strlen(message), &b64)) {
             return false;

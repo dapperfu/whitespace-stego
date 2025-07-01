@@ -76,7 +76,7 @@ pub use decode::{decode, decode_binary, extract_encoded, get_encoded_message_pos
 pub use encode::{encode, encode_binary, get_encoded_message_size, has_encoded_message};
 
 // Re-export crypto functions for advanced usage
-pub use crypto::{decrypt_data, derive_fernet_key, encrypt_data, is_encrypted};
+pub use crypto::{decrypt_data, encrypt_data, is_encrypted};
 
 #[cfg(test)]
 mod tests {

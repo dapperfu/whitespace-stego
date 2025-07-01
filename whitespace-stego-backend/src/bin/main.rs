@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand};
 use std::fs;
 use std::path::PathBuf;
-use whitespace_stego_backend::{decode, encode};
+use whitespace_stego_core::{decode, encode};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]

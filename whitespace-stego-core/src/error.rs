@@ -110,12 +110,6 @@ impl From<base64::DecodeError> for StegoError {
     }
 }
 
-impl From<fernet::DecryptionError> for StegoError {
-    fn from(err: fernet::DecryptionError) -> Self {
-        Self::decryption_failed(err.to_string())
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

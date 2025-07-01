@@ -1,96 +1,104 @@
 //! Cryptographic operations for whitespace steganography.
 //!
-//! This module provides encryption and decryption functionality using the
-//! Fernet symmetric encryption scheme, which is compatible with Python's
-//! cryptography.fernet module.
+//! This module provides encryption and decryption functionality using AES-256-CBC,
+//! which is compatible with the C and Python implementations.
 
-use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
-use fernet::Fernet;
-
+use aes::Aes256;
+use block_modes::{BlockMode, Cbc};
+use block_modes::block_padding::Pkcs7;
+use sha2::{Sha256, Digest};
 use crate::error::StegoError;
 
-/// Derive a Fernet key from a password
+type Aes256Cbc = Cbc<Aes256, Pkcs7>;
+
+/// Derive a 32-byte key from password using SHA-256 (same as C/Python implementation)
 ///
-/// This function creates a Fernet key from a password by:
+/// This function creates a 32-byte key from a password by:
 /// 1. Converting the password to UTF-8 bytes
-/// 2. Padding or truncating to exactly 32 bytes
-/// 3. Base64 URL-safe encoding without padding
+/// 2. Computing SHA-256 hash of the password bytes
 ///
-/// This is compatible with Python's implementation:
-/// `base64.urlsafe_b64encode(password.encode('utf-8').ljust(32)[:32])`
-pub fn derive_fernet_key(password: &str) -> String {
-    let mut key_bytes = [0u8; 32];
-    let pw_bytes = password.as_bytes();
-    
-    // Copy password bytes, truncating if longer than 32 bytes
-    for (i, &b) in pw_bytes.iter().enumerate().take(32) {
-        key_bytes[i] = b;
-    }
-    
-    // If password is shorter than 32 bytes, pad with spaces (like Python's ljust)
-    if pw_bytes.len() < 32 {
-        for i in pw_bytes.len()..32 {
-            key_bytes[i] = b' ';
-        }
-    }
-    
-    URL_SAFE_NO_PAD.encode(&key_bytes)
+/// This is compatible with the C and Python implementations.
+pub fn derive_key(password: &str) -> [u8; 32] {
+    let mut hasher = Sha256::new();
+    hasher.update(password.as_bytes());
+    let result = hasher.finalize();
+    result.into()
 }
 
-/// Encrypt data using Fernet
+/// Encrypt data using AES-256-CBC (same as C/Python implementation)
 ///
 /// # Arguments
 /// * `data` - The data to encrypt
 /// * `password` - The password to derive the encryption key from
 ///
 /// # Returns
-/// The encrypted data as bytes
+/// The encrypted data as bytes (IV + ciphertext)
 ///
 /// # Errors
-/// Returns `StegoError::InvalidKey` if the derived key is invalid
 /// Returns `StegoError::EncodingFailed` if encryption fails
 pub fn encrypt_data(data: &[u8], password: &str) -> Result<Vec<u8>, StegoError> {
-    let key = derive_fernet_key(password);
-    let fernet = Fernet::new(&key)
-        .ok_or_else(|| StegoError::invalid_key("Invalid Fernet key derived from password"))?;
+    let key = derive_key(password);
     
-    Ok(fernet.encrypt(data).as_bytes().to_vec())
+    // Generate random IV
+    let mut iv = [0u8; 16];
+    getrandom::getrandom(&mut iv)
+        .map_err(|e| StegoError::EncodingFailed { message: format!("Failed to generate IV: {}", e).into() })?;
+    
+    // Create cipher
+    let cipher = Aes256Cbc::new_from_slices(&key, &iv)
+        .map_err(|e| StegoError::EncodingFailed { message: format!("Failed to create cipher: {}", e).into() })?;
+    
+    // Encrypt
+    let ciphertext = cipher.encrypt_vec(data);
+    
+    // Return IV + ciphertext
+    let mut result = Vec::with_capacity(16 + ciphertext.len());
+    result.extend_from_slice(&iv);
+    result.extend_from_slice(&ciphertext);
+    
+    Ok(result)
 }
 
-/// Decrypt data using Fernet
+/// Decrypt data using AES-256-CBC (same as C/Python implementation)
 ///
 /// # Arguments
-/// * `data` - The encrypted data
+/// * `data` - The encrypted data (IV + ciphertext)
 /// * `password` - The password to derive the decryption key from
 ///
 /// # Returns
 /// The decrypted data as bytes
 ///
 /// # Errors
-/// Returns `StegoError::InvalidKey` if the derived key is invalid
 /// Returns `StegoError::DecryptionFailed` if decryption fails
 pub fn decrypt_data(data: &[u8], password: &str) -> Result<Vec<u8>, StegoError> {
-    let key = derive_fernet_key(password);
-    let fernet = Fernet::new(&key)
-        .ok_or_else(|| StegoError::invalid_key("Invalid Fernet key derived from password"))?;
+    if data.len() < 16 {
+        return Err(StegoError::DecryptionFailed { message: "Invalid encrypted data: too short".to_string() });
+    }
     
-    let data_str = std::str::from_utf8(data)
-        .map_err(|e| StegoError::utf8_error(format!("Invalid UTF-8 in encrypted data: {}", e)))?;
+    let key = derive_key(password);
     
-    fernet.decrypt(data_str)
-        .map_err(|e| StegoError::decryption_failed(format!("Decryption failed: {}", e)))
+    // Extract IV and ciphertext
+    let iv = &data[..16];
+    let ciphertext = &data[16..];
+    
+    // Create cipher
+    let cipher = Aes256Cbc::new_from_slices(&key, iv)
+        .map_err(|e| StegoError::DecryptionFailed { message: format!("Failed to create cipher: {}", e).into() })?;
+    
+    // Decrypt
+    cipher.decrypt_vec(ciphertext)
+        .map_err(|e| StegoError::DecryptionFailed { message: format!("Decryption failed: {}", e).into() })
 }
 
-/// Check if data appears to be encrypted (starts with Fernet header)
+/// Check if data appears to be encrypted (has minimum length for IV + ciphertext)
 ///
 /// # Arguments
 /// * `data` - The data to check
 ///
 /// # Returns
-/// `true` if the data appears to be Fernet encrypted
+/// `true` if the data appears to be encrypted
 pub fn is_encrypted(data: &[u8]) -> bool {
-    // Fernet tokens start with a specific header
-    data.len() > 0 && data[0] == b'g' // Fernet tokens start with 'g' in base64
+    data.len() >= 16  // At least IV length
 }
 
 #[cfg(test)]
@@ -98,22 +106,26 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_derive_fernet_key() {
-        // Test short password
-        let key1 = derive_fernet_key("short");
-        assert_eq!(key1.len(), 43); // 32 bytes base64-url encoded, no padding
+    fn test_derive_key() {
+        // Test that keys are always 32 bytes
+        let key1 = derive_key("short");
+        assert_eq!(key1.len(), 32);
         
-        // Test long password
-        let key2 = derive_fernet_key("this_is_a_very_long_password_that_should_be_truncated");
-        assert_eq!(key2.len(), 43);
+        let key2 = derive_key("this_is_a_very_long_password_that_should_be_hashed");
+        assert_eq!(key2.len(), 32);
         
-        // Test empty password
-        let key3 = derive_fernet_key("");
-        assert_eq!(key3.len(), 43);
+        let key3 = derive_key("");
+        assert_eq!(key3.len(), 32);
         
-        // Test exact 32-byte password
-        let key4 = derive_fernet_key("12345678901234567890123456789012");
-        assert_eq!(key4.len(), 43);
+        // Test that same password produces same key
+        let key4a = derive_key("test_password");
+        let key4b = derive_key("test_password");
+        assert_eq!(key4a, key4b);
+        
+        // Test that different passwords produce different keys
+        let key5a = derive_key("password1");
+        let key5b = derive_key("password2");
+        assert_ne!(key5a, key5b);
     }
 
     #[test]
@@ -172,10 +184,18 @@ mod tests {
     }
 
     #[test]
-    fn test_derive_fernet_key_padding() {
-        // Test that short passwords are padded with spaces
-        let key_short = derive_fernet_key("short");
-        let key_long = derive_fernet_key("short                "); // 20 spaces
-        assert_eq!(key_short, key_long);
+    fn test_derive_key_unicode() {
+        // Test that Unicode passwords work correctly
+        let key1 = derive_key("password");
+        let key2 = derive_key("密码");
+        let key3 = derive_key("パスワード");
+        
+        assert_eq!(key1.len(), 32);
+        assert_eq!(key2.len(), 32);
+        assert_eq!(key3.len(), 32);
+        
+        // Different Unicode passwords should produce different keys
+        assert_ne!(key1, key2);
+        assert_ne!(key2, key3);
     }
 } 
