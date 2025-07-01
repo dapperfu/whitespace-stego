@@ -7,10 +7,10 @@
 #include <stdio.h>
 
 // Zero-width Unicode characters (match Python core.py implementation)
-#define START_MARKER "\xE2\x80\x8B"   // U+200B Zero-width space
+#define START_MARKER "\xEF\xBB\xBF"   // U+FEFF Zero-width no-break space
 #define END_MARKER   "\xE2\x80\x8C"   // U+200C Zero-width non-joiner
-#define ZERO_BIT     "\xE2\x80\x8D"   // U+200D Zero-width joiner
-#define ONE_BIT      "\xEF\xBB\xBF"   // U+FEFF Zero-width no-break space
+#define ZERO_BIT     "\xE2\x80\x8B"   // U+200B Zero-width space
+#define ONE_BIT      "\xE2\x80\x8D"   // U+200D Zero-width joiner
 #define BITS_PER_CHAR 8
 
 static char last_error[256] = "";

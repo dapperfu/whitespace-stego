@@ -62,8 +62,9 @@ class TestCoreErrorHandling:
         # Create a carrier with invalid encoded message
         from whitespace_stego.core import START_MARKER, END_MARKER, ZERO_BIT, ONE_BIT
         
-        # Invalid base64 data - create some zero-width characters that don't form valid bytes
-        invalid_encoded = START_MARKER + ZERO_BIT * 7 + END_MARKER  # Incomplete byte
+        # Invalid base64 data - create some zero-width characters that don't form valid base64
+        # Use an odd number of bits that can't be converted to valid base64
+        invalid_encoded = START_MARKER + ZERO_BIT * 5 + ONE_BIT * 3 + END_MARKER  # 8 bits = 1 byte, but not valid base64
         carrier = f"test{invalid_encoded}carrier"
         
         with pytest.raises(ValueError):
