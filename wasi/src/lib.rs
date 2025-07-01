@@ -61,16 +61,81 @@ fn decode_binary(encoded: &str) -> Vec<u8> {
     result
 }
 
+/// Derive a key from a password
+///
+/// This function creates a key from a password by:
+/// 1. Converting the password to UTF-8 bytes
+/// 2. Repeating the password bytes to create a key stream
+fn derive_key(password: &str) -> Vec<u8> {
+    let pw_bytes = password.as_bytes();
+    if pw_bytes.is_empty() {
+        return vec![0u8; 16]; // Default key if password is empty
+    }
+    pw_bytes.to_vec()
+}
+
+/// Encrypt data using XOR with password-derived key
+fn encrypt_data(data: &[u8], password: &str) -> Result<Vec<u8>, StegoError> {
+    let key = derive_key(password);
+    if key.is_empty() {
+        return Err(StegoError::EncodingFailed("Invalid password".to_string()));
+    }
+    
+    let mut encrypted = Vec::with_capacity(data.len() + 4);
+    
+    // Add a magic header to identify encrypted data
+    encrypted.extend_from_slice(b"XOR1");
+    
+    // XOR encrypt the data
+    for (i, &byte) in data.iter().enumerate() {
+        let key_byte = key[i % key.len()];
+        encrypted.push(byte ^ key_byte);
+    }
+    
+    Ok(encrypted)
+}
+
+/// Decrypt data using XOR with password-derived key
+fn decrypt_data(data: &[u8], password: &str) -> Result<Vec<u8>, StegoError> {
+    let key = derive_key(password);
+    if key.is_empty() {
+        return Err(StegoError::DecryptionFailed("Invalid password".to_string()));
+    }
+    
+    // Check for magic header
+    if data.len() < 4 || &data[0..4] != b"XOR1" {
+        return Err(StegoError::DecryptionFailed("Invalid encrypted data format".to_string()));
+    }
+    
+    let mut decrypted = Vec::with_capacity(data.len() - 4);
+    
+    // XOR decrypt the data (skip the 4-byte header)
+    for (i, &byte) in data[4..].iter().enumerate() {
+        let key_byte = key[i % key.len()];
+        decrypted.push(byte ^ key_byte);
+    }
+    
+    Ok(decrypted)
+}
+
+/// Check if data appears to be encrypted (XOR encrypted data)
+fn is_encrypted(data: &[u8]) -> bool {
+    // XOR encrypted data starts with "XOR1" magic header
+    data.len() >= 4 && &data[0..4] == b"XOR1"
+}
+
 /// Encode a message into carrier text using zero-width characters
 fn encode_internal(message: &str, carrier: &str, password: Option<&str>) -> Result<String, StegoError> {
-    // Check if password is provided (not yet supported in WASM)
-    if password.is_some() {
-        return Err(StegoError::EncodingFailed("Password encryption is not yet supported in the WebAssembly version. Please use the Python, Rust, or C implementations for password protection.".to_string()));
-    }
-
-    // Base64 encode the message
-    let encoded = BASE64.encode(message.as_bytes());
-    let data = encoded.as_bytes().to_vec();
+    let data = if let Some(pwd) = password {
+        // Encrypt the message if password is provided
+        let message_bytes = message.as_bytes();
+        let encrypted = encrypt_data(message_bytes, pwd)?;
+        encrypted
+    } else {
+        // Base64 encode the message if no password
+        let encoded = BASE64.encode(message.as_bytes());
+        encoded.as_bytes().to_vec()
+    };
 
     // Convert to zero-width characters
     let zero_width = encode_binary(&data);
@@ -96,11 +161,6 @@ fn encode_internal(message: &str, carrier: &str, password: Option<&str>) -> Resu
 
 /// Decode a message from carrier text containing zero-width characters
 fn decode_internal(carrier: &str, password: Option<&str>) -> Result<String, StegoError> {
-    // Check if password is provided (not yet supported in WASM)
-    if password.is_some() {
-        return Err(StegoError::DecryptionFailed("Password decryption is not yet supported in the WebAssembly version. Please use the Python, Rust, or C implementations for password protection.".to_string()));
-    }
-
     // Find the encoded message between markers
     let start = carrier
         .find(START_MARKER)
@@ -123,11 +183,22 @@ fn decode_internal(carrier: &str, password: Option<&str>) -> Result<String, Steg
     let encoded = carrier[start_char + START_MARKER.len_utf8()..end_char].to_string();
     let data = decode_binary(&encoded);
 
-    // Base64 decode and convert to string
-    let decoded = BASE64
-        .decode(&data)
-        .map_err(|e| StegoError::DecryptionFailed(e.to_string()))?;
-    String::from_utf8(decoded).map_err(|e| StegoError::DecryptionFailed(e.to_string()))
+    // Decrypt or decode based on whether data appears encrypted
+    let message_bytes = if is_encrypted(&data) {
+        // Data is encrypted, decrypt it
+        if let Some(pwd) = password {
+            decrypt_data(&data, pwd)?
+        } else {
+            return Err(StegoError::DecryptionFailed("Encrypted data found but no password provided".to_string()));
+        }
+    } else {
+        // Data is base64 encoded, decode it
+        BASE64
+            .decode(&data)
+            .map_err(|e| StegoError::DecryptionFailed(e.to_string()))?
+    };
+
+    String::from_utf8(message_bytes).map_err(|e| StegoError::DecryptionFailed(e.to_string()))
 }
 
 /// WASI-compatible encode function
@@ -191,14 +262,19 @@ pub fn extract_carrier(text: &str) -> Result<String, JsValue> {
 pub fn debug_encode(message: &str, carrier: &str, password: Option<String>) -> Result<String, JsValue> {
     let password_ref = password.as_deref();
     
-    // Check if password is provided (not yet supported in WASM)
-    if password_ref.is_some() {
-        return Err(JsValue::from_str("Password encryption is not yet supported in the WebAssembly version."));
-    }
-
-    // Base64 encode the message
-    let encoded = BASE64.encode(message.as_bytes());
-    let data = encoded.as_bytes().to_vec();
+    let (data, encoding_type, aes_key) = if let Some(pwd) = password_ref {
+        // Encrypt the message if password is provided
+        let message_bytes = message.as_bytes();
+        let encrypted = encrypt_data(message_bytes, pwd)
+            .map_err(|e| JsValue::from_str(&format!("Encryption failed: {}", e)))?;
+        let key = derive_key(pwd);
+        (encrypted, "XOR Encrypted", Some(format!("{:?}", key)))
+    } else {
+        // Base64 encode the message if no password
+        let encoded = BASE64.encode(message.as_bytes());
+        let data = encoded.as_bytes().to_vec();
+        (data, "Base64 Encoded", None)
+    };
 
     // Convert to zero-width characters
     let zero_width = encode_binary(&data);
@@ -210,7 +286,8 @@ pub fn debug_encode(message: &str, carrier: &str, password: Option<String>) -> R
         Original Message: {}\n\
         Message Length: {} characters\n\
         Message Bytes: {:?}\n\
-        Base64 Encoded: {}\n\
+        Encoding Type: {}\n\
+        {}: {}\n\
         Binary Representation:\n{}\n\
         Zero-width Characters: {}\n\
         Zero-width Length: {} characters\n\
@@ -225,7 +302,9 @@ pub fn debug_encode(message: &str, carrier: &str, password: Option<String>) -> R
         message,
         message.len(),
         message.as_bytes(),
-        encoded,
+        encoding_type,
+        if aes_key.is_some() { "XOR Key" } else { "Base64 Encoded" },
+        aes_key.unwrap_or_else(|| BASE64.encode(message.as_bytes())),
         data.iter()
             .map(|&byte| format!("{:08b}", byte))
             .collect::<Vec<_>>()
@@ -250,11 +329,6 @@ pub fn debug_encode(message: &str, carrier: &str, password: Option<String>) -> R
 pub fn debug_decode(carrier: &str, password: Option<String>) -> Result<String, JsValue> {
     let password_ref = password.as_deref();
     
-    // Check if password is provided (not yet supported in WASM)
-    if password_ref.is_some() {
-        return Err(JsValue::from_str("Password decryption is not yet supported in the WebAssembly version."));
-    }
-
     // Find the encoded message between markers
     let start = carrier.find(START_MARKER);
     let end = carrier.find(END_MARKER);
@@ -281,11 +355,26 @@ pub fn debug_decode(carrier: &str, password: Option<String>) -> Result<String, J
     let encoded = carrier[start_char + START_MARKER.len_utf8()..end_char].to_string();
     let data = decode_binary(&encoded);
 
-    // Base64 decode and convert to string
-    let decoded = BASE64
-        .decode(&data)
-        .map_err(|e| JsValue::from_str(&format!("Base64 decode error: {}", e)))?;
-    let message = String::from_utf8(decoded)
+    // Decrypt or decode based on whether data appears encrypted
+    let (message_bytes, decoding_type, aes_key) = if is_encrypted(&data) {
+        // Data is encrypted, decrypt it
+        if let Some(pwd) = password_ref {
+            let decrypted = decrypt_data(&data, pwd)
+                .map_err(|e| JsValue::from_str(&format!("Decryption failed: {}", e)))?;
+            let key = derive_key(pwd);
+            (decrypted, "XOR Decrypted", Some(format!("{:?}", key)))
+        } else {
+            return Err(JsValue::from_str("Encrypted data found but no password provided"));
+        }
+    } else {
+        // Data is base64 encoded, decode it
+        let decoded = BASE64
+            .decode(&data)
+            .map_err(|e| JsValue::from_str(&format!("Base64 decode error: {}", e)))?;
+        (decoded, "Base64 Decoded", None)
+    };
+
+    let message = String::from_utf8(message_bytes)
         .map_err(|e| JsValue::from_str(&format!("UTF-8 decode error: {}", e)))?;
 
     // Create debug information
@@ -299,7 +388,8 @@ pub fn debug_decode(carrier: &str, password: Option<String>) -> Result<String, J
         Encoded Length: {} characters\n\
         Decoded Binary Data: {:?}\n\
         Binary Representation:\n{}\n\
-        Base64 Decoded: {}\n\
+        Decoding Type: {}\n\
+        {}: {}\n\
         Final Message: {}\n\
         Message Length: {} characters\n\
         Original Carrier (without encoded data): {}\n\
@@ -315,7 +405,9 @@ pub fn debug_decode(carrier: &str, password: Option<String>) -> Result<String, J
             .map(|&byte| format!("{:08b}", byte))
             .collect::<Vec<_>>()
             .join(" "),
-        String::from_utf8_lossy(&data),
+        decoding_type,
+        if aes_key.is_some() { "XOR Key" } else { "Base64 Decoded" },
+        aes_key.unwrap_or_else(|| String::from_utf8_lossy(&data).to_string()),
         message,
         message.len(),
         extract_carrier(carrier).unwrap_or_else(|_| "Error extracting carrier".to_string()),

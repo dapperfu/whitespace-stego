@@ -419,8 +419,8 @@
 
                     <div class="form-group">
                         <label for="password-encode">Password (optional):</label>
-                        <input type="text" id="password-encode" placeholder="Password encryption not yet supported in WASM version">
-                        <div class="file-info">Note: Password encryption is not yet supported in the WebAssembly version. Use Python, Rust, or C implementations for password protection.</div>
+                        <input type="password" id="password-encode" placeholder="Enter password to encrypt the message">
+                        <div class="file-info">Note: Password encryption uses XOR encryption for WASM compatibility.</div>
                     </div>
 
                     <div class="button-group">
@@ -455,7 +455,7 @@
 
                     <div class="form-group">
                         <label for="password-decode">Password (if message was encrypted):</label>
-                        <input type="text" id="password-decode" placeholder="Enter password if the message was encrypted">
+                        <input type="password" id="password-decode" placeholder="Enter password if the message was encrypted">
                     </div>
 
                     <div class="button-group">

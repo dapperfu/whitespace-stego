@@ -13,6 +13,7 @@ help:
 	@echo "  test-wasm       - Run WASM website Selenium tests"
 	@echo "  test-wasm-only  - Run only WASM website Selenium tests"
 	@echo "  test-all        - Run all tests (including WASM website tests)"
+	@echo "  test-reports    - Generate HTML and Markdown test reports"
 	@echo "  coverage        - Run tests with coverage reporting"
 	@echo "  maturin-develop - Install Rust extension in development mode"
 	@echo "  maturin-build   - Build Python wheel from Rust extension"
@@ -49,6 +50,7 @@ clean:
 	rm -f .coverage*
 	rm -f test_*_encoded.txt test_*_decoded.txt
 	rm -f encoded*.txt
+	rm -rf results
 	cargo clean
 
 # Run tests with coverage reporting
@@ -91,9 +93,11 @@ test: venv maturin-develop rust
 	.venv/bin/pip install -e .
 	.venv/bin/pip install -r requirements-dev.txt
 	@echo "Running parallel tests (excluding CLI and WASM tests)..."
-	.venv/bin/pytest -m "not cli" -k "not test_wasm_website" -n auto --dist loadfile
+	.venv/bin/pytest -m "not cli" -k "not test_wasm_website" -n auto --dist loadfile --html=results/test_results.html --self-contained-html
 	@echo "Running CLI tests sequentially..."
-	.venv/bin/pytest -m cli -k "not test_wasm_website" -n 0
+	.venv/bin/pytest -m cli -k "not test_wasm_website" -n 0 --html=results/test_results_cli.html --self-contained-html
+	@echo "Generating markdown report..."
+	.venv/bin/python scripts/generate_markdown_report.py results/test_results.json results/test_results.md
 
 # Run WASM website Selenium tests
 test-wasm: venv wasi-web
@@ -117,6 +121,22 @@ test-wasm-only: venv
 
 # Run all tests (including WASM website tests)
 test-all: test test-wasm
+
+# Generate HTML and Markdown test reports
+test-reports: venv maturin-develop rust
+	.venv/bin/pip install -e .
+	.venv/bin/pip install -r requirements-dev.txt
+	@echo "Running tests and generating reports..."
+	@echo "Running parallel tests (excluding CLI and WASM tests)..."
+	.venv/bin/pytest -m "not cli" -k "not test_wasm_website" -n auto --dist loadfile --html=results/test_results.html --self-contained-html
+	@echo "Running CLI tests sequentially..."
+	.venv/bin/pytest -m cli -k "not test_wasm_website" -n 0 --html=results/test_results_cli.html --self-contained-html
+	@echo "Generating markdown report..."
+	.venv/bin/python scripts/generate_markdown_report.py results/test_results.json results/test_results.md
+	@echo "Reports generated in results/ directory:"
+	@echo "  - results/test_results.html (parallel tests)"
+	@echo "  - results/test_results_cli.html (CLI tests)"
+	@echo "  - results/test_results.md (combined markdown report)"
 
 # Run tests with maximum parallelization (all tests)
 test-parallel: venv maturin-develop rust

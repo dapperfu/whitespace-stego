@@ -3,6 +3,7 @@ members = [
     "whitespace-stego-core",
     "whitespace-stego-cli", 
     "whitespace-stego-python",
+    "whitespace-stego-backend",
     "wasi",
 ]
 

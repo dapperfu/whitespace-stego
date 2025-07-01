@@ -1,0 +1,7 @@
+Requirement already satisfied: pytest in ./.venv/lib/python3.12/site-packages (6.2.5)
+Requirement already satisfied: attrs>=19.2.0 in ./.venv/lib/python3.12/site-packages (from pytest) (25.3.0)
+Requirement already satisfied: iniconfig in ./.venv/lib/python3.12/site-packages (from pytest) (2.1.0)
+Requirement already satisfied: packaging in ./.venv/lib/python3.12/site-packages (from pytest) (25.0)
+Requirement already satisfied: pluggy<2.0,>=0.12 in ./.venv/lib/python3.12/site-packages (from pytest) (1.6.0)
+Requirement already satisfied: py>=1.8.2 in ./.venv/lib/python3.12/site-packages (from pytest) (1.11.0)
+Requirement already satisfied: toml in ./.venv/lib/python3.12/site-packages (from pytest) (0.10.2)
