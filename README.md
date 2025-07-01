@@ -1,3 +1,5 @@
+![Project Logo](39e228c0-fefd-4bc1-82bf-fe581329754b.png)
+
 # Whitespace Steganography
 
 A modern, multi-language tool for hiding secret messages in text using zero-width Unicode characters. Supports Python, Rust, C, and WebAssembly (browser) backends.
