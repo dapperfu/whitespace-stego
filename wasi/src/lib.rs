@@ -186,6 +186,174 @@ pub fn extract_carrier(text: &str) -> Result<String, JsValue> {
     }
 }
 
+/// WASI-compatible function to get debug information for encoding
+#[wasm_bindgen]
+pub fn debug_encode(message: &str, carrier: &str, password: Option<String>) -> Result<String, JsValue> {
+    let password_ref = password.as_deref();
+    
+    // Check if password is provided (not yet supported in WASM)
+    if password_ref.is_some() {
+        return Err(JsValue::from_str("Password encryption is not yet supported in the WebAssembly version."));
+    }
+
+    // Base64 encode the message
+    let encoded = BASE64.encode(message.as_bytes());
+    let data = encoded.as_bytes().to_vec();
+
+    // Convert to zero-width characters
+    let zero_width = encode_binary(&data);
+    let encoded_message = format!("{}{}{}", START_MARKER, zero_width, END_MARKER);
+
+    // Create debug information
+    let debug_info = format!(
+        "=== ENCODE DEBUG INFO ===\n\
+        Original Message: {}\n\
+        Message Length: {} characters\n\
+        Message Bytes: {:?}\n\
+        Base64 Encoded: {}\n\
+        Binary Representation:\n{}\n\
+        Zero-width Characters: {}\n\
+        Zero-width Length: {} characters\n\
+        Start Marker: {} (U+200B)\n\
+        End Marker: {} (U+200C)\n\
+        Zero Bit: {} (U+200D)\n\
+        One Bit: {} (U+FEFF)\n\
+        Full Encoded Message: {}\n\
+        Carrier Text: {}\n\
+        Carrier Length: {} characters\n\
+        Final Result Length: {} characters",
+        message,
+        message.len(),
+        message.as_bytes(),
+        encoded,
+        data.iter()
+            .map(|&byte| format!("{:08b}", byte))
+            .collect::<Vec<_>>()
+            .join(" "),
+        zero_width,
+        zero_width.len(),
+        START_MARKER,
+        END_MARKER,
+        ZERO_BIT,
+        ONE_BIT,
+        encoded_message,
+        carrier,
+        carrier.len(),
+        carrier.len() + encoded_message.len()
+    );
+
+    Ok(debug_info)
+}
+
+/// WASI-compatible function to get debug information for decoding
+#[wasm_bindgen]
+pub fn debug_decode(carrier: &str, password: Option<String>) -> Result<String, JsValue> {
+    let password_ref = password.as_deref();
+    
+    // Check if password is provided (not yet supported in WASM)
+    if password_ref.is_some() {
+        return Err(JsValue::from_str("Password decryption is not yet supported in the WebAssembly version."));
+    }
+
+    // Find the encoded message between markers
+    let start = carrier.find(START_MARKER);
+    let end = carrier.find(END_MARKER);
+    
+    if start.is_none() || end.is_none() {
+        return Err(JsValue::from_str("No encoded data found in carrier text"));
+    }
+
+    let start_idx = start.unwrap();
+    let end_idx = end.unwrap();
+
+    // Use char_indices to get char boundaries
+    let start_char = carrier
+        .char_indices()
+        .find(|&(i, c)| i == start_idx && c == START_MARKER)
+        .map(|(i, _)| i)
+        .unwrap();
+    let end_char = carrier
+        .char_indices()
+        .find(|&(i, c)| i == end_idx && c == END_MARKER)
+        .map(|(i, _)| i)
+        .unwrap();
+    
+    let encoded = carrier[start_char + START_MARKER.len_utf8()..end_char].to_string();
+    let data = decode_binary(&encoded);
+
+    // Base64 decode and convert to string
+    let decoded = BASE64
+        .decode(&data)
+        .map_err(|e| JsValue::from_str(&format!("Base64 decode error: {}", e)))?;
+    let message = String::from_utf8(decoded)
+        .map_err(|e| JsValue::from_str(&format!("UTF-8 decode error: {}", e)))?;
+
+    // Create debug information
+    let debug_info = format!(
+        "=== DECODE DEBUG INFO ===\n\
+        Carrier Text: {}\n\
+        Carrier Length: {} characters\n\
+        Start Marker Position: {}\n\
+        End Marker Position: {}\n\
+        Encoded Zero-width String: {}\n\
+        Encoded Length: {} characters\n\
+        Decoded Binary Data: {:?}\n\
+        Binary Representation:\n{}\n\
+        Base64 Decoded: {}\n\
+        Final Message: {}\n\
+        Message Length: {} characters\n\
+        Original Carrier (without encoded data): {}\n\
+        Original Carrier Length: {} characters",
+        carrier,
+        carrier.len(),
+        start_idx,
+        end_idx,
+        encoded,
+        encoded.len(),
+        data,
+        data.iter()
+            .map(|&byte| format!("{:08b}", byte))
+            .collect::<Vec<_>>()
+            .join(" "),
+        String::from_utf8_lossy(&data),
+        message,
+        message.len(),
+        extract_carrier(carrier).unwrap_or_else(|_| "Error extracting carrier".to_string()),
+        extract_carrier(carrier).unwrap_or_else(|_| "Error".to_string()).len()
+    );
+
+    Ok(debug_info)
+}
+
+/// WASI-compatible function to visualize whitespace characters
+#[wasm_bindgen]
+pub fn visualize_whitespace(text: &str) -> String {
+    let mut result = String::new();
+    result.push_str("=== WHITESPACE VISUALIZATION ===\n");
+    result.push_str("Text: ");
+    
+    for (_i, c) in text.char_indices() {
+        match c {
+            START_MARKER => result.push_str("[START]"),
+            END_MARKER => result.push_str("[END]"),
+            ZERO_BIT => result.push_str("[0]"),
+            ONE_BIT => result.push_str("[1]"),
+            ' ' => result.push_str("[SPACE]"),
+            '\t' => result.push_str("[TAB]"),
+            '\n' => result.push_str("[NEWLINE]"),
+            '\r' => result.push_str("[CR]"),
+            _ => result.push(c),
+        }
+    }
+    
+    result.push_str("\n\nCharacter Analysis:\n");
+    for (i, c) in text.char_indices() {
+        result.push_str(&format!("Position {}: '{}' (U+{:04X})\n", i, c, c as u32));
+    }
+    
+    result
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

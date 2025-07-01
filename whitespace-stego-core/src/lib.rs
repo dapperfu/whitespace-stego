@@ -1,159 +1,267 @@
-//! Core whitespace steganography logic for Rust and FFI consumers.
+//! Core implementation of whitespace steganography.
+//!
+//! This library provides the core functionality for encoding and decoding messages
+//! using zero-width Unicode whitespace characters. It supports optional encryption
+//! using Fernet symmetric encryption, which is compatible with Python's
+//! cryptography.fernet module.
+//!
+//! # Features
+//!
+//! - **Encoding**: Hide messages in carrier text using zero-width Unicode characters
+//! - **Decoding**: Extract hidden messages from carrier text
+//! - **Encryption**: Optional password-based encryption using Fernet
+//! - **Analysis**: Utilities for detecting and analyzing encoded messages
+//! - **Compatibility**: Compatible with Python implementations
+//!
+//! # Quick Start
+//!
+//! ```rust
+//! use whitespace_stego_core::{encode, decode, StegoError};
+//!
+//! fn main() -> Result<(), StegoError> {
+//!     // Encode a message
+//!     let message = "Hello, World!";
+//!     let carrier = "This is carrier text";
+//!     let encoded = encode(message, carrier, None)?;
+//!
+//!     // Decode the message
+//!     let decoded = decode(&encoded, None)?;
+//!     assert_eq!(decoded, message);
+//!
+//!     // With encryption
+//!     let password = "secret_password";
+//!     let encoded = encode(message, carrier, Some(password))?;
+//!     let decoded = decode(&encoded, Some(password))?;
+//!     assert_eq!(decoded, message);
+//!
+//!     Ok(())
+//! }
+//! ```
+//!
+//! # Unicode Characters Used
+//!
+//! The library uses the following zero-width Unicode characters:
+//!
+//! - `\u{200B}` (Zero-width space) - Start marker
+//! - `\u{200C}` (Zero-width non-joiner) - End marker
+//! - `\u{200D}` (Zero-width joiner) - Represents 0 bits
+//! - `\u{FEFF}` (Zero-width no-break space) - Represents 1 bits
+//!
+//! # Encoding Process
+//!
+//! 1. **Base64 Encoding**: The message is first base64 encoded
+//! 2. **Optional Encryption**: If a password is provided, the data is encrypted using Fernet
+//! 3. **Binary Conversion**: Each byte is converted to 8 zero-width characters
+//! 4. **Embedding**: The encoded data is embedded in the carrier text after the first character
+//!
+//! # Security
+//!
+//! - Encryption uses Fernet (AES-128 in CBC mode with PKCS7 padding)
+//! - Keys are derived from passwords using a deterministic method
+//! - Compatible with Python's cryptography.fernet module
+//! - No key derivation function is used (for compatibility)
 
-use base64::Engine;
-use fernet::{DecryptionError, Fernet};
+pub mod constants;
+pub mod crypto;
+pub mod decode;
+pub mod encode;
+pub mod error;
 
-const START_MARKER: &str = "\u{200b}";  // Zero-width space
-const END_MARKER: &str = "\u{200c}";    // Zero-width non-joiner
-const ZERO_BIT: &str = "\u{200d}";      // Zero-width joiner
-const ONE_BIT: &str = "\u{feff}";       // Zero-width no-break space
+// Re-export main types and functions
+pub use constants::{END_MARKER, ONE_BIT, START_MARKER, ZERO_BIT};
+pub use error::StegoError;
 
-/// Errors for steganography operations.
-#[derive(Debug)]
-pub enum StegoError {
-    InvalidKey,
-    DecryptionError(DecryptionError),
-    NoMessageFound,
-    Utf8Error,
-    Base64Error,
-}
+// Re-export main functions
+pub use decode::{decode, decode_binary, extract_encoded, get_encoded_message_position};
+pub use encode::{encode, encode_binary, get_encoded_message_size, has_encoded_message};
 
-impl std::fmt::Display for StegoError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            StegoError::InvalidKey => write!(f, "Invalid key"),
-            StegoError::DecryptionError(e) => write!(f, "Decryption error: {}", e),
-            StegoError::NoMessageFound => write!(f, "No valid message found in carrier text"),
-            StegoError::Utf8Error => write!(f, "Invalid UTF-8 in message"),
-            StegoError::Base64Error => write!(f, "Base64 decode error"),
-        }
-    }
-}
+// Re-export crypto functions for advanced usage
+pub use crypto::{decrypt_data, derive_fernet_key, encrypt_data, is_encrypted};
 
-impl std::error::Error for StegoError {}
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-/// Convert bytes to a string of zero-width characters.
-fn encode_binary(data: &[u8]) -> String {
-    let mut result = String::new();
-    for &byte in data {
-        for i in 0..8 {
-            let bit = (byte >> (7 - i)) & 1;
-            if bit == 1 {
-                result.push_str(ONE_BIT);
-            } else {
-                result.push_str(ZERO_BIT);
+    const MESSAGES: &[&str] = &[
+        "Hello, World!",
+        "Test message with emoji 😀",
+        "Multilingual text: 你好, 世界!",
+        "Special chars: !@#$%^&*()",
+        "", // Empty message
+    ];
+
+    const PASSWORDS: &[Option<&str>] = &[
+        None,
+        Some("simple_password"),
+        Some("complex_password_123!@#"),
+        Some(""), // Empty password
+    ];
+
+    const CARRIERS: &[&str] = &[
+        "", // Empty carrier
+        "Simple carrier text",
+        "Carrier with emoji 🎉",
+        "Multilingual carrier: 你好",
+    ];
+
+    #[test]
+    fn test_encode_decode_roundtrip() {
+        for &message in MESSAGES {
+            for &password in PASSWORDS {
+                for &carrier in CARRIERS {
+                    let encoded = encode(message, carrier, password).unwrap();
+                    let decoded = decode(&encoded, password).unwrap();
+                    assert_eq!(decoded, message);
+                }
             }
         }
     }
-    result
-}
 
-/// Convert a string of zero-width characters back to bytes.
-fn decode_binary(encoded: &str) -> Result<Vec<u8>, StegoError> {
-    let mut binary = String::new();
-    for ch in encoded.chars() {
-        if ch.to_string() == ONE_BIT {
-            binary.push('1');
-        } else if ch.to_string() == ZERO_BIT {
-            binary.push('0');
+    #[test]
+    fn test_empty_carrier() {
+        for &message in MESSAGES {
+            let encoded = encode(message, "", None).unwrap();
+            assert!(encoded.contains(START_MARKER));
+            assert!(encoded.contains(END_MARKER));
+            assert!(encoded.len() > message.len());
         }
     }
-    
-    if binary.len() % 8 != 0 {
-        return Err(StegoError::Base64Error);
+
+    #[test]
+    fn test_invalid_decode() {
+        for &carrier in CARRIERS {
+            assert!(decode(carrier, None).is_err());
+        }
     }
-    
-    let mut result = Vec::new();
-    for i in (0..binary.len()).step_by(8) {
-        let byte_str = &binary[i..i+8];
-        let byte = u8::from_str_radix(byte_str, 2)
-            .map_err(|_| StegoError::Base64Error)?;
-        result.push(byte);
+
+    #[test]
+    fn test_extract_encoded() {
+        for &message in MESSAGES {
+            for &carrier in CARRIERS {
+                let encoded = encode(message, carrier, None).unwrap();
+                let (extracted, remaining) = extract_encoded(&encoded).unwrap();
+                assert!(extracted.contains(START_MARKER));
+                assert!(extracted.contains(END_MARKER));
+                if !carrier.is_empty() {
+                    assert_eq!(remaining, carrier);
+                }
+            }
+        }
     }
-    Ok(result)
+
+    #[test]
+    fn test_password_mismatch() {
+        for &message in MESSAGES {
+            let password = Some("test_password");
+            let encoded = encode(message, "", password).unwrap();
+            assert!(decode(&encoded, Some("wrong_password")).is_err());
+        }
+    }
+
+    #[test]
+    fn test_encode_binary_and_decode_binary() {
+        let data = b"test data";
+        let encoded = encode_binary(data);
+        let decoded = decode_binary(&encoded).unwrap();
+        assert_eq!(decoded, data);
+    }
+
+    #[test]
+    fn test_derive_fernet_key_length_and_padding() {
+        let key1 = derive_fernet_key("short");
+        let key2 = derive_fernet_key("this_is_a_very_long_password_that_should_be_truncated");
+        assert_eq!(key1.len(), key2.len());
+        assert_eq!(key1.len(), 43); // 32 bytes base64-url encoded, no padding
+    }
+
+    #[test]
+    fn test_encrypt_decrypt_data_roundtrip() {
+        let data = b"super secret";
+        let password = "password123";
+        let encrypted = encrypt_data(data, password).unwrap();
+        let decrypted = decrypt_data(&encrypted, password).unwrap();
+        assert_eq!(decrypted, data);
+    }
+
+    #[test]
+    fn test_decrypt_data_wrong_password() {
+        let data = b"super secret";
+        let password = "password123";
+        let wrong_password = "wrongpass";
+        let encrypted = encrypt_data(data, password).unwrap();
+        let result = decrypt_data(&encrypted, wrong_password);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_decode_binary_with_invalid_input() {
+        // Not a valid zero-width sequence, should decode to empty
+        let decoded = decode_binary("not zero width").unwrap();
+        assert_eq!(decoded, Vec::<u8>::new());
+    }
+
+    #[test]
+    fn test_has_encoded_message() {
+        assert!(!has_encoded_message("plain text"));
+        assert!(!has_encoded_message(&format!("text with start{}", START_MARKER)));
+        assert!(!has_encoded_message(&format!("text with end{}", END_MARKER)));
+        assert!(has_encoded_message(&format!("text with both{}data{}", START_MARKER, END_MARKER)));
+    }
+
+    #[test]
+    fn test_get_encoded_message_size() {
+        let message = "test";
+        let carrier = "carrier";
+        let encoded = encode(message, carrier, None).unwrap();
+        
+        let size = get_encoded_message_size(&encoded);
+        assert!(size.is_some());
+        assert!(size.unwrap() > 0);
+    }
+
+    #[test]
+    fn test_get_encoded_message_position() {
+        let message = "test";
+        let carrier = "carrier";
+        let encoded = encode(message, carrier, None).unwrap();
+        
+        let position = get_encoded_message_position(&encoded);
+        assert!(position.is_some());
+        
+        let (start, end) = position.unwrap();
+        assert!(start < end);
+    }
 }
 
-/// Encode a message into a carrier string, optionally encrypting with a password.
-///
-/// # Arguments
-/// * `message` - The message to encode.
-/// * `carrier` - The carrier text to hide the message in.
-/// * `password` - Optional password for encryption.
-///
-/// # Returns
-/// Encoded carrier string with the message hidden.
-pub fn encode(message: &str, carrier: &str, password: Option<&str>) -> Result<String, StegoError> {
-    // Base64 encode the message
-    let encoded = base64::engine::general_purpose::STANDARD.encode(message.as_bytes());
-    
-    // Add password encryption if provided
-    let final_data = if let Some(pwd) = password {
-        let mut key_bytes = pwd.as_bytes().to_vec();
-        key_bytes.resize(32, 0); // Pad to 32 bytes
-        let key = base64::engine::general_purpose::URL_SAFE.encode(&key_bytes);
-        let fernet = Fernet::new(&key).ok_or(StegoError::InvalidKey)?;
-        fernet.encrypt(encoded.as_bytes()).into_bytes()
-    } else {
-        encoded.into_bytes()
-    };
-    
-    // Convert to zero-width characters
-    let zero_width = encode_binary(&final_data);
-    
-    // Add markers
-    let encoded_message = format!("{}{}{}", START_MARKER, zero_width, END_MARKER);
-    
-    // Return just the encoded message if no carrier
-    if carrier.is_empty() {
-        return Ok(encoded_message);
-    }
-    
-    // Embed in carrier after first Unicode character
-    let chars: Vec<char> = carrier.chars().collect();
-    if chars.len() > 1 {
-        let mut result = String::new();
-        result.push(chars[0]);
-        result.push_str(&encoded_message);
-        result.extend(chars[1..].iter());
-        Ok(result)
-    } else {
-        Ok(format!("{}{}", carrier, encoded_message))
-    }
-}
+#[cfg(test)]
+mod proptests {
+    use super::*;
+    use proptest::prelude::*;
 
-/// Decode a message from a carrier string, optionally decrypting with a password.
-///
-/// # Arguments
-/// * `carrier` - The carrier text containing the hidden message.
-/// * `password` - Optional password for decryption.
-///
-/// # Returns
-/// The decoded message as a string.
-pub fn decode(carrier: &str, password: Option<&str>) -> Result<String, StegoError> {
-    // Find the encoded message between markers
-    let start = carrier.find(START_MARKER).ok_or(StegoError::NoMessageFound)?;
-    let end = carrier.find(END_MARKER).ok_or(StegoError::NoMessageFound)?;
-    
-    // Extract the encoded message
-    let encoded = &carrier[start + START_MARKER.len()..end];
-    
-    // Convert from zero-width characters to bytes
-    let data = decode_binary(encoded)?;
-    
-    // Decrypt if password provided
-    let decoded_data = if let Some(pwd) = password {
-        let mut key_bytes = pwd.as_bytes().to_vec();
-        key_bytes.resize(32, 0); // Pad to 32 bytes
-        let key = base64::engine::general_purpose::URL_SAFE.encode(&key_bytes);
-        let fernet = Fernet::new(&key).ok_or(StegoError::InvalidKey)?;
-        fernet.decrypt(&String::from_utf8(data).map_err(|_| StegoError::Utf8Error)?)
-            .map_err(StegoError::DecryptionError)?
-    } else {
-        data
-    };
-    
-    // Base64 decode and convert to string
-    let result = base64::engine::general_purpose::STANDARD.decode(&decoded_data)
-        .map_err(|_| StegoError::Base64Error)?;
-    String::from_utf8(result).map_err(|_| StegoError::Utf8Error)
+    proptest! {
+        #[test]
+        fn prop_encode_decode_roundtrip(message in ".{0,100}", carrier in ".{0,100}") {
+            let encoded = encode(&message, &carrier, None).unwrap();
+            let decoded = decode(&encoded, None).unwrap();
+            prop_assert_eq!(decoded, message);
+        }
+
+        #[test]
+        fn prop_encode_decode_with_password(message in ".{0,100}", carrier in ".{0,100}", password in ".{0,32}") {
+            let encoded = encode(&message, &carrier, Some(&password)).unwrap();
+            let decoded = decode(&encoded, Some(&password)).unwrap();
+            prop_assert_eq!(decoded, message);
+        }
+
+        #[test]
+        fn prop_extract_encoded(message in ".{0,100}", carrier in ".{0,100}") {
+            let encoded = encode(&message, &carrier, None).unwrap();
+            let (extracted, remaining) = extract_encoded(&encoded).unwrap();
+            prop_assert!(extracted.contains(START_MARKER));
+            prop_assert!(extracted.contains(END_MARKER));
+            if !carrier.is_empty() {
+                prop_assert_eq!(remaining, carrier);
+            }
+        }
+    }
 } 

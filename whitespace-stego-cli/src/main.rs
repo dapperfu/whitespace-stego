@@ -1,65 +1,196 @@
+//! Command-line interface for whitespace steganography.
+//!
+//! This binary provides a full-featured command-line interface for encoding
+//! and decoding messages using whitespace steganography.
+
 use clap::{Parser, Subcommand};
-use std::fs;
-use std::io::{self, Read, Write};
-use whitespace_stego_core::{encode, decode};
+use std::process;
+
+mod commands;
+mod io;
+mod utils;
+
+use commands::{decode, encode};
+use io::{read_file_or_stdin, write_file_or_stdout};
+use utils::display;
 
 /// Whitespace Steganography CLI
+///
+/// A command-line tool for hiding messages in text using zero-width Unicode characters.
+/// Supports optional encryption and various input/output methods.
 #[derive(Parser)]
-#[command(author, version, about, long_about = None)]
+#[command(
+    name = "whitespace-stego",
+    author,
+    version,
+    about,
+    long_about = "A command-line tool for hiding messages in text using zero-width Unicode characters. \
+                  Supports optional encryption and various input/output methods including files and stdin/stdout."
+)]
 struct Cli {
+    /// Enable verbose output
+    #[arg(short, long)]
+    verbose: bool,
+
+    /// Enable quiet mode (suppress non-error output)
+    #[arg(short, long)]
+    quiet: bool,
+
+    /// Show progress indicators
+    #[arg(long)]
+    progress: bool,
+
     #[command(subcommand)]
     command: Commands,
 }
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Encode a message into a carrier file
+    /// Encode a message into carrier text
     Encode {
-        /// Path to the carrier file
-        #[arg(short, long)]
-        carrier: String,
-        /// Path to the message file
-        #[arg(short, long)]
-        message: String,
-        /// Path to the output file
-        #[arg(short, long)]
-        output: String,
-        /// Optional password
-        #[arg(short, long)]
+        /// Message to encode
+        #[arg(short = 'm', long)]
+        message: Option<String>,
+
+        /// File containing message to encode
+        #[arg(short = 'f', long = "message-file")]
+        message_file: Option<std::path::PathBuf>,
+
+        /// Carrier text
+        #[arg(short = 'c', long)]
+        carrier: Option<String>,
+
+        /// File containing carrier text
+        #[arg(short = 'F', long = "carrier-file")]
+        carrier_file: Option<std::path::PathBuf>,
+
+        /// Password for encryption
+        #[arg(short = 'p', long)]
         password: Option<String>,
+
+        /// Output file (use - for stdout)
+        #[arg(short = 'o', long)]
+        output: Option<std::path::PathBuf>,
+
+        /// Interactive mode
+        #[arg(short = 'i', long)]
+        interactive: bool,
     },
-    /// Decode a message from a carrier file
+
+    /// Decode a message from carrier text
     Decode {
-        /// Path to the carrier file
-        #[arg(short, long)]
-        carrier: String,
-        /// Path to the output file
-        #[arg(short, long)]
-        output: String,
-        /// Optional password
-        #[arg(short, long)]
+        /// Carrier text
+        #[arg(short = 'c', long)]
+        carrier: Option<String>,
+
+        /// File containing carrier text
+        #[arg(short = 'F', long = "carrier-file")]
+        carrier_file: Option<std::path::PathBuf>,
+
+        /// Password for decryption
+        #[arg(short = 'p', long)]
         password: Option<String>,
+
+        /// Output file (use - for stdout)
+        #[arg(short = 'o', long)]
+        output: Option<std::path::PathBuf>,
+
+        /// Interactive mode
+        #[arg(short = 'i', long)]
+        interactive: bool,
+    },
+
+    /// Analyze text for encoded messages
+    Analyze {
+        /// Text to analyze
+        #[arg(short = 't', long)]
+        text: Option<String>,
+
+        /// File containing text to analyze
+        #[arg(short = 'f', long = "file")]
+        file: Option<std::path::PathBuf>,
+
+        /// Output format (text, json)
+        #[arg(short = 'F', long = "format", default_value = "text")]
+        format: String,
+    },
+
+    /// Extract encoded message and remaining carrier
+    Extract {
+        /// Carrier text
+        #[arg(short = 'c', long)]
+        carrier: Option<String>,
+
+        /// File containing carrier text
+        #[arg(short = 'F', long = "carrier-file")]
+        carrier_file: Option<std::path::PathBuf>,
+
+        /// Output directory for extracted files
+        #[arg(short = 'o', long = "output-dir")]
+        output_dir: Option<std::path::PathBuf>,
     },
 }
 
 fn main() {
     let cli = Cli::parse();
-    match cli.command {
-        Commands::Encode { carrier, message, output, password } => {
-            let carrier_content = fs::read_to_string(&carrier)
-                .expect("Failed to read carrier file");
-            let message_content = fs::read_to_string(&message)
-                .expect("Failed to read message file");
-            let encoded = encode(&carrier_content, &message_content, password.as_deref())
-                .expect("Encoding failed");
-            fs::write(&output, encoded).expect("Failed to write output file");
+
+    // Set up logging/verbosity
+    if cli.verbose {
+        display::set_verbose(true);
+    }
+    if cli.quiet {
+        display::set_quiet(true);
+    }
+    if cli.progress {
+        display::set_progress(true);
+    }
+
+    let result = match cli.command {
+        Commands::Encode {
+            message,
+            message_file,
+            carrier,
+            carrier_file,
+            password,
+            output,
+            interactive,
+        } => {
+            if interactive {
+                encode::interactive_encode()
+            } else {
+                encode::encode_command(message, message_file, carrier, carrier_file, password, output)
+            }
         }
-        Commands::Decode { carrier, output, password } => {
-            let carrier_content = fs::read_to_string(&carrier)
-                .expect("Failed to read carrier file");
-            let decoded = decode(&carrier_content, password.as_deref())
-                .expect("Decoding failed");
-            fs::write(&output, decoded).expect("Failed to write output file");
+
+        Commands::Decode {
+            carrier,
+            carrier_file,
+            password,
+            output,
+            interactive,
+        } => {
+            if interactive {
+                decode::interactive_decode()
+            } else {
+                decode::decode_command(carrier, carrier_file, password, output)
+            }
         }
+
+        Commands::Analyze { text, file, format } => {
+            commands::analyze::analyze_command(text, file, format)
+        }
+
+        Commands::Extract {
+            carrier,
+            carrier_file,
+            output_dir,
+        } => {
+            commands::extract::extract_command(carrier, carrier_file, output_dir)
+        }
+    };
+
+    if let Err(e) = result {
+        display::error(&format!("Error: {}", e));
+        process::exit(1);
     }
 } 

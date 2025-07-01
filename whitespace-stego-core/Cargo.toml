@@ -1,9 +1,25 @@
 [package]
 name = "whitespace-stego-core"
-version = "0.1.0"
-edition = "2021"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+description.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
 
 [dependencies]
-base64 = "0.21.7"
-fernet = "0.2.0"
-clap = { version = "4.5.1", features = ["derive"] } 
+base64.workspace = true
+fernet.workspace = true
+thiserror.workspace = true
+clap = { version = "4.5.1", features = ["derive"] }
+
+[dev-dependencies]
+proptest.workspace = true
+criterion.workspace = true
+test-case.workspace = true
+
+[[bench]]
+name = "performance"
+harness = false 

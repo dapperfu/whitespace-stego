@@ -1,33 +1,39 @@
-[package]
-name = "whitespace-stego"
+[workspace]
+members = [
+    "whitespace-stego-core",
+    "whitespace-stego-cli", 
+    "whitespace-stego-python",
+    "wasi",
+]
+
+[workspace.package]
 version = "0.1.0"
 edition = "2021"
+authors = ["DapperFu <dapperfu@example.com>"]
 description = "Whitespace steganography using zero-width Unicode characters"
 license = "MIT"
+repository = "https://github.com/dapperfu/whitespace-stego"
+keywords = ["steganography", "unicode", "whitespace", "cryptography"]
+categories = ["cryptography", "text-processing"]
 
-[lib]
-name = "whitespace_stego"
-crate-type = ["cdylib", "rlib"]
-
-[dependencies]
+[workspace.dependencies]
 base64 = "0.21.7"
-clap = { version = "4.5.1", features = ["derive"] }
-thiserror = "1.0"
 fernet = "0.2.0"
+thiserror = "1.0"
+clap = { version = "4.5.1", features = ["derive"] }
 pyo3 = { version = "0.20.3", features = ["extension-module"] }
-
-[build-dependencies]
 maturin = "1.4"
-
-[dev-dependencies]
+proptest = "1.4"
 criterion = "0.5"
 test-case = "3.3"
-proptest = "1.4"
+indicatif = "0.17"
+anyhow = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "0.8"
+dirs = "5.0"
+tempfile = "3.8"
 
 [profile.release]
 lto = true
-codegen-units = 1
-
-[[bin]]
-name = "whitespace-stego"
-path = "src/main.rs" 
+codegen-units = 1 

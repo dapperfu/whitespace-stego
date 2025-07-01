@@ -1,12 +1,27 @@
 [package]
 name = "whitespace-stego-cli"
-version = "0.1.0"
-edition = "2021"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+description.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
 
 [[bin]]
-name = "whitespace-stego-cli"
+name = "whitespace-stego"
 path = "src/main.rs"
 
 [dependencies]
-clap = { version = "4.5", features = ["derive"] }
-whitespace-stego-core = { path = "../whitespace-stego-core" } 
+whitespace-stego-core = { path = "../whitespace-stego-core" }
+clap.workspace = true
+indicatif.workspace = true
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+toml.workspace = true
+dirs.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true 

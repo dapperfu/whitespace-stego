@@ -102,11 +102,11 @@ class TestCLIMissingLines:
         runner = CliRunner()
 
         # Test encode with missing required arguments
-        result = runner.invoke(cli, ["encode"], catch_exceptions=False)
+        result = runner.invoke(cli, ["encode"])
         assert result.exit_code != 0
         assert "must be provided" in result.output
 
         # Test decode with missing required arguments
-        result = runner.invoke(cli, ["decode"], catch_exceptions=False)
+        result = runner.invoke(cli, ["decode"])
         assert result.exit_code != 0
         assert "must be provided" in result.output

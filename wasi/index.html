@@ -297,6 +297,40 @@
             margin-bottom: 5px;
         }
 
+        .debug-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid #e9ecef;
+            margin-top: 30px;
+        }
+
+        .debug-controls {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .debug-controls .btn {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        #debug-output {
+            background: #2d3748;
+            color: #e2e8f0;
+            border: 1px solid #4a5568;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        #debug-output:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
         .loading {
             display: inline-block;
             width: 20px;
@@ -360,6 +394,9 @@
                     <li><strong>Download:</strong> Save encoded text to a file</li>
                     <li><strong>Invisible:</strong> Uses zero-width Unicode characters that are invisible to the human eye</li>
                 </ul>
+                <div style="margin-top: 15px; text-align: center;">
+                    <button class="btn btn-warning" onclick="toggleDebug()" id="show-debug-btn">🔍 Show Debug Information</button>
+                </div>
             </div>
 
             <div class="sections-container">
@@ -441,11 +478,33 @@
                     <button class="download-btn" onclick="downloadOutput()" id="download-btn" style="display: none;">💾 Download File</button>
                 </div>
             </div>
+
+            <!-- Debug Section -->
+            <div class="debug-section" id="debug-section" style="display: none;">
+                <div class="section-header">
+                    <span style="font-size: 1.5rem;">🔍</span>
+                    <h2>Debug Information</h2>
+                    <button class="btn btn-warning" onclick="toggleDebug()" style="margin-left: auto;">Hide Debug</button>
+                </div>
+                
+                <div class="debug-controls">
+                    <button class="btn btn-primary" onclick="showEncodeDebug()">🔍 Show Encode Debug</button>
+                    <button class="btn btn-secondary" onclick="showDecodeDebug()">🔍 Show Decode Debug</button>
+                    <button class="btn btn-success" onclick="showWhitespaceVisualization()">👁️ Visualize Whitespace</button>
+                    <button class="btn btn-warning" onclick="clearDebug()">🗑️ Clear Debug</button>
+                </div>
+                
+                <div class="form-group">
+                    <label for="debug-output">Debug Output:</label>
+                    <textarea id="debug-output" placeholder="Debug information will appear here..." readonly style="font-family: 'Courier New', monospace; font-size: 0.9rem; min-height: 300px;"></textarea>
+                    <button class="copy-btn" onclick="copyDebugToClipboard()">📋 Copy Debug Info</button>
+                </div>
+            </div>
         </div>
     </div>
 
     <script type="module">
-        import init, { encode, decode, has_encoded_data, extract_carrier } from './whitespace_stego_wasi.js';
+        import init, { encode, decode, has_encoded_data, extract_carrier, debug_encode, debug_decode, visualize_whitespace } from './whitespace_stego_wasi.js';
 
         let wasmModule = null;
 
@@ -629,6 +688,120 @@
                 loadingElement.style.display = 'none';
             }
         }
+
+        // Debug functions
+        window.toggleDebug = function() {
+            const debugSection = document.getElementById('debug-section');
+            const showDebugBtn = document.getElementById('show-debug-btn');
+            
+            if (debugSection.style.display === 'none') {
+                debugSection.style.display = 'block';
+                showDebugBtn.textContent = '🔍 Hide Debug Information';
+            } else {
+                debugSection.style.display = 'none';
+                showDebugBtn.textContent = '🔍 Show Debug Information';
+            }
+        };
+
+        window.showEncodeDebug = async function() {
+            if (!wasmModule) {
+                showStatus('Error: WASM module not loaded. Please refresh the page.', 'error');
+                return;
+            }
+
+            const message = document.getElementById('message').value.trim();
+            const carrier = document.getElementById('carrier-encode').value.trim();
+            const password = document.getElementById('password-encode').value.trim();
+
+            if (!message || !carrier) {
+                showStatus('Error: Please enter both message and carrier text for debug information.', 'error');
+                return;
+            }
+
+            try {
+                const passwordOption = password ? password : null;
+                const debugInfo = debug_encode(message, carrier, passwordOption);
+                document.getElementById('debug-output').value = debugInfo;
+                showStatus('✅ Encode debug information generated!', 'success');
+            } catch (error) {
+                showStatus(`Error: ${error}`, 'error');
+            }
+        };
+
+        window.showDecodeDebug = async function() {
+            if (!wasmModule) {
+                showStatus('Error: WASM module not loaded. Please refresh the page.', 'error');
+                return;
+            }
+
+            const carrier = document.getElementById('carrier-decode').value.trim();
+            const password = document.getElementById('password-decode').value.trim();
+
+            if (!carrier) {
+                showStatus('Error: Please enter text to decode for debug information.', 'error');
+                return;
+            }
+
+            try {
+                const passwordOption = password ? password : null;
+                const debugInfo = debug_decode(carrier, passwordOption);
+                document.getElementById('debug-output').value = debugInfo;
+                showStatus('✅ Decode debug information generated!', 'success');
+            } catch (error) {
+                showStatus(`Error: ${error}`, 'error');
+            }
+        };
+
+        window.showWhitespaceVisualization = function() {
+            if (!wasmModule) {
+                showStatus('Error: WASM module not loaded. Please refresh the page.', 'error');
+                return;
+            }
+
+            const output = document.getElementById('output').value.trim();
+            const carrierEncode = document.getElementById('carrier-encode').value.trim();
+            const carrierDecode = document.getElementById('carrier-decode').value.trim();
+
+            let textToVisualize = '';
+            if (output) {
+                textToVisualize = output;
+            } else if (carrierEncode) {
+                textToVisualize = carrierEncode;
+            } else if (carrierDecode) {
+                textToVisualize = carrierDecode;
+            } else {
+                showStatus('Error: Please encode or decode a message first, or enter text to visualize.', 'error');
+                return;
+            }
+
+            try {
+                const visualization = visualize_whitespace(textToVisualize);
+                document.getElementById('debug-output').value = visualization;
+                showStatus('✅ Whitespace visualization generated!', 'success');
+            } catch (error) {
+                showStatus(`Error: ${error}`, 'error');
+            }
+        };
+
+        window.clearDebug = function() {
+            document.getElementById('debug-output').value = '';
+            showStatus('✅ Debug output cleared!', 'success');
+        };
+
+        window.copyDebugToClipboard = async function() {
+            const debugOutput = document.getElementById('debug-output').value;
+            if (!debugOutput) {
+                showStatus('Error: Nothing to copy. Please generate debug information first.', 'error');
+                return;
+            }
+
+            try {
+                await navigator.clipboard.writeText(debugOutput);
+                showStatus('✅ Debug information copied to clipboard!', 'success');
+            } catch (error) {
+                showStatus('Error: Failed to copy debug info to clipboard. Please copy manually.', 'error');
+            }
+        };
 
         // Initialize WASM when the page loads
         initializeWasm();
