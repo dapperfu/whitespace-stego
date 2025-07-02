@@ -11,6 +11,7 @@ import logging
 from whitespace_stego.logger import setup_logger
 from .encode import encode_message
 from .decode import decode_message
+from .core import BadPasswordError
 
 logger = setup_logger(__name__)
 
@@ -259,7 +260,11 @@ def decode(
         logger.debug("Using password: %s", password if password else "None")
 
         # Decode the messages
-        decoded_messages = decode_message(carrier_content, password)
+        try:
+            decoded_messages = decode_message(carrier_content, password)
+        except BadPasswordError:
+            click.echo("invalid password", err=True)
+            raise click.Abort()
 
         logger.debug("Messages successfully decoded")
 
