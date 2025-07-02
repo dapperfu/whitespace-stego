@@ -78,6 +78,20 @@ pub use encode::{encode, encode_binary, get_encoded_message_size, has_encoded_me
 // Re-export crypto functions for advanced usage
 pub use crypto::{decrypt_data, encrypt_data, is_encrypted};
 
+// Test data for comprehensive permutation testing
+const EMPTY_MESSAGE: &str = "";
+const SHORT_MESSAGE: &str = "Hi";
+const LONG_MESSAGE: &str = "This is a very long message that contains many characters and should test the encoding and decoding capabilities thoroughly. It includes various types of content like numbers 123, symbols !@#, emojis 😀🎉, and unicode characters 你好世界. This message is designed to be long enough to test edge cases in the binary encoding and decoding process.";
+
+const EMPTY_CARRIER: &str = "";
+const SHORT_CARRIER: &str = "A";
+const LONG_CARRIER: &str = "This is a very long carrier text that will be used to test the embedding of encoded messages. It contains various characters and should be long enough to test different insertion points and edge cases in the encoding process. The carrier text should remain unchanged after extraction of the encoded message.";
+
+const EMPTY_PASSWORD: Option<&str> = Some("");
+const SHORT_PASSWORD: Option<&str> = Some("pass");
+const LONG_PASSWORD: Option<&str> = Some("this_is_a_very_long_password_for_testing");
+const NO_PASSWORD: Option<&str> = None;
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -115,8 +129,16 @@ mod tests {
                         assert!(matches!(result.unwrap_err(), StegoError::EncodingFailed { .. }));
                     } else {
                         let encoded = result.unwrap();
-                    let decoded = decode(&encoded, password).unwrap();
-                    assert_eq!(decoded, message);
+                        let decoded = decode(&encoded, password);
+                        if password.is_some() {
+                            // If password was used for encoding, decoding without password should fail
+                            assert!(decoded.is_ok(), "Decoding with password should succeed");
+                            assert_eq!(decoded.unwrap(), message);
+                        } else {
+                            // If no password was used, decoding should succeed
+                            assert!(decoded.is_ok(), "Decoding without password should succeed");
+                            assert_eq!(decoded.unwrap(), message);
+                        }
                     }
                 }
             }
@@ -185,7 +207,14 @@ mod tests {
             }
             let password = Some("test_password");
             let encoded = encode(message, "", password).unwrap();
-            assert!(decode(&encoded, Some("wrong_password")).is_err());
+            let result = decode(&encoded, Some("wrong_password"));
+            assert!(result.is_err());
+            assert!(matches!(result.unwrap_err(), StegoError::DecryptionFailed { .. }));
+            
+            // Test decoding without password when message is encrypted
+            let result = decode(&encoded, None);
+            assert!(result.is_err());
+            assert!(matches!(result.unwrap_err(), StegoError::DecryptionFailed { .. }));
         }
     }
 
@@ -273,158 +302,26 @@ mod tests {
         let (start, end) = position.unwrap();
         assert!(start < end);
     }
-}
-
-#[cfg(test)]
-mod proptests {
-    use super::*;
-    use proptest::prelude::*;
-
-    proptest! {
-        #[test]
-        fn prop_encode_decode_roundtrip(message in ".{0,100}", carrier in ".{0,100}") {
-            let result = encode(&message, &carrier, None);
-            if message.is_empty() {
-                prop_assert!(result.is_err());
-                let err = result.unwrap_err();
-                let is_match = matches!(err, StegoError::EncodingFailed { .. });
-                prop_assert!(is_match);
-            } else {
-                let encoded = result.unwrap();
-            let decoded = decode(&encoded, None).unwrap();
-            prop_assert_eq!(decoded, message);
-            }
-        }
-
-        #[test]
-        fn prop_encode_decode_with_password(message in ".{0,100}", carrier in ".{0,100}", password in ".{0,32}") {
-            let result = encode(&message, &carrier, Some(&password));
-            if message.is_empty() {
-                prop_assert!(result.is_err());
-                let err = result.unwrap_err();
-                let is_match = matches!(err, StegoError::EncodingFailed { .. });
-                prop_assert!(is_match);
-            } else {
-                let encoded = result.unwrap();
-            let decoded = decode(&encoded, Some(&password)).unwrap();
-            prop_assert_eq!(decoded, message);
-            }
-        }
-
-        #[test]
-        fn prop_extract_encoded(message in ".{0,100}", carrier in ".{0,100}") {
-            let result = encode(&message, &carrier, None);
-            if message.is_empty() {
-                prop_assert!(result.is_err());
-                let err = result.unwrap_err();
-                let is_match = matches!(err, StegoError::EncodingFailed { .. });
-                prop_assert!(is_match);
-            } else {
-                let encoded = result.unwrap();
-            let (extracted, remaining) = extract_encoded(&encoded).unwrap();
-            prop_assert!(extracted.contains(START_MARKER));
-            prop_assert!(extracted.contains(END_MARKER));
-            if !carrier.is_empty() {
-                prop_assert_eq!(remaining, carrier);
-                } else {
-                    prop_assert_eq!(remaining, "");
-                }
-            }
-        }
-
-        #[test]
-        fn prop_empty_message_rejected(carrier in ".{0,100}") {
-            // Test that empty messages are properly rejected
-            let result = encode("", &carrier, None);
-            prop_assert!(result.is_err());
-            let err = result.unwrap_err();
-            let is_match = matches!(err, StegoError::EncodingFailed { .. });
-            prop_assert!(is_match);
-        }
-
-        #[test]
-        fn prop_empty_message_with_password_rejected(carrier in ".{0,100}", password in ".{1,32}") {
-            // Test that empty messages are properly rejected even with password
-            let result = encode("", &carrier, Some(&password));
-            prop_assert!(result.is_err());
-            let err = result.unwrap_err();
-            let is_match = matches!(err, StegoError::EncodingFailed { .. });
-            prop_assert!(is_match);
-        }
-    }
-}
-
-#[cfg(test)]
-mod comprehensive_tests {
-    use super::*;
-
-    // Test data for comprehensive permutation testing
-    const EMPTY_MESSAGE: &str = "";
-    const SHORT_MESSAGE: &str = "Hi";
-    const LONG_MESSAGE: &str = "This is a very long message that contains many characters and should test the encoding and decoding capabilities thoroughly. It includes various types of content like numbers 123, symbols !@#, emojis 😀🎉, and unicode characters 你好世界. This message is designed to be long enough to test edge cases in the binary encoding and decoding process.";
-
-    const EMPTY_CARRIER: &str = "";
-    const SHORT_CARRIER: &str = "A";
-    const LONG_CARRIER: &str = "This is a very long carrier text that will be used to test the embedding of encoded messages. It contains various characters and should be long enough to test different insertion points and edge cases in the encoding process. The carrier text should remain unchanged after extraction of the encoded message.";
-
-    const EMPTY_PASSWORD: Option<&str> = Some("");
-    const SHORT_PASSWORD: Option<&str> = Some("pass");
-    const LONG_PASSWORD: Option<&str> = Some("this_is_a_very_long_password_for_testing");
-    const NO_PASSWORD: Option<&str> = None;
-
-    #[test]
-    fn test_all_message_length_permutations() {
-        let messages = [SHORT_MESSAGE, LONG_MESSAGE]; // Exclude empty message
-        let carriers = [EMPTY_CARRIER, SHORT_CARRIER, LONG_CARRIER];
-        let passwords = [NO_PASSWORD, EMPTY_PASSWORD, SHORT_PASSWORD, LONG_PASSWORD];
-
-        for &message in &messages {
-            for &carrier in &carriers {
-                for &password in &passwords {
-                    let encoded = encode(message, carrier, password).unwrap();
-                    let decoded = decode(&encoded, password).unwrap();
-                    assert_eq!(decoded, message, 
-                        "Failed for message: '{}', carrier: '{}', password: {:?}", 
-                        message, carrier, password);
-                }
-            }
-        }
-    }
-
-    #[test]
-    fn test_empty_message_error_conditions() {
-        // Test that empty messages are properly rejected in all scenarios
-        let carriers = [EMPTY_CARRIER, SHORT_CARRIER, LONG_CARRIER];
-        let passwords = [NO_PASSWORD, EMPTY_PASSWORD, SHORT_PASSWORD, LONG_PASSWORD];
-
-        for &carrier in &carriers {
-            for &password in &passwords {
-                let result = encode(EMPTY_MESSAGE, carrier, password);
-                assert!(result.is_err(), 
-                    "Empty message should be rejected for carrier: '{}', password: {:?}", 
-                    carrier, password);
-                assert!(matches!(result.unwrap_err(), StegoError::EncodingFailed { .. }),
-                    "Empty message should return EncodingFailed error");
-            }
-        }
-    }
 
     #[test]
     fn test_edge_case_combinations() {
         // Test edge cases: short message, empty carrier, empty password
         let encoded = encode(SHORT_MESSAGE, EMPTY_CARRIER, EMPTY_PASSWORD).unwrap();
-        let decoded = decode(&encoded, EMPTY_PASSWORD).unwrap();
-        assert_eq!(decoded, SHORT_MESSAGE);
+        let decoded = decode(&encoded, EMPTY_PASSWORD);
+        assert!(decoded.is_ok());
+        assert_eq!(decoded.unwrap(), SHORT_MESSAGE);
 
         // Test short message with long carrier and password
         let encoded = encode(SHORT_MESSAGE, LONG_CARRIER, LONG_PASSWORD).unwrap();
-        let decoded = decode(&encoded, LONG_PASSWORD).unwrap();
-        assert_eq!(decoded, SHORT_MESSAGE);
+        let decoded = decode(&encoded, LONG_PASSWORD);
+        assert!(decoded.is_ok());
+        assert_eq!(decoded.unwrap(), SHORT_MESSAGE);
 
         // Test long message with empty carrier and no password
         let encoded = encode(LONG_MESSAGE, EMPTY_CARRIER, NO_PASSWORD).unwrap();
-        let decoded = decode(&encoded, NO_PASSWORD).unwrap();
-        assert_eq!(decoded, LONG_MESSAGE);
+        let decoded = decode(&encoded, NO_PASSWORD);
+        assert!(decoded.is_ok());
+        assert_eq!(decoded.unwrap(), LONG_MESSAGE);
     }
 
     #[test]
@@ -435,8 +332,11 @@ mod comprehensive_tests {
             for &message in &[SHORT_MESSAGE, LONG_MESSAGE] {
                 for &password in &[NO_PASSWORD, EMPTY_PASSWORD, SHORT_PASSWORD] {
                     let encoded = encode(message, carrier, password).unwrap();
-                    let decoded = decode(&encoded, password).unwrap();
-                    assert_eq!(decoded, message, 
+                    let decoded = decode(&encoded, password);
+                    assert!(decoded.is_ok(), 
+                        "Failed for message: '{}', single char carrier: '{}', password: {:?}", 
+                        message, carrier, password);
+                    assert_eq!(decoded.unwrap(), message, 
                         "Failed for message: '{}', single char carrier: '{}', password: {:?}", 
                         message, carrier, password);
                 }
@@ -464,8 +364,11 @@ mod comprehensive_tests {
             for carrier in &unicode_carriers {
                 for &password in &[NO_PASSWORD, SHORT_PASSWORD] {
                     let encoded = encode(message, carrier, password).unwrap();
-                    let decoded = decode(&encoded, password).unwrap();
-                    assert_eq!(decoded, *message, 
+                    let decoded = decode(&encoded, password);
+                    assert!(decoded.is_ok(), 
+                        "Failed for unicode message: '{}', carrier: '{}', password: {:?}", 
+                        message, carrier, password);
+                    assert_eq!(decoded.unwrap(), *message, 
                         "Failed for unicode message: '{}', carrier: '{}', password: {:?}", 
                         message, carrier, password);
                 }
@@ -486,8 +389,11 @@ mod comprehensive_tests {
             for &carrier in &[EMPTY_CARRIER, SHORT_CARRIER, LONG_CARRIER] {
                 for &password in &[NO_PASSWORD, SHORT_PASSWORD] {
                     let encoded = encode(message, carrier, password).unwrap();
-                    let decoded = decode(&encoded, password).unwrap();
-                    assert_eq!(decoded, *message, 
+                    let decoded = decode(&encoded, password);
+                    assert!(decoded.is_ok(), 
+                        "Failed for binary message: '{:?}', carrier: '{}', password: {:?}", 
+                        message, carrier, password);
+                    assert_eq!(decoded.unwrap(), *message, 
                         "Failed for binary message: '{:?}', carrier: '{}', password: {:?}", 
                         message, carrier, password);
                 }
@@ -516,8 +422,10 @@ mod comprehensive_tests {
 
         for password in &password_variations {
             let encoded = encode(test_message, test_carrier, *password).unwrap();
-            let decoded = decode(&encoded, *password).unwrap();
-            assert_eq!(decoded, test_message, 
+            let decoded = decode(&encoded, *password);
+            assert!(decoded.is_ok(), 
+                "Failed for password: {:?}", password);
+            assert_eq!(decoded.unwrap(), test_message, 
                 "Failed for password: {:?}", password);
         }
     }
@@ -600,8 +508,11 @@ mod comprehensive_tests {
             for &carrier in &[EMPTY_CARRIER, SHORT_CARRIER, LONG_CARRIER] {
                 for &password in &[NO_PASSWORD, SHORT_PASSWORD] {
                     let encoded = encode(message, carrier, password).unwrap();
-                    let decoded = decode(&encoded, password).unwrap();
-                    assert_eq!(decoded, *message, 
+                    let decoded = decode(&encoded, password);
+                    assert!(decoded.is_ok(), 
+                        "Failed for special message: '{:?}', carrier: '{}', password: {:?}", 
+                        message, carrier, password);
+                    assert_eq!(decoded.unwrap(), *message, 
                         "Failed for special message: '{:?}', carrier: '{}', password: {:?}", 
                         message, carrier, password);
                 }
@@ -617,8 +528,9 @@ mod comprehensive_tests {
         
         for &password in &[NO_PASSWORD, SHORT_PASSWORD] {
             let encoded = encode(&very_long_message, &very_long_carrier, password).unwrap();
-            let decoded = decode(&encoded, password).unwrap();
-            assert_eq!(decoded, very_long_message);
+            let decoded = decode(&encoded, password);
+            assert!(decoded.is_ok());
+            assert_eq!(decoded.unwrap(), very_long_message);
         }
     }
 

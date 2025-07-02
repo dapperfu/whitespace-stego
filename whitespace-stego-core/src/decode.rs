@@ -146,6 +146,9 @@ pub fn decode_all(carrier: &str, password: Option<&str>) -> Result<Vec<String>, 
                     return Err(StegoError::decryption_failed("Password was only able to decode part of the secret message"));
                 }
             }
+        } else if crate::crypto::is_encrypted(&data) {
+            // If data is encrypted but no password is provided, return decryption error
+            return Err(StegoError::decryption_failed("Message is encrypted but no password was provided"));
         }
         
         // Base64 decode and convert to string
@@ -206,11 +209,16 @@ pub fn extract_encoded(carrier: &str) -> Result<(String, String), StegoError> {
         return Err(StegoError::invalid_carrier("End marker before start marker"));
     }
     let encoded = &carrier[start..end + END_MARKER.len_utf8()];
-    let remaining = format!(
+    let mut remaining = format!(
         "{}{}",
         &carrier[..start],
         &carrier[end + END_MARKER.len_utf8()..]
     );
+    // If the remaining carrier starts with a START_MARKER, remove it
+    // This handles the case where the original carrier started with a START_MARKER
+    if remaining.starts_with(START_MARKER) {
+        remaining = remaining[START_MARKER.len_utf8()..].to_string();
+    }
     Ok((encoded.to_string(), remaining))
 }
 

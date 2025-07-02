@@ -98,7 +98,18 @@ pub fn decrypt_data(data: &[u8], password: &str) -> Result<Vec<u8>, StegoError> 
 /// # Returns
 /// `true` if the data appears to be encrypted
 pub fn is_encrypted(data: &[u8]) -> bool {
-    data.len() >= 16  // At least IV length
+    if data.len() < 16 {
+        return false;  // Too short to be encrypted
+    }
+    
+    // If data is >= 16 bytes, check if it looks like base64 (unencrypted) vs random bytes (encrypted)
+    // Base64 data will have a high percentage of printable ASCII characters
+    let printable_count = data.iter().filter(|&&b| b >= 32 && b <= 126).count();
+    let printable_ratio = printable_count as f64 / data.len() as f64;
+    
+    // If more than 90% of bytes are printable ASCII, it's likely base64 (unencrypted)
+    // If less than 90% are printable, it's likely encrypted random bytes
+    printable_ratio < 0.9
 }
 
 #[cfg(test)]

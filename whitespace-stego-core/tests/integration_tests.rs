@@ -49,10 +49,9 @@ fn test_empty_message() {
     let message = "";
     let carrier = "Carrier text";
     
-    let encoded = encode(message, carrier, None).unwrap();
-    let decoded = decode(&encoded, None).unwrap();
-    
-    assert_eq!(decoded, message);
+    let result = encode(message, carrier, None);
+    assert!(result.is_err());
+    assert!(matches!(result.unwrap_err(), StegoError::EncodingFailed { .. }));
 }
 
 #[test]
