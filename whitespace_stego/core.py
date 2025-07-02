@@ -6,7 +6,7 @@ using zero-width Unicode whitespace characters.
 
 import base64
 import logging
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 import os
@@ -54,7 +54,19 @@ def _decode_binary(encoded: str) -> bytes:
     bytes
         The decoded binary data.
     """
-    binary = "".join("1" if char == ONE_BIT else "0" for char in encoded)
+    # Filter out only the zero-width characters we care about
+    filtered_encoded = ''.join(char for char in encoded if char in (ZERO_BIT, ONE_BIT))
+    
+    binary = "".join("1" if char == ONE_BIT else "0" for char in filtered_encoded)
+    
+    # Ensure the binary string length is a multiple of 8
+    if len(binary) % 8 != 0:
+        logger.warning(f"Binary string length {len(binary)} is not a multiple of 8, truncating")
+        binary = binary[:-(len(binary) % 8)]
+    
+    if not binary:
+        raise ValueError("No valid binary data found")
+    
     return bytes(int(binary[i : i + 8], 2) for i in range(0, len(binary), 8))
 
 
@@ -151,6 +163,118 @@ def decrypt_data(data: bytes, password: str) -> bytes:
     return data
 
 
+def _count_message_pairs(carrier: str) -> int:
+    """Count the number of start/end marker pairs in the carrier text.
+    
+    Parameters
+    ----------
+    carrier : str
+        The carrier text to analyze.
+        
+    Returns
+    -------
+    int
+        The number of complete start/end marker pairs found.
+    """
+    start_count = carrier.count(START_MARKER)
+    end_count = carrier.count(END_MARKER)
+    return min(start_count, end_count)
+
+
+def _find_next_slot(carrier: str) -> int:
+    """Find the next available slot for encoding a message.
+    
+    The algorithm places messages in slots between characters of the original carrier string, skipping over already-encoded messages.
+    - First message goes between characters 0 and 1
+    - Second message goes between characters 1 and 2
+    - And so on until the last character
+    - Remaining messages go before the last visible character
+    
+    Parameters
+    ----------
+    carrier : str
+        The carrier text to find a slot in.
+        
+    Returns
+    -------
+    int
+        The position where the next message should be inserted.
+    """
+    # Remove all encoded messages to get the original carrier
+    import re
+    pattern = re.compile(f"{START_MARKER}.*?{END_MARKER}")
+    cleaned_carrier = pattern.sub("", carrier)
+    
+    # Count how many messages are already encoded
+    existing_messages = _count_message_pairs(carrier)
+    logger.debug(f"Found {existing_messages} existing messages in carrier")
+    
+    # If no existing messages, place after first character
+    if existing_messages == 0:
+        position = 1 if len(cleaned_carrier) > 1 else 0
+        logger.debug(f"No existing messages, placing at position {position}")
+        return position
+    
+    # For subsequent messages, place in slots between characters
+    # until we reach the last character, then place before the last character
+    if existing_messages < len(cleaned_carrier) - 1:
+        position = existing_messages + 1
+        logger.debug(f"Placing message {existing_messages + 1} at position {position}")
+        return position
+    else:
+        # Place before the last visible character
+        position = len(cleaned_carrier) - 1
+        logger.debug(f"Placing message {existing_messages + 1} before last character at position {position}")
+        return position
+
+
+def _insert_message_at_position(carrier: str, encoded_message: str, position: int) -> str:
+    """Insert an encoded message at a specific position in the original carrier, skipping over already-encoded messages.
+    
+    Parameters
+    ----------
+    carrier : str
+        The carrier text (may already contain encoded messages).
+    encoded_message : str
+        The encoded message to insert.
+    position : int
+        The position to insert the message at (in the original carrier, not counting encoded messages).
+        
+    Returns
+    -------
+    str
+        The carrier text with the message inserted.
+    """
+    import re
+    # Remove all encoded messages to get the original carrier
+    pattern = re.compile(f"{START_MARKER}.*?{END_MARKER}")
+    cleaned_carrier = pattern.sub("", carrier)
+    
+    # Insert the encoded message at the correct position in the cleaned carrier
+    if position == 0:
+        new_carrier = encoded_message + cleaned_carrier
+    elif position >= len(cleaned_carrier):
+        new_carrier = cleaned_carrier + encoded_message
+    else:
+        new_carrier = cleaned_carrier[:position] + encoded_message + cleaned_carrier[position:]
+    
+    # Now, re-insert all previously encoded messages at their original positions in the original carrier
+    # We'll scan the original carrier and for each encoded message, insert it at the same index as before
+    # (relative to the cleaned carrier)
+    result = new_carrier
+    matches = list(pattern.finditer(carrier))
+    offset = 0
+    for match in matches:
+        # Find the position in the cleaned carrier where this encoded message was originally
+        # This is the number of non-encoded characters before the match.start()
+        pre = carrier[:match.start()]
+        cleaned_pre = pattern.sub("", pre)
+        insert_pos = len(cleaned_pre) + offset
+        result = result[:insert_pos] + match.group(0) + result[insert_pos:]
+        offset += len(match.group(0))
+    return result
+
+
 def encode(message: str, carrier: str = "", password: Optional[str] = None) -> str:
     """Encode a message into a carrier text using zero-width characters.
 
@@ -196,79 +320,113 @@ def encode(message: str, carrier: str = "", password: Optional[str] = None) -> s
         logger.info("Message encoded successfully")
         return encoded_message
 
-    # Embed in carrier after first Unicode character
-    chars = list(carrier)
-    if len(chars) > 1:
-        result = chars[0] + encoded_message + "".join(chars[1:])
-    else:
-        result = carrier + encoded_message
+    # Find the next available slot for this message
+    slot_position = _find_next_slot(carrier)
+    
+    # Insert the message at the appropriate position
+    result = _insert_message_at_position(carrier, encoded_message, slot_position)
 
-    logger.info("Message encoded successfully")
+    logger.info("Message encoded successfully at position %d", slot_position)
     return result
 
 
-def decode(carrier: str, password: Optional[str] = None) -> str:
-    """Decode a message from carrier text containing zero-width characters.
+def decode(carrier: str, password: Optional[str] = None) -> List[str]:
+    """Decode messages from carrier text containing zero-width characters.
 
     Parameters
     ----------
     carrier : str
-        The carrier text containing the encoded message.
+        The carrier text containing the encoded messages.
     password : str, optional
         Optional password for decryption.
 
     Returns
     -------
-    str
-        The decoded message.
+    List[str]
+        A list of decoded messages. Returns a single-item list for backward compatibility.
 
     Raises
     ------
     ValueError
         If no valid message is found in the carrier text.
     """
-    logger.debug("Decoding message from text: %s", carrier)
+    logger.debug("Decoding messages from text: %s", carrier)
     if password:
         logger.debug("Using password protection")
 
-    # Find the encoded message between markers
-    start = carrier.find(START_MARKER)
-    end = carrier.find(END_MARKER)
+    messages = []
     
-    # Check if both markers are found
-    if start == -1 or end == -1:
-        raise ValueError("No valid message found in carrier text")
+    # Find all start and end markers
+    start_positions = []
+    end_positions = []
     
-    # Check if end marker comes after start marker
-    if end <= start:
-        raise ValueError("Invalid marker order in carrier text")
+    pos = 0
+    while True:
+        start = carrier.find(START_MARKER, pos)
+        if start == -1:
+            break
+        start_positions.append(start)
+        pos = start + 1
     
-    print(f"[DEBUG] Python decode start: {start}, end: {end}")
-    print(f"[DEBUG] Python decode bytes at start: {carrier[start:start+4].encode('utf-8')}")
-    print(f"[DEBUG] Python decode bytes at end: {carrier[end:end+4].encode('utf-8')}")
-    # Extract the encoded message
-    encoded = carrier[start + len(START_MARKER) : end]
-    print(f"[DEBUG] Python decode extracted encoded message: {repr(encoded)}")
-    print(f"[DEBUG] Python decode extracted length: {len(encoded)}")
-    print(f"[DEBUG] Python decode codepoints: {[hex(ord(c)) for c in encoded[:20]]}")
-    binary = ''.join('1' if char == ONE_BIT else '0' for char in encoded)
-    print(f"[DEBUG] Python decode binary string: {binary[:80]}")
-    data = _decode_binary(encoded)
-
-    # Decrypt if password provided
-    if password:
+    pos = 0
+    while True:
+        end = carrier.find(END_MARKER, pos)
+        if end == -1:
+            break
+        end_positions.append(end)
+        pos = end + 1
+    
+    logger.debug(f"Found {len(start_positions)} start markers and {len(end_positions)} end markers")
+    
+    # Match start and end markers to extract messages
+    start_idx = 0
+    end_idx = 0
+    
+    while start_idx < len(start_positions) and end_idx < len(end_positions):
+        start_pos = start_positions[start_idx]
+        end_pos = end_positions[end_idx]
+        
+        # Find the next valid pair (end after start)
+        if end_pos <= start_pos:
+            end_idx += 1
+            continue
+        
+        # Extract the encoded message
+        encoded = carrier[start_pos + len(START_MARKER) : end_pos]
+        
+        logger.debug(f"Processing message {len(messages) + 1}: start={start_pos}, end={end_pos}, length={len(encoded)}")
+        
         try:
-            data = decrypt_data(data, password)
-        except Exception as e:
-            raise ValueError(f"Invalid password or corrupted data: {e}")
+            # Convert zero-width characters back to binary
+            data = _decode_binary(encoded)
 
-    # Base64 decode and convert to string
-    try:
-        result = base64.b64decode(data).decode("utf-8")
-        logger.info("Message decoded successfully")
-        return result
-    except Exception as e:
-        raise ValueError(f"Failed to decode message: {str(e)}")
+            # Decrypt if password provided
+            if password:
+                try:
+                    data = decrypt_data(data, password)
+                except Exception as e:
+                    logger.warning("Failed to decrypt message: %s", e)
+                    start_idx += 1
+                    end_idx += 1
+                    continue
+
+            # Base64 decode and convert to string
+            decoded_message = base64.b64decode(data).decode("utf-8")
+            messages.append(decoded_message)
+            logger.debug("Successfully decoded message: %s", decoded_message)
+            
+        except Exception as e:
+            logger.warning("Failed to decode message: %s", e)
+        
+        # Move to next pair
+        start_idx += 1
+        end_idx += 1
+    
+    if not messages:
+        raise ValueError("No valid messages found in carrier text")
+    
+    logger.info("Successfully decoded %d messages", len(messages))
+    return messages
 
 
 def extract_encoded(carrier: str) -> Tuple[str, str]:

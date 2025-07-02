@@ -160,11 +160,7 @@ def encode(
                 "--message/-m and --message-file/-mf are mutually exclusive."
             )
 
-        # Validate that exactly one carrier option is provided
-        if carrier is None and carrier_file is None:
-            raise click.UsageError(
-                "Either --carrier/-c or --carrier-file/-cf must be provided."
-            )
+        # Validate that carrier options are not both provided (carrier can be empty)
         if carrier is not None and carrier_file is not None:
             raise click.UsageError(
                 "--carrier/-c and --carrier-file/-cf are mutually exclusive."
@@ -178,13 +174,17 @@ def encode(
             message_content = message
             logger.debug("Using message from command line")
 
-        # Get the carrier content
+        # Check for empty message with humorous error
+        if not message_content:
+            raise click.UsageError("🤔 There's no point in encoding nothing! Even a blank canvas needs paint, and you're trying to hide invisible ink in invisible ink. Try again with an actual message!")
+
+        # Get the carrier content (can be empty)
         if carrier_file is not None:
             carrier_content = carrier_file.read_text(encoding="utf-8")
             logger.debug("Reading carrier from file: %s", carrier_file)
         else:
-            carrier_content = carrier
-            logger.debug("Using carrier from command line")
+            carrier_content = carrier or ""  # Handle None case for empty carrier
+            logger.debug("Using carrier from command line: %s", repr(carrier_content))
 
         logger.debug("Using password: %s", password if password else "None")
 
@@ -238,7 +238,7 @@ def decode(
 ):
     """Decode a message from a carrier using whitespace steganography."""
     try:
-        # Validate that exactly one carrier option is provided
+        # Validate that exactly one carrier option is provided for decode
         if carrier is None and carrier_file is None:
             raise click.UsageError(
                 "Either --carrier/-c or --carrier-file/-cf must be provided."
@@ -258,20 +258,30 @@ def decode(
 
         logger.debug("Using password: %s", password if password else "None")
 
-        # Decode the message
-        decoded = decode_message(carrier_content, password)
+        # Decode the messages
+        decoded_messages = decode_message(carrier_content, password)
 
-        logger.debug("Message successfully decoded")
+        logger.debug("Messages successfully decoded")
+
+        # Format output based on number of messages
+        if len(decoded_messages) == 1:
+            # Single message - output as before for backward compatibility
+            decoded_output = decoded_messages[0]
+            message_count_text = "Message"
+        else:
+            # Multiple messages - output as JSON-like format
+            decoded_output = "[\n" + "\n".join(f'  "{msg}"' for msg in decoded_messages) + "\n]"
+            message_count_text = f"{len(decoded_messages)} messages"
 
         # Output the decoded result
         if output is None or str(output) == "-":
             # Output to stdout
-            click.echo(decoded)
-            logger.debug("Message output to stdout")
+            click.echo(decoded_output)
+            logger.debug(f"{message_count_text} output to stdout")
         else:
             # Output to file
-            output.write_text(decoded, encoding="utf-8")
-            click.echo(f"Message successfully decoded to {output}")
+            output.write_text(decoded_output, encoding="utf-8")
+            click.echo(f"{message_count_text} successfully decoded to {output}")
     except Exception as e:
         click.echo(f"Error decoding message: {str(e)}", err=True)
         raise click.Abort()

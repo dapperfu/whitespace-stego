@@ -1,6 +1,6 @@
 """Decode messages using whitespace steganography."""
 
-from typing import Optional
+from typing import Optional, List
 import click
 from whitespace_stego.core import decode as core_decode
 import base64
@@ -20,16 +20,16 @@ ZERO_BIT = ZWSP
 ONE_BIT = ZWJ
 
 
-def decode_message(encoded_text: str, password: Optional[str] = None) -> str:
+def decode_message(encoded_text: str, password: Optional[str] = None) -> List[str]:
     """
-    Decode a message from text containing whitespace steganography.
+    Decode messages from text containing whitespace steganography.
 
     Args:
-        encoded_text: The text containing the hidden message
+        encoded_text: The text containing the hidden messages
         password: Optional password for decryption
 
     Returns:
-        The decoded message
+        A list of decoded messages
 
     Raises:
         ValueError: If no valid message is found or if the message is corrupted
@@ -50,7 +50,7 @@ def decode_message(encoded_text: str, password: Optional[str] = None) -> str:
         raise ValueError(f"Unknown backend: {backend}")
 
 
-def _decode_python(encoded_text: str, password: Optional[str] = None) -> str:
+def _decode_python(encoded_text: str, password: Optional[str] = None) -> List[str]:
     """Original Python implementation - now uses core implementation for consistency."""
     # Use the core implementation to ensure consistency across all backends
     return core_decode(encoded_text, password)
