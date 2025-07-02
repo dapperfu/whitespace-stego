@@ -59,6 +59,11 @@ def decode_message(encoded_text: str, password: Optional[str] = None) -> Union[s
             # Fallback to old decode function if decode_all is not available
             from whitespace_stego_backend import decode as rust_decode
             return rust_decode(encoded_text, password)
+    elif backend == "c":
+        # Use the C backend
+        from whitespace_stego.c_backend import decode as c_decode
+
+        return c_decode(encoded_text, password)
     else:
         raise ValueError(f"Unknown backend: {backend}")
 
