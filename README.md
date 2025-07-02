@@ -106,6 +106,10 @@ python3 -m whitespace_stego.cli decode --carrier-file your_file.txt
 ## 📚 Documentation (For the Serious Folks)
 
 - [📖 Usage & CLI/API Examples](docs/USAGE.md) - Because reading is fundamental
+- [🔧 Installation Guide](docs/INSTALLATION.md) - Get up and running quickly
+- [🏗️ System Architecture](docs/ARCHITECTURE.md) - Understand the system design
+- [🐳 Docker Guide](docs/DOCKER.md) - Containerized builds and deployment
+- [📋 API Reference](docs/API_REFERENCE.md) - Complete API documentation
 - [🧪 Testing & Quality Assurance](docs/TESTING.md) - For the perfectionists
 - [📓 Jupyter Notebooks Guide](docs/NOTEBOOKS.md) - For the data scientists
 - [🔒 Security Notes](docs/SECURITY.md) - For the paranoid
