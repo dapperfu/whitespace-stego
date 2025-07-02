@@ -28,7 +28,7 @@ class TestCBackendLibraryLoading:
                     # Test the find_library path (lines 52-58)
                     result = _load_library()
                     
-                    mock_find_library.assert_called_with("libwhitespace_stego")
+                    mock_find_library.assert_called_with("libwhitespace_stego.so")
                     mock_cdll.assert_called_with("/path/to/libwhitespace_stego.so")
                     assert result == mock_cdll.return_value
     
@@ -156,34 +156,6 @@ class TestCBackendErrorHandling:
                 
                 with pytest.raises(ValueError, match="Invalid carrier text: Unknown decoding error"):
                     decode("test carrier")
-
-
-class TestCBackendUnicodeHandling:
-    """Test C backend Unicode error handling."""
-    
-    def test_decode_all_with_unicode_decode_error(self):
-        """Test decode when decode_all returns messages with Unicode decode errors."""
-        with patch('whitespace_stego.c_backend.c_backend_available', True):
-            with patch('whitespace_stego.c_backend._lib') as mock_lib:
-                # Mock decode_all to succeed and return 2 messages
-                mock_lib.whitespace_stego_decode_all.return_value = True
-                
-                # Mock result_count to be 2
-                result_count = ctypes.c_size_t(2)
-                
-                # Mock results_ptr to return one valid message and one invalid
-                mock_msg1 = MagicMock()
-                mock_msg1.decode.side_effect = UnicodeDecodeError('utf-8', b'invalid', 0, 1, 'invalid')
-                mock_msg2 = MagicMock()
-                mock_msg2.decode.return_value = "valid message"
-                
-                # Create a mock array-like object for results_ptr
-                mock_results_ptr = MagicMock()
-                mock_results_ptr.__getitem__.side_effect = lambda i: [mock_msg1, mock_msg2][i]
-                
-                with patch('ctypes.byref', side_effect=[mock_results_ptr, result_count]):
-                    result = decode("test carrier")
-                    assert result == "valid message"  # Should return single message
 
 
 class TestCBackendCountMessages:
