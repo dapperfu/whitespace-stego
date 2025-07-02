@@ -22,8 +22,8 @@ RUN /opt/venv/bin/pip install --upgrade pip && \
 WORKDIR /build
 COPY . /build
 
-# Build and install the Rust backend in the venv
-RUN cd whitespace-stego-backend && /opt/venv/bin/maturin develop --release
+    # Build and install the Rust backend in the venv
+    RUN cd whitespace-stego-python && /opt/venv/bin/maturin develop --release
 
 # Install your Python package and dependencies in the venv
 RUN /opt/venv/bin/pip install .
