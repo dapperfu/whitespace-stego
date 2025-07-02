@@ -215,7 +215,7 @@ def decode(carrier: str, password: Optional[str] = None) -> Union[str, List[str]
         for i in range(result_count.value):
             msg_ptr = results_ptr[i]
             if msg_ptr:
-                messages.append(msg_ptr.value.decode('utf-8'))
+                messages.append(msg_ptr.decode('utf-8'))
         
         # Free the allocated memory
         _lib.whitespace_stego_free_all(results_ptr, result_count.value)

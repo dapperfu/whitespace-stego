@@ -330,6 +330,11 @@ def encode(message: str, carrier: str = "", password: Optional[str] = None) -> s
     return result
 
 
+class BadPasswordError(ValueError):
+    """Raised when a message cannot be decrypted due to an incorrect password."""
+    pass
+
+
 def decode(carrier: str, password: Optional[str] = None) -> Union[str, List[str]]:
     """Decode messages from carrier text containing zero-width characters.
 
@@ -349,6 +354,8 @@ def decode(carrier: str, password: Optional[str] = None) -> Union[str, List[str]
     ------
     ValueError
         If no valid message is found in the carrier text.
+    BadPasswordError
+        If a message cannot be decrypted due to an incorrect password.
     """
     logger.debug("Decoding messages from text: %s", carrier)
     if password:
@@ -406,15 +413,15 @@ def decode(carrier: str, password: Optional[str] = None) -> Union[str, List[str]
                     data = decrypt_data(data, password)
                 except Exception as e:
                     logger.warning("Failed to decrypt message: %s", e)
-                    start_idx += 1
-                    end_idx += 1
-                    continue
+                    raise BadPasswordError("Invalid password for one or more messages.") from e
 
             # Base64 decode and convert to string
             decoded_message = base64.b64decode(data).decode("utf-8")
             messages.append(decoded_message)
             logger.debug("Successfully decoded message: %s", decoded_message)
             
+        except BadPasswordError:
+            raise
         except Exception as e:
             logger.warning("Failed to decode message: %s", e)
         

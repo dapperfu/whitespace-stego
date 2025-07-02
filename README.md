@@ -142,3 +142,35 @@ MIT License. See [LICENSE](LICENSE). Because sharing is caring! ❤️
 Remember: The best steganography is the kind that makes people think you're just bad at typing. Keep it subtle, keep it sneaky, and most importantly — keep it fun! 🎉
 
 *"In a world full of visible secrets, be the invisible one."* ✨
+
+## Python C Backend (ctypes)
+
+A high-performance C backend is available for Python via ctypes. This backend uses the C implementation in `c/` and exposes it to Python for encoding and decoding.
+
+### Building the C Shared Library
+
+To use the C backend, you must first build the shared library:
+
+```sh
+cd c
+make shared
+```
+
+This will produce `lib/libwhitespace_stego.so`.
+
+### Using the C Backend in Python
+
+You can use the C backend via:
+
+```python
+from whitespace_stego.c_backend import encode, decode, is_available
+
+if is_available():
+    encoded = encode("my message", "my carrier", password="secret")
+    decoded = decode(encoded, password="secret")
+    print(decoded)
+else:
+    print("C backend not available!")
+```
+
+You can also select the C backend in the CLI with `--backend c`.
