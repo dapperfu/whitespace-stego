@@ -168,6 +168,10 @@ def encode(message: str, carrier: str = "", password: Optional[str] = None) -> s
     str
         The carrier text with the encoded message embedded.
     """
+    # Check for empty message with humorous error
+    if not message:
+        raise ValueError("🤔 There's no point in encoding nothing! Even a blank canvas needs paint, and you're trying to hide invisible ink in invisible ink. Try again with an actual message!")
+    
     logger.debug("Encoding message: %s", message)
     logger.debug("Using carrier: %s", carrier)
     if password:
@@ -230,14 +234,25 @@ def decode(carrier: str, password: Optional[str] = None) -> str:
     # Find the encoded message between markers
     start = carrier.find(START_MARKER)
     end = carrier.find(END_MARKER)
-
+    
+    # Check if both markers are found
     if start == -1 or end == -1:
         raise ValueError("No valid message found in carrier text")
-
+    
+    # Check if end marker comes after start marker
+    if end <= start:
+        raise ValueError("Invalid marker order in carrier text")
+    
+    print(f"[DEBUG] Python decode start: {start}, end: {end}")
+    print(f"[DEBUG] Python decode bytes at start: {carrier[start:start+4].encode('utf-8')}")
+    print(f"[DEBUG] Python decode bytes at end: {carrier[end:end+4].encode('utf-8')}")
     # Extract the encoded message
-    encoded = carrier[start + 1 : end]
-
-    # Convert from zero-width characters to bytes
+    encoded = carrier[start + len(START_MARKER) : end]
+    print(f"[DEBUG] Python decode extracted encoded message: {repr(encoded)}")
+    print(f"[DEBUG] Python decode extracted length: {len(encoded)}")
+    print(f"[DEBUG] Python decode codepoints: {[hex(ord(c)) for c in encoded[:20]]}")
+    binary = ''.join('1' if char == ONE_BIT else '0' for char in encoded)
+    print(f"[DEBUG] Python decode binary string: {binary[:80]}")
     data = _decode_binary(encoded)
 
     # Decrypt if password provided
@@ -280,8 +295,8 @@ def extract_encoded(carrier: str) -> Tuple[str, str]:
     if start == -1 or end == -1:
         raise ValueError("No valid message found in carrier text")
 
-    encoded = carrier[start : end + 1]
-    remaining = carrier[:start] + carrier[end + 1 :]
+    encoded = carrier[start : end + len(END_MARKER)]
+    remaining = carrier[:start] + carrier[end + len(END_MARKER) :]
 
     return encoded, remaining
 
