@@ -14,10 +14,10 @@ import (
 
 // Zero-width characters for encoding
 const (
-	ZERO_BIT     = "\u200b" // Zero-width space
-	ONE_BIT      = "\u200d" // Zero-width joiner
-	START_MARKER = "\ufeff" // Zero-width no-break space
-	END_MARKER   = "\u200c" // Zero-width non-joiner
+	ZERO_BIT     = '\u200b' // Zero-width space
+	ONE_BIT      = '\u200d' // Zero-width joiner
+	START_MARKER = '\ufeff' // Zero-width no-break space
+	END_MARKER   = '\u200c' // Zero-width non-joiner
 )
 
 // encodeBinary encodes binary data into zero-width characters
@@ -26,9 +26,9 @@ func encodeBinary(data []byte) string {
 	for _, b := range data {
 		for i := 7; i >= 0; i-- {
 			if (b>>i)&1 == 1 {
-				result.WriteString(ONE_BIT)
+				result.WriteString(string(ONE_BIT))
 			} else {
-				result.WriteString(ZERO_BIT)
+				result.WriteString(string(ZERO_BIT))
 			}
 		}
 	}
@@ -38,33 +38,32 @@ func encodeBinary(data []byte) string {
 // decodeBinary decodes zero-width characters back to binary data
 func decodeBinary(encoded string) ([]byte, error) {
 	// Filter out only the zero-width characters we care about
-	var filtered strings.Builder
+	var filtered []rune
 	for _, char := range encoded {
-		if char == rune(ZERO_BIT[0]) || char == rune(ONE_BIT[0]) {
-			filtered.WriteRune(char)
+		if char == ZERO_BIT || char == ONE_BIT {
+			filtered = append(filtered, char)
 		}
 	}
 
-	filteredStr := filtered.String()
-	if len(filteredStr) == 0 {
+	if len(filtered) == 0 {
 		return nil, fmt.Errorf("no valid binary data found")
 	}
 
 	// Ensure the binary string length is a multiple of 8
-	if len(filteredStr)%8 != 0 {
-		filteredStr = filteredStr[:len(filteredStr)-(len(filteredStr)%8)]
+	if len(filtered)%8 != 0 {
+		filtered = filtered[:len(filtered)-(len(filtered)%8)]
 	}
 
-	if len(filteredStr) == 0 {
+	if len(filtered) == 0 {
 		return nil, fmt.Errorf("no valid binary data found after truncation")
 	}
 
 	// Convert to bytes
-	result := make([]byte, len(filteredStr)/8)
-	for i := 0; i < len(filteredStr); i += 8 {
+	result := make([]byte, len(filtered)/8)
+	for i := 0; i < len(filtered); i += 8 {
 		var b byte
 		for j := 0; j < 8; j++ {
-			if filteredStr[i+j] == ONE_BIT[0] {
+			if filtered[i+j] == ONE_BIT {
 				b |= 1 << (7 - j)
 			}
 		}
@@ -166,8 +165,8 @@ func decryptData(data []byte, password string) ([]byte, error) {
 
 // countMessagePairs counts the number of start/end marker pairs in the carrier text
 func countMessagePairs(carrier string) int {
-	startCount := strings.Count(carrier, START_MARKER)
-	endCount := strings.Count(carrier, END_MARKER)
+	startCount := strings.Count(carrier, string(START_MARKER))
+	endCount := strings.Count(carrier, string(END_MARKER))
 	if startCount < endCount {
 		return startCount
 	}
@@ -222,7 +221,7 @@ func Encode(message string, carrier string, password string) (string, error) {
 	binaryEncoded := encodeBinary(finalData)
 
 	// Create the full encoded message with markers
-	encodedMessage := START_MARKER + binaryEncoded + END_MARKER
+	encodedMessage := string(START_MARKER) + binaryEncoded + string(END_MARKER)
 
 	// Find insertion position
 	position := findNextSlot(carrier)
@@ -245,44 +244,26 @@ func (e BadPasswordError) Error() string {
 // Decode decodes messages from a carrier
 func Decode(carrier string, password string) ([]string, error) {
 	var messages []string
-
-	// Find all start markers
-	startPositions := make([]int, 0)
-	for i := 0; i < len(carrier); {
-		pos := strings.Index(carrier[i:], START_MARKER)
-		if pos == -1 {
+	pos := 0
+	for {
+		start := strings.Index(carrier[pos:], string(START_MARKER))
+		if start == -1 {
 			break
 		}
-		startPositions = append(startPositions, i+pos)
-		i += pos + len(START_MARKER)
-	}
-
-	// Find all end markers
-	endPositions := make([]int, 0)
-	for i := 0; i < len(carrier); {
-		pos := strings.Index(carrier[i:], END_MARKER)
-		if pos == -1 {
+		start += pos
+		end := strings.Index(carrier[start+len(string(START_MARKER)):], string(END_MARKER))
+		if end == -1 {
 			break
 		}
-		endPositions = append(endPositions, i+pos)
-		i += pos + len(END_MARKER)
-	}
-
-	// Process each message
-	for i := 0; i < len(startPositions) && i < len(endPositions); i++ {
-		startPos := startPositions[i]
-		endPos := endPositions[i]
-
-		if startPos >= endPos {
-			continue
-		}
+		end += start + len(string(START_MARKER))
 
 		// Extract the encoded data between markers
-		encodedData := carrier[startPos+len(START_MARKER) : endPos]
+		encodedData := carrier[start+len(string(START_MARKER)) : end]
 
 		// Decode binary
 		decodedBytes, err := decodeBinary(encodedData)
 		if err != nil {
+			pos = end + len(string(END_MARKER))
 			continue // Skip invalid messages
 		}
 
@@ -301,10 +282,12 @@ func Decode(carrier string, password string) ([]string, error) {
 		// Base64 decode
 		decodedBytes, err = base64.StdEncoding.DecodeString(string(finalData))
 		if err != nil {
+			pos = end + len(string(END_MARKER))
 			continue // Skip invalid messages
 		}
 
 		messages = append(messages, string(decodedBytes))
+		pos = end + len(string(END_MARKER))
 	}
 
 	return messages, nil
@@ -312,7 +295,7 @@ func Decode(carrier string, password string) ([]string, error) {
 
 // HasEncodedMessage checks if a text contains encoded messages
 func HasEncodedMessage(text string) bool {
-	return strings.Contains(text, START_MARKER) && strings.Contains(text, END_MARKER)
+	return strings.Contains(text, string(START_MARKER)) && strings.Contains(text, string(END_MARKER))
 }
 
 // CountMessages counts the number of encoded messages in a carrier

@@ -217,10 +217,14 @@ def decode(carrier: str, password: Optional[str] = None) -> Union[str, List[str]
             messages = []
             for i in range(result_count.value):
                 msg_ptr = results_ptr[i]
+                print(f"msg_ptr[{i}]: {msg_ptr}")
                 if msg_ptr:
                     try:
-                        messages.append(msg_ptr.decode('utf-8'))
-                    except UnicodeDecodeError:
+                        decoded = msg_ptr.decode('utf-8')
+                        print(f"decoded[{i}]: {decoded}")
+                        messages.append(decoded)
+                    except UnicodeDecodeError as e:
+                        print(f"UnicodeDecodeError at {i}: {e}")
                         # Skip invalid UTF-8 messages
                         continue
             
