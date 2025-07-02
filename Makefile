@@ -1,5 +1,5 @@
 VENV?=.venv
-.PHONY: help venv install test coverage coverage-report coverage-analyze maturin-develop maturin-build cargo-build cargo-clean clean format rust c python-binary python-binary-docker wasi-web test-wasm test-wasm-only test-all git-clean
+.PHONY: help venv install test coverage coverage-report coverage-analyze maturin-develop maturin-build cargo-build cargo-clean clean format rust c go python-binary python-binary-docker wasi-web test-wasm test-wasm-only test-all git-clean
 # Default target
 help:
 	@echo "Available targets:"
@@ -26,6 +26,7 @@ help:
 	@echo "  format          - Format code (Rust and Python)"
 	@echo "  rust            - Build Rust CLI in release mode and copy to top-level directory"
 	@echo "  c               - Build C CLI in release mode and copy to top-level directory"
+	@echo "  go              - Build Go CLI in release mode and copy to top-level directory"
 	@echo "  python-binary   - Build Python CLI binary using PyInstaller (local)"
 	@echo "  python-binary-docker - Build portable Python CLI binary using Docker"
 	@echo "  wasi-web        - Build WASI web app and serve it at http://localhost:8000"
@@ -50,6 +51,7 @@ clean:
 	rm -rf build
 	rm -f whitespace-stego-rs
 	rm -f whitespace-stego-c
+	rm -f whitespace-stego-go
 	rm -f whitespace-stego-py
 	rm -rf htmlcov
 	rm -f coverage.xml
@@ -101,6 +103,11 @@ rust: venv
 c:
 	cd c && make clean && make
 	cp c/bin/whitespace-stego-c ./whitespace-stego-c
+
+# Build Go CLI in release mode and copy to top-level directory
+go:
+	cd go && make clean && make build
+	cp go/bin/whitespace-stego-go ./whitespace-stego-go
 
 # Build Python CLI binary using PyInstaller (local build)
 python-binary: venv
