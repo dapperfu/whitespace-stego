@@ -83,11 +83,9 @@ class TestDecodeMessage:
         Test that decode_message correctly uses rust backend (mocked import error).
         """
         click_context.obj["backend"] = "rust"
-        with patch('whitespace_stego.decode.decode_message') as mock_rust_decode:
-            mock_rust_decode.return_value = "decoded"
-            with patch('builtins.__import__', side_effect=ImportError("No rust backend")):
-                with pytest.raises(ImportError, match="No rust backend"):
-                    decode_message(sample_encoded_single)
+        with patch('whitespace_stego.decode.rust_decode_all', side_effect=ImportError("No rust backend")):
+            with pytest.raises(ValueError, match="Invalid carrier text"):
+                decode_message(sample_encoded_single)
 
     def test_decode_message_default_backend(self, sample_encoded_single, click_context):
         """

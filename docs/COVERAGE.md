@@ -16,11 +16,11 @@ The project uses `pytest-cov` to measure test coverage of the Python code. Cover
 Coverage is configured in `pytest.ini` with the following settings:
 
 ```ini
-addopts = --cov=whitespace_stego --cov=whitespace_stego_backend --cov-report=term-missing --cov-report=html:htmlcov --cov-report=xml:coverage.xml --cov-fail-under=80
+addopts = --cov=whitespace_stego --cov=whitespace_stego_rust --cov-report=term-missing --cov-report=html:htmlcov --cov-report=xml:coverage.xml --cov-fail-under=80
 ```
 
 This configuration:
-- Measures coverage for both `whitespace_stego` and `whitespace_stego_backend` packages
+- Measures coverage for both `whitespace_stego` and `whitespace_stego_rust` packages
 - Shows missing lines in terminal output
 - Generates HTML reports in `htmlcov/` directory
 - Generates XML reports as `coverage.xml`
@@ -31,7 +31,7 @@ Additional coverage configuration is in `.coveragerc`:
 
 ```ini
 [run]
-source = whitespace_stego,whitespace_stego_backend
+source = whitespace_stego,whitespace_stego_rust
 omit = 
     */tests/*
     */test_*
@@ -154,7 +154,7 @@ As of the latest test run:
 - `whitespace_stego/decode.py`: 100%
 - `whitespace_stego/encode.py`: 100%
 - `whitespace_stego/logger.py`: 94% (1 missing line)
-- `whitespace_stego_backend/__init__.py`: 100%
+- `whitespace_stego_rust/__init__.py`: 100%
 
 ## Improving Coverage
 

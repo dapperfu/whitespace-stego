@@ -4,6 +4,8 @@ from typing import Optional
 import click
 from whitespace_stego.core import encode as core_encode
 import base64
+from whitespace_stego_rust import encode as rust_encode
+from whitespace_stego.c_backend import encode as c_encode
 
 # Zero-width Unicode characters for encoding
 ZWSP = "\u200b"  # Zero-width space
@@ -45,13 +47,9 @@ def encode_message(message: str, carrier: str, password: Optional[str] = None) -
         return core_encode(message, carrier, password)
     elif backend == "rust":
         # Use the Rust backend
-        from whitespace_stego_backend import encode as rust_encode
-
         return rust_encode(message, carrier, password)
     elif backend == "c":
         # Use the C backend
-        from whitespace_stego.c_backend import encode as c_encode
-
         return c_encode(message, carrier, password)
     else:
         raise ValueError(f"Unknown backend: {backend}")

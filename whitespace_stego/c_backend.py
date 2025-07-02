@@ -60,14 +60,14 @@ def _load_library():
 # Load the library
 try:
     _lib = _load_library()
-    _C_BACKEND_AVAILABLE = True
+    c_backend_available = True
 except OSError as e:
     logger.warning(f"C backend not available: {e}")
-    _C_BACKEND_AVAILABLE = False
+    c_backend_available = False
     _lib = None
 
 # Define function signatures
-if _C_BACKEND_AVAILABLE:
+if c_backend_available:
     # whitespace_stego_encode
     _lib.whitespace_stego_encode.argtypes = [
         ctypes.c_char_p,  # carrier
@@ -134,7 +134,7 @@ def encode(message: str, carrier: str = "", password: Optional[str] = None) -> s
     RuntimeError
         If the C backend is not available or encoding fails.
     """
-    if not _C_BACKEND_AVAILABLE:
+    if not c_backend_available:
         raise RuntimeError("C backend not available. Please ensure the C library is built.")
     
     # Convert strings to UTF-8 bytes
@@ -189,11 +189,11 @@ def decode(carrier: str, password: Optional[str] = None) -> Union[str, List[str]
         
     Raises
     ------
-    RuntimeError
-        If the C backend is not available or decoding fails.
+    ValueError
+        If the C backend is not available, decoding fails, or wrong password is used.
     """
-    if not _C_BACKEND_AVAILABLE:
-        raise RuntimeError("C backend not available. Please ensure the C library is built.")
+    if not c_backend_available:
+        raise ValueError("C backend not available. Please ensure the C library is built.")
     
     # Convert strings to UTF-8 bytes
     carrier_bytes = carrier.encode('utf-8')
@@ -218,7 +218,11 @@ def decode(carrier: str, password: Optional[str] = None) -> Union[str, List[str]
             for i in range(result_count.value):
                 msg_ptr = results_ptr[i]
                 if msg_ptr:
-                    messages.append(msg_ptr.decode('utf-8'))
+                    try:
+                        messages.append(msg_ptr.decode('utf-8'))
+                    except UnicodeDecodeError:
+                        # Skip invalid UTF-8 messages
+                        continue
             
             # Free the allocated memory
             _lib.whitespace_stego_free_all(results_ptr, result_count.value)
@@ -232,9 +236,9 @@ def decode(carrier: str, password: Optional[str] = None) -> Union[str, List[str]
             # decode_all succeeded but returned 0 messages
             # This happens in multi-recipient scenarios when the password can't decrypt any messages
             if password:
-                # For multi-recipient scenarios with wrong password, return empty result
+                # For multi-recipient scenarios with wrong password, raise ValueError
                 # This matches Python's behavior
-                return ""
+                raise ValueError("Invalid password or no valid messages found in carrier text")
             else:
                 # No password and no messages found - this is an error
                 error_msg = _lib.whitespace_stego_last_error()
@@ -242,7 +246,7 @@ def decode(carrier: str, password: Optional[str] = None) -> Union[str, List[str]
                     error_str = error_msg.decode('utf-8')
                 else:
                     error_str = "No valid messages found in carrier text"
-                raise RuntimeError(f"Decoding failed: {error_str}")
+                raise ValueError(f"Invalid carrier text: {error_str}")
     
     # Try single message decode
     result_ptr = ctypes.c_char_p()
@@ -260,7 +264,7 @@ def decode(carrier: str, password: Optional[str] = None) -> Union[str, List[str]
             error_str = error_msg.decode('utf-8')
         else:
             error_str = "Unknown decoding error"
-        raise RuntimeError(f"Decoding failed: {error_str}")
+        raise ValueError(f"Invalid carrier text: {error_str}")
     
     # Get result and convert back to string
     result = result_ptr.value.decode('utf-8')
@@ -279,7 +283,7 @@ def is_available() -> bool:
     bool
         True if the C backend is available, False otherwise.
     """
-    return _C_BACKEND_AVAILABLE
+    return c_backend_available
 
 
 def count_messages(carrier: str) -> int:
@@ -298,7 +302,7 @@ def count_messages(carrier: str) -> int:
     int
         The number of messages embedded in the carrier text.
     """
-    if not _C_BACKEND_AVAILABLE:
+    if not c_backend_available:
         raise RuntimeError("C backend not available. Please ensure the C library is built.")
     
     # Use the same markers as the Python implementation

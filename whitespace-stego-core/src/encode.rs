@@ -233,6 +233,6 @@ pub fn get_encoded_message_size(text: &str) -> Option<usize> {
         return None;
     }
     
-    let encoded = &text[start + START_MARKER.len_utf8()..end];
+    let encoded = &text[start + START_MARKER.len()..end];
     Some(encoded.len() / 8) // Each byte is encoded as 8 zero-width characters
 } 

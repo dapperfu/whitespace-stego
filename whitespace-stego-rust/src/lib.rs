@@ -1,14 +1,16 @@
 use pyo3::prelude::*;
 use pyo3::exceptions::PyValueError;
 use whitespace_stego_core::{encode, decode, decode_all, count_messages, StegoError};
+use whitespace_stego_core::decode::decode_debug_log_only;
 
 /// A Python module implemented in Rust.
 #[pymodule]
-fn whitespace_stego_backend(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
+fn whitespace_stego_rust(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(encode_py, m)?)?;
     m.add_function(wrap_pyfunction!(decode_py, m)?)?;
     m.add_function(wrap_pyfunction!(decode_all_py, m)?)?;
     m.add_function(wrap_pyfunction!(count_messages_py, m)?)?;
+    m.add_function(wrap_pyfunction!(decode_debug_log_only_py, m)?)?;
     Ok(())
 }
 
@@ -30,6 +32,11 @@ pub fn decode_all_py(carrier: &str, password: Option<&str>) -> PyResult<Vec<Stri
 #[pyfunction]
 pub fn count_messages_py(carrier: &str) -> PyResult<usize> {
     Ok(count_messages(carrier))
+}
+
+#[pyfunction]
+fn decode_debug_log_only_py(carrier: &str) -> PyResult<()> {
+    decode_debug_log_only(carrier).map_err(|e| PyValueError::new_err(format!("{:?}", e)))
 }
 
 #[cfg(test)]

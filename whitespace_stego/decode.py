@@ -4,6 +4,9 @@ from typing import Optional, List, Union
 import click
 from whitespace_stego.core import decode as core_decode
 import base64
+from whitespace_stego_rust import decode_all as rust_decode_all
+from whitespace_stego_rust import decode as rust_decode
+from whitespace_stego.c_backend import decode as c_decode
 
 # Zero-width Unicode characters for encoding
 ZWSP = "\u200b"  # Zero-width space
@@ -48,7 +51,6 @@ def decode_message(encoded_text: str, password: Optional[str] = None) -> Union[s
     elif backend == "rust":
         # Use the Rust backend
         try:
-            from whitespace_stego_backend import decode_all as rust_decode_all
             messages = rust_decode_all(encoded_text, password)
             # Return string for single message, list for multiple messages (matching Python behavior)
             if len(messages) == 1:
@@ -57,12 +59,9 @@ def decode_message(encoded_text: str, password: Optional[str] = None) -> Union[s
                 return messages
         except ImportError:
             # Fallback to old decode function if decode_all is not available
-            from whitespace_stego_backend import decode as rust_decode
             return rust_decode(encoded_text, password)
     elif backend == "c":
         # Use the C backend
-        from whitespace_stego.c_backend import decode as c_decode
-
         return c_decode(encoded_text, password)
     else:
         raise ValueError(f"Unknown backend: {backend}")

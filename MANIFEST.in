@@ -5,7 +5,7 @@ include c/lib/libwhitespace_stego.so
 recursive-include c/include *.h
 
 # Include Rust backend
-recursive-include whitespace-stego-backend/whitespace_stego_backend *.so
+recursive-include whitespace-stego-rust/whitespace_stego_rust *.so
 
 # Include documentation
 include README.md

@@ -1,45 +1,32 @@
-"""Whitespace steganography package.
+"""Whitespace steganography library.
 
-Available backends:
-- Pure Python (default)
-- Rust (via PyO3, if installed)
-- C (via ctypes, if built)
+This library provides functionality for encoding and decoding messages
+using zero-width Unicode characters in carrier text.
 """
 
-from .core import encode as py_encode, decode as py_decode, count_messages as py_count_messages
-from .encode import encode_message
-from .decode import decode_message
+import sys
+from typing import List, Optional
 
-# Optionally import C backend
+from .core import encode, decode, count_messages
+
+# Try to import Rust backend for better performance
 try:
-    from .c_backend import encode as c_encode, decode as c_decode, is_available as c_available, count_messages as c_count_messages
+    from whitespace_stego_rust import encode as rust_encode, decode as rust_decode, count_messages as rust_count_messages
+    rust_available = True
 except ImportError:
-    c_encode = c_decode = c_count_messages = None
-    def c_available():
-        return False
+    rust_available = False
 
-# Optionally import Rust backend
+# Try to import C backend for better performance
 try:
-    from whitespace_stego_backend import encode as rust_encode, decode as rust_decode, count_messages as rust_count_messages
-    def rust_available():
-        return True
+    from .c_backend import encode as c_encode, decode as c_decode, count_messages as c_count_messages
+    c_available = True
 except ImportError:
-    rust_encode = rust_decode = rust_count_messages = None
-    def rust_available():
-        return False
+    c_available = False
 
+__version__ = "0.1.0"
 __all__ = [
-    "encode_message",
-    "decode_message",
-    "py_encode",
-    "py_decode",
-    "py_count_messages",
-    "c_encode",
-    "c_decode",
-    "c_available",
-    "c_count_messages",
-    "rust_encode",
-    "rust_decode",
-    "rust_available",
-    "rust_count_messages",
+    "encode", "decode", "count_messages",
+    "rust_available", "c_available",
+    "rust_encode", "rust_decode", "rust_count_messages",
+    "c_encode", "c_decode", "c_count_messages",
 ] 

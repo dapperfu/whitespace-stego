@@ -37,16 +37,9 @@ def write_file(file_path: str, content: str) -> None:
 
 def get_backend_implementation(backend: str, ctx=None):
     """Get the appropriate backend implementation."""
-    if backend == "python":
-        from whitespace_stego.core import encode as py_encode, decode as py_decode
-        return py_encode, py_decode
-    elif backend == "rust":
+    if backend == "rust":
         try:
-            from whitespace_stego_backend import (
-                encode as rust_encode,
-                decode as rust_decode,
-            )
-            return rust_encode, rust_decode
+            from whitespace_stego_rust import encode as rust_encode, decode as rust_decode
         except ImportError:
             msg = "Rust backend not available. Please ensure it is installed."
             if ctx is not None:
@@ -54,13 +47,10 @@ def get_backend_implementation(backend: str, ctx=None):
                 ctx.exit(1)
             else:
                 raise click.ClickException(msg)
+        return rust_encode, rust_decode
     elif backend == "c":
         try:
-            from whitespace_stego.c_backend import (
-                encode as c_encode,
-                decode as c_decode,
-            )
-            return c_encode, c_decode
+            from whitespace_stego.c_backend import encode as c_encode, decode as c_decode
         except ImportError:
             msg = "C backend not available. Please ensure it is installed."
             if ctx is not None:
@@ -68,6 +58,10 @@ def get_backend_implementation(backend: str, ctx=None):
                 ctx.exit(1)
             else:
                 raise click.ClickException(msg)
+        return c_encode, c_decode
+    elif backend == "python":
+        from whitespace_stego.core import encode, decode
+        return encode, decode
     else:
         raise click.UsageError(f"Unknown backend: {backend}")
 
