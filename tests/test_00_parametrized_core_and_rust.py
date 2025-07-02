@@ -1,20 +1,41 @@
 """
-Test 00: Parametrized Core (Python) and Rust PyO3 Backend
+Test 00: Parametrized Core (Python), Rust PyO3 Backend, and C Backend
 
-This test suite runs all encode/decode tests against both the Python and Rust backends.
+This test suite runs all encode/decode tests against the Python, Rust, and C backends.
 """
 
 import pytest
 import importlib
 
-# Import both backends
+# Import Python backend
 import whitespace_stego.core as pycore
-import whitespace_stego_backend as rustcore
 
+# Try to import Rust backend
+try:
+    import whitespace_stego_backend as rustcore
+    RUST_AVAILABLE = True
+except ImportError:
+    RUST_AVAILABLE = False
+    rustcore = None
+
+# Try to import C backend
+try:
+    from whitespace_stego.c_backend import encode as c_encode, decode as c_decode, is_available as c_is_available
+    C_AVAILABLE = c_is_available()
+except ImportError:
+    C_AVAILABLE = False
+    c_encode = c_decode = None
+
+# Build backends list
 BACKENDS = [
     ("python", pycore.encode, pycore.decode),
-    ("rust", rustcore.encode, rustcore.decode),
 ]
+
+if RUST_AVAILABLE:
+    BACKENDS.append(("rust", rustcore.encode, rustcore.decode))
+
+if C_AVAILABLE:
+    BACKENDS.append(("c", c_encode, c_decode))
 
 @pytest.mark.parametrize("backend_name,encode_func,decode_func", BACKENDS)
 @pytest.mark.parametrize("message,carrier,password", [
