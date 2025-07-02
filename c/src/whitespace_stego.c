@@ -182,76 +182,213 @@ bool whitespace_stego_decode(const char* carrier, size_t carrier_len, const char
         return false;
     }
     
+    // Use the multiple message decoder and return the first message
+    char** results = NULL;
+    size_t result_count = 0;
+    
+    if (!whitespace_stego_decode_all(carrier, carrier_len, password, &results, &result_count)) {
+        return false;
+    }
+    
+    if (result_count == 0) {
+        snprintf(last_error, sizeof(last_error), "No valid messages found in carrier text");
+        return false;
+    }
+    
+    // Return the first message
+    *result = results[0];
+    
+    // Free the array but keep the first message
+    if (result_count > 1) {
+        free(results);
+    }
+    
+    return true;
+}
+
+bool whitespace_stego_decode_all(const char* carrier, size_t carrier_len, const char* password,
+                                char*** results, size_t* result_count) {
+    if (!carrier || !results || !result_count) {
+        snprintf(last_error, sizeof(last_error), "No carrier or result pointers provided");
+        return false;
+    }
+    
     // Create a null-terminated copy for string operations
     char* carrier_copy = malloc(carrier_len + 1);
     if (!carrier_copy) return false;
     memcpy(carrier_copy, carrier, carrier_len);
     carrier_copy[carrier_len] = '\0';
     
-    // Find start and end marker
-    const char* start = strstr(carrier_copy, START_MARKER);
-    if (!start) { free(carrier_copy); return false; }
-    start += strlen(START_MARKER);
-    const char* end = strstr(start, END_MARKER);
-    if (!end) { free(carrier_copy); return false; }
-    size_t zw_len = end - start;
-    char* zw = malloc(zw_len + 1);
-    if (!zw) { free(carrier_copy); return false; }
-    strncpy(zw, start, zw_len);
-    zw[zw_len] = '\0';
-    free(carrier_copy);
-
-    // Decode zero-width to base64
-    size_t b64_len = 0;
-    unsigned char* b64_bytes = decode_binary(zw, &b64_len);
-    free(zw);
-    if (!b64_bytes) return false;
-
-    // Convert base64 bytes to string
-    char* b64_str = malloc(b64_len + 1);
-    if (!b64_str) { free(b64_bytes); return false; }
-    memcpy(b64_str, b64_bytes, b64_len);
-    b64_str[b64_len] = '\0';
-    free(b64_bytes);
-
-    // Decrypt if password
-    unsigned char* plain = NULL;
-    size_t plain_len = 0;
-    if (password && password[0]) {
-        unsigned char* encrypted = NULL;
-        size_t encrypted_len = 0;
-        if (!from_base64(b64_str, &encrypted, &encrypted_len)) {
-            snprintf(last_error, sizeof(last_error), "Base64 decode failed");
-            free(b64_str);
-            return false;
-        }
-        if (!crypto_decrypt(encrypted, encrypted_len, password, &plain, &plain_len)) {
-            snprintf(last_error, sizeof(last_error), "Decryption failed: wrong password or corrupted data");
-            utils_free(encrypted);
-            free(b64_str);
-            return false;
-        }
-        utils_free(encrypted);
-        free(b64_str);
-    } else {
-        if (!from_base64(b64_str, &plain, &plain_len)) {
-            snprintf(last_error, sizeof(last_error), "Base64 decode failed");
-            free(b64_str);
-            return false;
-        }
-        free(b64_str);
+    // Find all start and end markers
+    size_t* start_positions = NULL;
+    size_t* end_positions = NULL;
+    size_t start_count = 0;
+    size_t end_count = 0;
+    size_t max_markers = 1000; // Reasonable limit
+    
+    start_positions = malloc(max_markers * sizeof(size_t));
+    end_positions = malloc(max_markers * sizeof(size_t));
+    if (!start_positions || !end_positions) {
+        free(carrier_copy);
+        free(start_positions);
+        free(end_positions);
+        return false;
     }
-    // Copy to result as null-terminated string
-    *result = malloc(plain_len + 1);
-    if (!*result) { crypto_free(plain); return false; }
-    memcpy(*result, plain, plain_len);
-    (*result)[plain_len] = '\0';
-    crypto_free(plain);
+    
+    // Find all start markers
+    const char* pos = carrier_copy;
+    while ((pos = strstr(pos, START_MARKER)) != NULL) {
+        if (start_count >= max_markers) break;
+        start_positions[start_count++] = pos - carrier_copy;
+        pos += strlen(START_MARKER);
+    }
+    
+    // Find all end markers
+    pos = carrier_copy;
+    while ((pos = strstr(pos, END_MARKER)) != NULL) {
+        if (end_count >= max_markers) break;
+        end_positions[end_count++] = pos - carrier_copy;
+        pos += strlen(END_MARKER);
+    }
+    
+    // Allocate results array
+    char** messages = malloc(max_markers * sizeof(char*));
+    if (!messages) {
+        free(carrier_copy);
+        free(start_positions);
+        free(end_positions);
+        return false;
+    }
+    
+    size_t message_count = 0;
+    size_t start_idx = 0;
+    size_t end_idx = 0;
+    
+    // Match start and end markers to extract messages
+    while (start_idx < start_count && end_idx < end_count) {
+        size_t start_pos = start_positions[start_idx];
+        size_t end_pos = end_positions[end_idx];
+        
+        // Find the next valid pair (end after start)
+        if (end_pos <= start_pos) {
+            end_idx++;
+            continue;
+        }
+        
+        // Extract the encoded message
+        size_t zw_len = end_pos - (start_pos + strlen(START_MARKER));
+        char* zw = malloc(zw_len + 1);
+        if (!zw) {
+            // Cleanup and continue
+            start_idx++;
+            end_idx++;
+            continue;
+        }
+        strncpy(zw, carrier_copy + start_pos + strlen(START_MARKER), zw_len);
+        zw[zw_len] = '\0';
+        
+        // Decode zero-width to base64
+        size_t b64_len = 0;
+        unsigned char* b64_bytes = decode_binary(zw, &b64_len);
+        free(zw);
+        if (!b64_bytes) {
+            start_idx++;
+            end_idx++;
+            continue;
+        }
+        
+        // Convert base64 bytes to string
+        char* b64_str = malloc(b64_len + 1);
+        if (!b64_str) {
+            free(b64_bytes);
+            start_idx++;
+            end_idx++;
+            continue;
+        }
+        memcpy(b64_str, b64_bytes, b64_len);
+        b64_str[b64_len] = '\0';
+        free(b64_bytes);
+        
+        // Decrypt if password
+        unsigned char* plain = NULL;
+        size_t plain_len = 0;
+        bool decrypt_success = true;
+        
+        if (password && password[0]) {
+            unsigned char* encrypted = NULL;
+            size_t encrypted_len = 0;
+            if (!from_base64(b64_str, &encrypted, &encrypted_len)) {
+                decrypt_success = false;
+            } else if (!crypto_decrypt(encrypted, encrypted_len, password, &plain, &plain_len)) {
+                decrypt_success = false;
+                utils_free(encrypted);
+            } else {
+                utils_free(encrypted);
+            }
+        } else {
+            if (!from_base64(b64_str, &plain, &plain_len)) {
+                decrypt_success = false;
+            }
+        }
+        
+        free(b64_str);
+        
+        if (decrypt_success && plain) {
+            // Copy to result as null-terminated string
+            char* message = malloc(plain_len + 1);
+            if (message) {
+                memcpy(message, plain, plain_len);
+                message[plain_len] = '\0';
+                messages[message_count++] = message;
+            }
+            crypto_free(plain);
+        }
+        
+        // Move to next pair
+        start_idx++;
+        end_idx++;
+    }
+    
+    // Cleanup
+    free(carrier_copy);
+    free(start_positions);
+    free(end_positions);
+    
+    if (message_count == 0) {
+        free(messages);
+        snprintf(last_error, sizeof(last_error), "No valid messages found in carrier text");
+        return false;
+    }
+    
+    // Resize the messages array to exact size
+    char** final_messages = realloc(messages, message_count * sizeof(char*));
+    if (!final_messages) {
+        // Cleanup existing messages
+        for (size_t i = 0; i < message_count; i++) {
+            free(messages[i]);
+        }
+        free(messages);
+        return false;
+    }
+    
+    *results = final_messages;
+    *result_count = message_count;
     return true;
 }
 
 void whitespace_stego_free(char* ptr) {
     if (ptr) {
         free(ptr);
+    }
+}
+
+void whitespace_stego_free_all(char** results, size_t count) {
+    if (results) {
+        for (size_t i = 0; i < count; i++) {
+            if (results[i]) {
+                free(results[i]);
+            }
+        }
+        free(results);
     }
 } 

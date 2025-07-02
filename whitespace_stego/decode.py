@@ -35,16 +35,30 @@ def decode_message(encoded_text: str, password: Optional[str] = None) -> Union[s
         ValueError: If no valid message is found or if the message is corrupted
     """
     # Get the backend from CLI context
-    ctx = click.get_current_context()
-    backend = ctx.obj.get("backend", "python") if ctx.obj else "python"
+    try:
+        ctx = click.get_current_context()
+        backend = ctx.obj.get("backend", "python") if ctx.obj else "python"
+    except RuntimeError:
+        # No click context available, default to python backend
+        backend = "python"
 
     if backend == "python":
         # Use the core Python implementation
         return core_decode(encoded_text, password)
     elif backend == "rust":
         # Use the Rust backend
-        from whitespace_stego_backend import decode as rust_decode
-        return rust_decode(encoded_text, password)
+        try:
+            from whitespace_stego_backend import decode_all as rust_decode_all
+            messages = rust_decode_all(encoded_text, password)
+            # Return string for single message, list for multiple messages (matching Python behavior)
+            if len(messages) == 1:
+                return messages[0]
+            else:
+                return messages
+        except ImportError:
+            # Fallback to old decode function if decode_all is not available
+            from whitespace_stego_backend import decode as rust_decode
+            return rust_decode(encoded_text, password)
     else:
         raise ValueError(f"Unknown backend: {backend}")
 

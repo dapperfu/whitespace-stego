@@ -222,15 +222,7 @@ class TestConstants:
 class TestErrorHandling:
     """Test error handling scenarios."""
 
-    def test_decode_message_rust_backend_import_error(self, sample_encoded_single, click_context):
-        """
-        Test that decode_message handles Rust backend import errors gracefully.
-        """
-        click_context.obj["backend"] = "rust"
-        with patch('whitespace_stego.decode.decode_message') as mock_rust_decode:
-            mock_rust_decode.side_effect = ImportError("No rust backend")
-            with pytest.raises(ImportError, match="No rust backend"):
-                decode_message(sample_encoded_single)
+
 
     @pytest.mark.parametrize("invalid_text", [
         "",

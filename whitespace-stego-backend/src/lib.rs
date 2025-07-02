@@ -1,12 +1,13 @@
 use pyo3::prelude::*;
 use pyo3::exceptions::PyValueError;
-use whitespace_stego_core::{encode, decode, StegoError};
+use whitespace_stego_core::{encode, decode, decode_all, StegoError};
 
 /// A Python module implemented in Rust.
 #[pymodule]
 fn whitespace_stego_backend(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(encode_py, m)?)?;
     m.add_function(wrap_pyfunction!(decode_py, m)?)?;
+    m.add_function(wrap_pyfunction!(decode_all_py, m)?)?;
     Ok(())
 }
 
@@ -18,6 +19,11 @@ pub fn encode_py(message: &str, carrier: &str, password: Option<&str>) -> PyResu
 #[pyfunction]
 pub fn decode_py(carrier: &str, password: Option<&str>) -> PyResult<String> {
     decode(carrier, password).map_err(|e| PyValueError::new_err(e.to_string()))
+}
+
+#[pyfunction]
+pub fn decode_all_py(carrier: &str, password: Option<&str>) -> PyResult<Vec<String>> {
+    decode_all(carrier, password).map_err(|e| PyValueError::new_err(e.to_string()))
 }
 
 #[cfg(test)]
@@ -37,5 +43,28 @@ mod tests {
     fn test_decode_py_invalid() {
         let result = decode_py("not encoded", None);
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_multiple_messages() {
+        let message1 = "First message";
+        let message2 = "Second message";
+        let carrier = "Carrier text";
+        
+        // Encode first message
+        let encoded1 = encode_py(message1, carrier, None).unwrap();
+        
+        // Encode second message
+        let encoded2 = encode_py(message2, &encoded1, None).unwrap();
+        
+        // Decode all messages
+        let decoded_all = decode_all_py(&encoded2, None).unwrap();
+        assert_eq!(decoded_all.len(), 2);
+        assert_eq!(decoded_all[0], message1);
+        assert_eq!(decoded_all[1], message2);
+        
+        // Decode as single string (should be joined with newlines)
+        let decoded_single = decode_py(&encoded2, None).unwrap();
+        assert_eq!(decoded_single, format!("{}\n{}", message1, message2));
     }
 } 

@@ -292,27 +292,67 @@ static int handle_decode(int argc, char* argv[]) {
     debug_log("Decoding message from file: %s", carrier_file);
     debug_log("Using password: %s", password ? password : "None");
     
-    // Decode the message
-    char* result = NULL;
-    if (!whitespace_stego_decode(carrier, carrier_len, password, &result)) {
+    // Decode all messages
+    char** results = NULL;
+    size_t result_count = 0;
+    if (!whitespace_stego_decode_all(carrier, carrier_len, password, &results, &result_count)) {
         fprintf(stderr, "Error decoding message: %s\n", whitespace_stego_last_error());
         free(carrier);
         return 1;
     }
     
+    // Prepare output content
+    char* output_content = NULL;
+    size_t output_len = 0;
+    
+    if (result_count == 1) {
+        // Single message - output as is
+        output_content = strdup(results[0]);
+        output_len = strlen(output_content);
+    } else {
+        // Multiple messages - output each on a separate line
+        // Calculate total length needed
+        size_t total_len = 0;
+        for (size_t i = 0; i < result_count; i++) {
+            total_len += strlen(results[i]) + 1; // +1 for newline
+        }
+        
+        output_content = malloc(total_len + 1);
+        if (!output_content) {
+            whitespace_stego_free_all(results, result_count);
+            free(carrier);
+            return 1;
+        }
+        
+        char* pos = output_content;
+        for (size_t i = 0; i < result_count; i++) {
+            size_t msg_len = strlen(results[i]);
+            memcpy(pos, results[i], msg_len);
+            pos += msg_len;
+            *pos++ = '\n';
+        }
+        *pos = '\0';
+        output_len = pos - output_content;
+    }
+    
     // Write the result
-    size_t result_len = strlen(result);
-    if (!write_file(output_file, result, result_len)) {
+    if (!write_file(output_file, output_content, output_len)) {
+        whitespace_stego_free_all(results, result_count);
         free(carrier);
-        free(result);
+        free(output_content);
         return 1;
     }
     
-    fprintf(stdout, "Message successfully decoded into %s\n", output_file);
+    if (result_count == 1) {
+        fprintf(stdout, "Message successfully decoded into %s\n", output_file);
+    } else {
+        fprintf(stdout, "%zu messages successfully decoded into %s\n", result_count, output_file);
+    }
     
     // Cleanup
+    whitespace_stego_free_all(results, result_count);
     free(carrier);
-    free(result);
+    free(output_content);
     return 0;
 }
 

@@ -72,7 +72,7 @@ pub use constants::{END_MARKER, ONE_BIT, START_MARKER, ZERO_BIT};
 pub use error::StegoError;
 
 // Re-export main functions
-pub use decode::{decode, decode_binary, extract_encoded, get_encoded_message_position};
+pub use decode::{decode, decode_all, decode_binary, extract_encoded, get_encoded_message_position};
 pub use encode::{encode, encode_binary, get_encoded_message_size, has_encoded_message};
 
 // Re-export crypto functions for advanced usage
