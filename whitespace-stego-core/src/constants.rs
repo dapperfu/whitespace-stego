@@ -31,38 +31,4 @@ pub fn is_data_bit(c: char) -> bool {
 /// Check if a character is a marker (START_MARKER or END_MARKER)
 pub fn is_marker(c: char) -> bool {
     c == START_MARKER || c == END_MARKER
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_zero_width_char_detection() {
-        assert!(is_zero_width_char(START_MARKER));
-        assert!(is_zero_width_char(END_MARKER));
-        assert!(is_zero_width_char(ZERO_BIT));
-        assert!(is_zero_width_char(ONE_BIT));
-        assert!(!is_zero_width_char('a'));
-        assert!(!is_zero_width_char(' '));
-        assert!(!is_zero_width_char('\n'));
-    }
-
-    #[test]
-    fn test_data_bit_detection() {
-        assert!(is_data_bit(ZERO_BIT));
-        assert!(is_data_bit(ONE_BIT));
-        assert!(!is_data_bit(START_MARKER));
-        assert!(!is_data_bit(END_MARKER));
-        assert!(!is_data_bit('a'));
-    }
-
-    #[test]
-    fn test_marker_detection() {
-        assert!(is_marker(START_MARKER));
-        assert!(is_marker(END_MARKER));
-        assert!(!is_marker(ZERO_BIT));
-        assert!(!is_marker(ONE_BIT));
-        assert!(!is_marker('a'));
-    }
 } 

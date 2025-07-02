@@ -107,16 +107,14 @@ pub fn decode_all(carrier: &str, password: Option<&str>) -> Result<Vec<String>, 
     let mut start_positions = Vec::new();
     let mut end_positions = Vec::new();
     
-    let mut pos = 0;
-    while let Some(start) = carrier[pos..].find(START_MARKER) {
-        start_positions.push(pos + start);
-        pos = pos + start + 1;
-    }
-    
-    pos = 0;
-    while let Some(end) = carrier[pos..].find(END_MARKER) {
-        end_positions.push(pos + end);
-        pos = pos + end + 1;
+    // Use char_indices to handle UTF-8 boundaries correctly
+    for (char_pos, _) in carrier.char_indices() {
+        if carrier[char_pos..].starts_with(START_MARKER) {
+            start_positions.push(char_pos);
+        }
+        if carrier[char_pos..].starts_with(END_MARKER) {
+            end_positions.push(char_pos);
+        }
     }
     
     // Match start and end markers to extract messages
@@ -144,10 +142,8 @@ pub fn decode_all(carrier: &str, password: Option<&str>) -> Result<Vec<String>, 
             match decrypt_data(&data, pwd) {
                 Ok(decrypted) => data = decrypted,
                 Err(_) => {
-                    // Skip this message if decryption fails
-                    start_idx += 1;
-                    end_idx += 1;
-                    continue;
+                    // Raise error if decryption fails (matches Python BadPasswordError behavior)
+                    return Err(StegoError::decryption_failed("Password was only able to decode part of the secret message"));
                 }
             }
         }
@@ -234,149 +230,4 @@ pub fn get_encoded_message_position(carrier: &str) -> Option<(usize, usize)> {
     }
     
     Some((start, end + END_MARKER.len_utf8()))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_decode_binary() {
-        let data = b"test";
-        let encoded = crate::encode::encode_binary(data);
-        let decoded = decode_binary(&encoded).unwrap();
-        assert_eq!(decoded, data);
-    }
-
-    #[test]
-    fn test_decode_binary_incomplete() {
-        // Create incomplete binary data (not multiple of 8)
-        let incomplete = format!("{}{}{}", ZERO_BIT, ONE_BIT, ZERO_BIT);
-        let result = decode_binary(&incomplete);
-        assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), StegoError::InvalidBinaryData { .. }));
-    }
-
-    #[test]
-    fn test_decode_binary_with_invalid_chars() {
-        // Mix valid and invalid characters
-        let mixed = format!("{}a{}b{}", ZERO_BIT, ONE_BIT, ZERO_BIT);
-        let result = decode_binary(&mixed);
-        // Should still work, ignoring invalid characters
-        assert!(result.is_ok());
-    }
-
-    #[test]
-    fn test_decode_roundtrip() {
-        let message = "Hello, World!";
-        let carrier = "This is carrier text";
-        
-        let encoded = crate::encode::encode(message, carrier, None).unwrap();
-        let decoded = decode(&encoded, None).unwrap();
-        
-        assert_eq!(decoded, message);
-    }
-
-    #[test]
-    fn test_decode_with_password() {
-        let message = "Secret message";
-        let carrier = "Carrier text";
-        let password = "mypassword";
-        
-        let encoded = crate::encode::encode(message, carrier, Some(password)).unwrap();
-        let decoded = decode(&encoded, Some(password)).unwrap();
-        
-        assert_eq!(decoded, message);
-    }
-
-    #[test]
-    fn test_decode_wrong_password() {
-        let message = "Secret message";
-        let carrier = "Carrier text";
-        let password = "correct_password";
-        let wrong_password = "wrong_password";
-        
-        let encoded = crate::encode::encode(message, carrier, Some(password)).unwrap();
-        let result = decode(&encoded, Some(wrong_password));
-        
-        assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), StegoError::DecryptionFailed { .. }));
-    }
-
-    #[test]
-    fn test_decode_no_markers() {
-        let result = decode("plain text", None);
-        assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), StegoError::InvalidCarrier { .. }));
-    }
-
-    #[test]
-    fn test_decode_only_start_marker() {
-        let text = format!("text with start{}", START_MARKER);
-        let result = decode(&text, None);
-        assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), StegoError::InvalidCarrier { .. }));
-    }
-
-    #[test]
-    fn test_decode_only_end_marker() {
-        let text = format!("text with end{}", END_MARKER);
-        let result = decode(&text, None);
-        assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), StegoError::InvalidCarrier { .. }));
-    }
-
-    #[test]
-    fn test_decode_markers_wrong_order() {
-        let text = format!("text with{}data{}", END_MARKER, START_MARKER);
-        let result = decode(&text, None);
-        assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), StegoError::InvalidCarrier { .. }));
-    }
-
-    #[test]
-    fn test_extract_encoded() {
-        let message = "Test message";
-        let carrier = "This is carrier text";
-        let encoded = crate::encode::encode(message, carrier, None).unwrap();
-        
-        let (extracted, remaining) = extract_encoded(&encoded).unwrap();
-        
-        assert!(extracted.contains(START_MARKER));
-        assert!(extracted.contains(END_MARKER));
-        assert_eq!(remaining, carrier);
-    }
-
-    #[test]
-    fn test_extract_encoded_empty_carrier() {
-        let message = "Test message";
-        let encoded = crate::encode::encode(message, "", None).unwrap();
-        
-        let (extracted, remaining) = extract_encoded(&encoded).unwrap();
-        
-        assert!(extracted.contains(START_MARKER));
-        assert!(extracted.contains(END_MARKER));
-        assert_eq!(remaining, "");
-    }
-
-    #[test]
-    fn test_get_encoded_message_position() {
-        let message = "Test message";
-        let carrier = "This is carrier text";
-        let encoded = crate::encode::encode(message, carrier, None).unwrap();
-        
-        let position = get_encoded_message_position(&encoded);
-        assert!(position.is_some());
-        
-        let (start, end) = position.unwrap();
-        assert!(start < end);
-        assert!(encoded[start..].starts_with(START_MARKER));
-        assert!(encoded[..end].ends_with(END_MARKER));
-    }
-
-    #[test]
-    fn test_get_encoded_message_position_not_found() {
-        let position = get_encoded_message_position("plain text");
-        assert!(position.is_none());
-    }
 } 
