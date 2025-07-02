@@ -18,13 +18,11 @@ dependencies = [
     "maturin>=1.0.0",
 ]
 
+[tool.hatch.build]
+files = ["whitespace_stego/libwhitespace_stego.so"]
+
 [tool.hatch.build.targets.wheel]
 packages = ["whitespace_stego"]
-
-[tool.hatch.build.targets.wheel.sources]
-"c/lib/libwhitespace_stego.so" = "whitespace_stego/c/libwhitespace_stego.so"
-"c/include" = "whitespace_stego/c/include"
-"whitespace-stego-backend/whitespace_stego_backend/*.so" = "whitespace_stego/rust_backend/"
 
 [project.scripts]
 whitespace-stego = "whitespace_stego.cli:main"
@@ -39,9 +37,6 @@ dev = [
     "build>=0.10.0",
     "twine>=4.0.0",
 ]
-
-[tool.hatch.build.hooks.custom]
-path = "build_package.py:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

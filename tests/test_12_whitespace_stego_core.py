@@ -141,12 +141,10 @@ def test_multi_recipient_partial_decode_behavior():
     c1 = core.encode(m1, carrier, p1)
     c2 = core.encode(m2, c1, p2)
     c3 = core.encode(m3, c2, p3)
-    # Decoding with wrong password should raise BadPasswordError (partial decode)
+    # Decoding with wrong password should raise BadPasswordError (no messages can be decrypted)
     with pytest.raises(core.BadPasswordError):
         core.decode(c3, password="wrong")
-    with pytest.raises(core.BadPasswordError):
-        core.decode(c3, password=p2)  # Only p2, not all messages
     # Decoding with correct password for each message returns only that message
     assert core.decode(c3, password=p1) == m1
-    assert core.decode(c3, password=p2) == m2 or core.decode(c3, password=p2) == m1  # Accepts either if implementation returns first found
-    assert core.decode(c3, password=p3) == m3 or core.decode(c3, password=p1) == m1 
+    assert core.decode(c3, password=p2) == m2
+    assert core.decode(c3, password=p3) == m3 

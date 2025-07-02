@@ -368,6 +368,7 @@ def decode(carrier: str, password: Optional[str] = None) -> Union[str, List[str]
         logger.debug("Using password protection")
 
     messages = []
+    decryption_failures = 0
     
     # Find all start and end markers
     start_positions = []
@@ -419,22 +420,40 @@ def decode(carrier: str, password: Optional[str] = None) -> Union[str, List[str]
                     data = decrypt_data(data, password)
                 except Exception as e:
                     logger.warning("Failed to decrypt message: %s", e)
-                    raise BadPasswordError("Password was only able to decode part of the secret message.") from e
+                    decryption_failures += 1
+                    # Skip this message and continue with the next one
+                    start_idx += 1
+                    end_idx += 1
+                    continue
 
             # Base64 decode and convert to string
             decoded_message = base64.b64decode(data).decode("utf-8")
             messages.append(decoded_message)
             logger.debug("Successfully decoded message: %s", decoded_message)
             
-        except BadPasswordError:
-            raise
         except Exception as e:
             logger.warning("Failed to decode message: %s", e)
+            decryption_failures += 1
         
         # Move to next pair
         start_idx += 1
         end_idx += 1
     
+    # If we have a password and some messages failed to decrypt, but we successfully decrypted at least one,
+    # this is a partial decode scenario (multi-recipient)
+    if password and decryption_failures > 0 and len(messages) > 0:
+        logger.info("Partial decode: %d messages decrypted, %d failed", len(messages), decryption_failures)
+        # Return only the successfully decrypted messages
+        if len(messages) == 1:
+            return messages[0]
+        else:
+            return messages
+    
+    # If we have a password and no messages were decrypted, raise BadPasswordError
+    if password and len(messages) == 0:
+        raise BadPasswordError("Password was only able to decode part of the secret message.")
+    
+    # If no messages found at all, raise ValueError
     if not messages:
         raise ValueError("No valid messages found in carrier text")
     
