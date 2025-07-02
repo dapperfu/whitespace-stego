@@ -545,3 +545,22 @@ def get_encoded_message_size(text: str) -> Optional[int]:
     
     # Each byte is encoded as 8 zero-width characters
     return zero_width_count // 8 if zero_width_count > 0 else None
+
+
+def count_messages(carrier: str) -> int:
+    """Count the number of messages embedded in the carrier text.
+    
+    This function counts the number of complete start/end marker pairs,
+    which represents the number of messages that have been embedded.
+    
+    Parameters
+    ----------
+    carrier : str
+        The carrier text to analyze.
+        
+    Returns
+    -------
+    int
+        The number of messages embedded in the carrier text.
+    """
+    return _count_message_pairs(carrier)

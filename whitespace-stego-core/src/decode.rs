@@ -102,18 +102,31 @@ pub fn decode(carrier: &str, password: Option<&str>) -> Result<String, StegoErro
 /// Returns `StegoError::InvalidBinaryData` if the encoded data is malformed
 pub fn decode_all(carrier: &str, password: Option<&str>) -> Result<Vec<String>, StegoError> {
     let mut messages = Vec::new();
+    let mut decryption_failures = 0;
     
-    // Find all start and end markers
+    // Find all start and end markers using byte positions (safe for UTF-8)
     let mut start_positions = Vec::new();
     let mut end_positions = Vec::new();
     
-    // Find all start and end markers using character positions
-    for (char_pos, _) in carrier.char_indices() {
-        if carrier[char_pos..].starts_with(START_MARKER) {
-            start_positions.push(char_pos);
+    // Find all start markers
+    let mut pos = 0;
+    while pos < carrier.len() {
+        if let Some(start_pos) = carrier[pos..].find(START_MARKER) {
+            start_positions.push(pos + start_pos);
+            pos = pos + start_pos + START_MARKER.len_utf8();
+        } else {
+            break;
         }
-        if carrier[char_pos..].starts_with(END_MARKER) {
-            end_positions.push(char_pos);
+    }
+    
+    // Find all end markers
+    pos = 0;
+    while pos < carrier.len() {
+        if let Some(end_pos) = carrier[pos..].find(END_MARKER) {
+            end_positions.push(pos + end_pos);
+            pos = pos + end_pos + END_MARKER.len_utf8();
+        } else {
+            break;
         }
     }
     
@@ -131,24 +144,39 @@ pub fn decode_all(carrier: &str, password: Option<&str>) -> Result<Vec<String>, 
             continue;
         }
         
-        // Extract the encoded message - char_pos from char_indices() is already a byte position
+        // Extract the encoded message using byte positions (safe for UTF-8)
         let encoded = &carrier[start_pos + START_MARKER.len_utf8()..end_pos];
         
         // Convert zero-width characters back to binary
-        let mut data = decode_binary(encoded)?;
+        let mut data = match decode_binary(encoded) {
+            Ok(d) => d,
+            Err(_) => {
+                // Skip this message if binary decode fails
+                decryption_failures += 1;
+                start_idx += 1;
+                end_idx += 1;
+                continue;
+            }
+        };
         
         // Decrypt if password provided
         if let Some(pwd) = password {
             match decrypt_data(&data, pwd) {
                 Ok(decrypted) => data = decrypted,
                 Err(_) => {
-                    // Raise error if decryption fails (matches Python BadPasswordError behavior)
-                    return Err(StegoError::decryption_failed("Password was only able to decode part of the secret message"));
+                    // Skip this message if decryption fails (multi-recipient behavior)
+                    decryption_failures += 1;
+                    start_idx += 1;
+                    end_idx += 1;
+                    continue;
                 }
             }
         } else if crate::crypto::is_encrypted(&data) {
-            // If data is encrypted but no password is provided, return decryption error
-            return Err(StegoError::decryption_failed("Message is encrypted but no password was provided"));
+            // If data is encrypted but no password is provided, skip this message
+            decryption_failures += 1;
+            start_idx += 1;
+            end_idx += 1;
+            continue;
         }
         
         // Base64 decode and convert to string
@@ -158,6 +186,7 @@ pub fn decode_all(carrier: &str, password: Option<&str>) -> Result<Vec<String>, 
                     Ok(message) => messages.push(message),
                     Err(_) => {
                         // Skip this message if UTF-8 conversion fails
+                        decryption_failures += 1;
                         start_idx += 1;
                         end_idx += 1;
                         continue;
@@ -166,6 +195,7 @@ pub fn decode_all(carrier: &str, password: Option<&str>) -> Result<Vec<String>, 
             }
             Err(_) => {
                 // Skip this message if base64 decode fails
+                decryption_failures += 1;
                 start_idx += 1;
                 end_idx += 1;
                 continue;
@@ -177,6 +207,19 @@ pub fn decode_all(carrier: &str, password: Option<&str>) -> Result<Vec<String>, 
         end_idx += 1;
     }
     
+    // If we have a password and some messages failed to decrypt, but we successfully decrypted at least one,
+    // this is a partial decode scenario (multi-recipient)
+    if password.is_some() && decryption_failures > 0 && !messages.is_empty() {
+        // Return only the successfully decrypted messages
+        return Ok(messages);
+    }
+    
+    // If we have a password and no messages were decrypted, return decryption error
+    if password.is_some() && messages.is_empty() {
+        return Err(StegoError::decryption_failed("Password was only able to decode part of the secret message"));
+    }
+    
+    // If no messages found at all, return invalid carrier error
     if messages.is_empty() {
         return Err(StegoError::invalid_carrier("No valid messages found in carrier text"));
     }
@@ -239,5 +282,21 @@ pub fn get_encoded_message_position(carrier: &str) -> Option<(usize, usize)> {
         return None;
     }
     
-    Some((start, end + END_MARKER.len_utf8()))
+    Some((start, end))
+}
+
+/// Count the number of messages embedded in the carrier text
+///
+/// This function counts the number of complete start/end marker pairs,
+/// which represents the number of messages that have been embedded.
+///
+/// # Arguments
+/// * `carrier` - The carrier text to analyze
+///
+/// # Returns
+/// The number of messages embedded in the carrier text
+pub fn count_messages(carrier: &str) -> usize {
+    let start_count = carrier.matches(START_MARKER).count();
+    let end_count = carrier.matches(END_MARKER).count();
+    start_count.min(end_count)
 } 

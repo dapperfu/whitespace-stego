@@ -263,4 +263,32 @@ def is_available() -> bool:
     bool
         True if the C backend is available, False otherwise.
     """
-    return _C_BACKEND_AVAILABLE 
+    return _C_BACKEND_AVAILABLE
+
+
+def count_messages(carrier: str) -> int:
+    """Count the number of messages embedded in the carrier text.
+    
+    This function counts the number of complete start/end marker pairs,
+    which represents the number of messages that have been embedded.
+    
+    Parameters
+    ----------
+    carrier : str
+        The carrier text to analyze.
+        
+    Returns
+    -------
+    int
+        The number of messages embedded in the carrier text.
+    """
+    if not _C_BACKEND_AVAILABLE:
+        raise RuntimeError("C backend not available. Please ensure the C library is built.")
+    
+    # Use the same markers as the Python implementation
+    START_MARKER = "\ufeff"  # Zero-width no-break space
+    END_MARKER = "\u200c"    # Zero-width non-joiner
+    
+    start_count = carrier.count(START_MARKER)
+    end_count = carrier.count(END_MARKER)
+    return min(start_count, end_count) 
