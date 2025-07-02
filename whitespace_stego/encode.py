@@ -33,8 +33,12 @@ def encode_message(message: str, carrier: str, password: Optional[str] = None) -
         The encoded carrier text with the message hidden using zero-width characters
     """
     # Get the backend from CLI context
-    ctx = click.get_current_context()
-    backend = ctx.obj.get("backend", "python") if ctx.obj else "python"
+    try:
+        ctx = click.get_current_context()
+        backend = ctx.obj.get("backend", "python") if ctx.obj else "python"
+    except RuntimeError:
+        # No click context available, default to python backend
+        backend = "python"
 
     if backend == "python":
         # Use the core Python implementation
@@ -44,6 +48,11 @@ def encode_message(message: str, carrier: str, password: Optional[str] = None) -
         from whitespace_stego_backend import encode as rust_encode
 
         return rust_encode(message, carrier, password)
+    elif backend == "c":
+        # Use the C backend
+        from whitespace_stego.c_backend import encode as c_encode
+
+        return c_encode(message, carrier, password)
     else:
         raise ValueError(f"Unknown backend: {backend}")
 
