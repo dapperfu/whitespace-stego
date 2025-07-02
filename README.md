@@ -103,17 +103,30 @@ python3 -m whitespace_stego.cli decode --carrier-file your_file.txt
 
 ---
 
-## 📚 Documentation (For the Serious Folks)
+## 📚 Documentation
 
-- [📖 Usage & CLI/API Examples](docs/USAGE.md) - Because reading is fundamental
-- [🔧 Installation Guide](docs/INSTALLATION.md) - Get up and running quickly
-- [🏗️ System Architecture](docs/ARCHITECTURE.md) - Understand the system design
-- [🐳 Docker Guide](docs/DOCKER.md) - Containerized builds and deployment
-- [📋 API Reference](docs/API_REFERENCE.md) - Complete API documentation
-- [🧪 Testing & Quality Assurance](docs/TESTING.md) - For the perfectionists
-- [📓 Jupyter Notebooks Guide](docs/NOTEBOOKS.md) - For the data scientists
-- [🔒 Security Notes](docs/SECURITY.md) - For the paranoid
-- [🤝 Contributing](docs/CONTRIBUTING.md) - For the generous
+Our comprehensive documentation covers everything from quick start guides to deep technical details:
+
+### 🚀 Getting Started
+- **[📖 Usage Guide](docs/USAGE.md)** - Complete CLI and API examples with practical use cases
+- **[🔧 Installation Guide](docs/INSTALLATION.md)** - Step-by-step setup for all platforms and backends
+- **[🐳 Docker Guide](docs/DOCKER.md)** - Containerized builds and deployment options
+
+### 🏗️ Technical Documentation
+- **[🏗️ System Architecture](docs/ARCHITECTURE.md)** - High-level system design and component interactions
+- **[📋 API Reference](docs/API_REFERENCE.md)** - Complete API documentation with examples
+- **[🔒 Security Notes](docs/SECURITY.md)** - Security considerations and best practices
+
+### 🧪 Development & Testing
+- **[🧪 Testing Guide](docs/TESTING.md)** - Comprehensive testing strategy and coverage analysis
+- **[📓 Jupyter Notebooks](docs/NOTEBOOKS.md)** - Interactive examples and tutorials
+- **[🤝 Contributing Guidelines](docs/CONTRIBUTING.md)** - How to contribute to the project
+
+### 📊 Advanced Topics
+- **[📈 Coverage Analysis](docs/COVERAGE.md)** - Test coverage metrics and analysis
+- **[⚡ Parallel Testing](docs/COVERAGE_PARALLELIZATION.md)** - Performance optimization for test suites
+- **[🔍 Test Failure Analysis](docs/PARALLEL_TEST_FAILURE_ANALYSIS.md)** - Debugging test failures
+- **[🦀 Rust Implementation](docs/RUST.md)** - Rust-specific implementation details
 
 ---
 
