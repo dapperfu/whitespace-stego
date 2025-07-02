@@ -13,7 +13,16 @@ from .encode import encode_message
 from .decode import decode_message
 from .core import BadPasswordError
 
+# Set up logger to only write to stderr, not stdout
 logger = setup_logger(__name__)
+
+
+def disable_logging_during_cli():
+    """Disable logging during CLI execution to prevent interference with Click's output streams."""
+    # Disable all loggers to prevent them from writing to stderr during CLI execution
+    logging.getLogger().setLevel(logging.CRITICAL)
+    for name in logging.root.manager.loggerDict:
+        logging.getLogger(name).setLevel(logging.CRITICAL)
 
 
 def read_file(file_path: str) -> str:
@@ -26,11 +35,10 @@ def write_file(file_path: str, content: str) -> None:
     Path(file_path).write_text(content)
 
 
-def get_backend_implementation(backend: str):
+def get_backend_implementation(backend: str, ctx=None):
     """Get the appropriate backend implementation."""
     if backend == "python":
         from whitespace_stego.core import encode as py_encode, decode as py_decode
-
         return py_encode, py_decode
     elif backend == "rust":
         try:
@@ -38,24 +46,30 @@ def get_backend_implementation(backend: str):
                 encode as rust_encode,
                 decode as rust_decode,
             )
-
             return rust_encode, rust_decode
         except ImportError:
-            logger.error("Rust backend not available. Please ensure it is installed.")
-            sys.exit(1)
+            msg = "Rust backend not available. Please ensure it is installed."
+            if ctx is not None:
+                click.secho(msg, err=True, fg="red")
+                ctx.exit(1)
+            else:
+                raise click.ClickException(msg)
     elif backend == "c":
         try:
             from whitespace_stego.c_backend import (
                 encode as c_encode,
                 decode as c_decode,
             )
-
             return c_encode, c_decode
         except ImportError:
-            logger.error("C backend not available. Please ensure it is installed.")
-            sys.exit(1)
+            msg = "C backend not available. Please ensure it is installed."
+            if ctx is not None:
+                click.secho(msg, err=True, fg="red")
+                ctx.exit(1)
+            else:
+                raise click.ClickException(msg)
     else:
-        raise ValueError(f"Unknown backend: {backend}")
+        raise click.UsageError(f"Unknown backend: {backend}")
 
 
 class MutuallyExclusiveOption(click.Option):
@@ -91,14 +105,15 @@ class MutuallyExclusiveOption(click.Option):
     default="python",
     help="Backend implementation to use",
 )
-def cli(verbose: bool, backend: str) -> None:
+@click.pass_context
+def cli(ctx, verbose: bool, backend: str) -> None:
     """Whitespace steganography tool for encoding and decoding messages."""
     global logger
     if verbose:
         logger = setup_logger(__name__, level=logging.DEBUG, verbose=True)
-    logger.debug("Using backend: %s", backend)
-    # Store backend in context
-    ctx = click.get_current_context()
+    else:
+        # Disable logging during CLI execution to prevent interference with Click's output
+        disable_logging_during_cli()
     ctx.ensure_object(dict)
     ctx.obj["backend"] = backend
 
@@ -141,17 +156,10 @@ def cli(verbose: bool, backend: str) -> None:
     help="Path where the encoded file will be saved (use '-' for stdout, omit for stdout)",
 )
 @click.option("--password", "-p", help="Optional password for encryption")
-def encode(
-    message: Optional[str],
-    message_file: Optional[Path],
-    carrier: Optional[str],
-    carrier_file: Optional[Path],
-    output: Optional[Path],
-    password: Optional[str],
-):
+@click.pass_context
+def encode(ctx, message: Optional[str], message_file: Optional[Path], carrier: Optional[str], carrier_file: Optional[Path], output: Optional[Path], password: Optional[str]):
     """Encode a message into a carrier using whitespace steganography."""
     try:
-        # Validate that exactly one message option is provided
         if message is None and message_file is None:
             raise click.UsageError(
                 "Either --message/-m or --message-file/-mf must be provided."
@@ -160,52 +168,38 @@ def encode(
             raise click.UsageError(
                 "--message/-m and --message-file/-mf are mutually exclusive."
             )
-
-        # Validate that carrier options are not both provided (carrier can be empty)
         if carrier is not None and carrier_file is not None:
             raise click.UsageError(
                 "--carrier/-c and --carrier-file/-cf are mutually exclusive."
             )
-
-        # Get the message content
         if message_file is not None:
             message_content = message_file.read_text(encoding="utf-8")
-            logger.debug("Reading message from file: %s", message_file)
         else:
             message_content = message
-            logger.debug("Using message from command line")
-
-        # Check for empty message with humorous error
         if not message_content:
             raise click.UsageError("🤔 There's no point in encoding nothing! Even a blank canvas needs paint, and you're trying to hide invisible ink in invisible ink. Try again with an actual message!")
-
-        # Get the carrier content (can be empty)
         if carrier_file is not None:
             carrier_content = carrier_file.read_text(encoding="utf-8")
-            logger.debug("Reading carrier from file: %s", carrier_file)
         else:
-            carrier_content = carrier or ""  # Handle None case for empty carrier
-            logger.debug("Using carrier from command line: %s", repr(carrier_content))
-
-        logger.debug("Using password: %s", password if password else "None")
-
-        # Encode the message
-        encoded = encode_message(message_content, carrier_content, password)
-
-        logger.debug("Message successfully encoded")
-
-        # Output the encoded result
+            carrier_content = carrier or ""
+        # Use backend from context
+        backend = ctx.obj.get("backend", "python")
+        encode_func, _ = get_backend_implementation(backend, ctx)
+        encoded = encode_func(message_content, carrier_content, password)
         if output is None or str(output) == "-":
-            # Output to stdout
+            # Output encoded result to stdout
             click.echo(encoded)
-            logger.debug("Message output to stdout")
         else:
             # Output to file
             output.write_text(encoded, encoding="utf-8")
-            click.echo(f"Message successfully encoded into {output}")
+            # Success message to stdout
+            click.secho(f"Message successfully encoded into {output}", fg="green")
+    except click.ClickException as e:
+        raise
     except Exception as e:
-        click.echo(f"Error encoding message: {str(e)}", err=True)
-        raise click.Abort()
+        # Error message to stderr
+        click.secho(f"Error encoding message: {str(e)}", err=True, fg="red")
+        ctx.exit(1)
 
 
 @cli.command()
@@ -231,15 +225,10 @@ def encode(
     help="Path where the decoded message will be saved (use '-' for stdout, omit for stdout)",
 )
 @click.option("--password", "-p", help="Optional password for decryption")
-def decode(
-    carrier: Optional[str],
-    carrier_file: Optional[Path],
-    output: Optional[Path],
-    password: Optional[str],
-):
+@click.pass_context
+def decode(ctx, carrier: Optional[str], carrier_file: Optional[Path], output: Optional[Path], password: Optional[str]):
     """Decode a message from a carrier using whitespace steganography."""
     try:
-        # Validate that exactly one carrier option is provided for decode
         if carrier is None and carrier_file is None:
             raise click.UsageError(
                 "Either --carrier/-c or --carrier-file/-cf must be provided."
@@ -248,48 +237,38 @@ def decode(
             raise click.UsageError(
                 "--carrier/-c and --carrier-file/-cf are mutually exclusive."
             )
-
-        # Get the carrier content
         if carrier_file is not None:
             carrier_content = carrier_file.read_text(encoding="utf-8")
-            logger.debug("Reading carrier from file: %s", carrier_file)
         else:
             carrier_content = carrier
-            logger.debug("Using carrier from command line")
-
-        logger.debug("Using password: %s", password if password else "None")
-
-        # Decode the messages
+        backend = ctx.obj.get("backend", "python")
+        _, decode_func = get_backend_implementation(backend, ctx)
         try:
-            decoded_messages = decode_message(carrier_content, password)
+            decoded_messages = decode_func(carrier_content, password)
         except BadPasswordError:
-            click.echo("invalid password", err=True)
-            raise click.Abort()
-
-        logger.debug("Messages successfully decoded")
-
-        # Handle the return type (string for single message, list for multiple)
+            # Error message to stderr
+            click.secho("invalid password", err=True, fg="red")
+            ctx.exit(1)
         if isinstance(decoded_messages, str):
-            # Single message
             decoded_output = decoded_messages
             message_count_text = "Message"
         else:
-            # Multiple messages - output as JSON-like format
             decoded_output = "[\n" + "\n".join(f'  "{msg}"' for msg in decoded_messages) + "\n]"
             message_count_text = f"{len(decoded_messages)} messages"
-
-        # Output the decoded result
         if output is None or str(output) == "-":
-            # Output to stdout
+            # Output decoded result to stdout
             click.echo(decoded_output)
-            logger.debug(f"{message_count_text} output to stdout")
         else:
             # Output to file
             output.write_text(decoded_output, encoding="utf-8")
-            click.echo(f"{message_count_text} successfully decoded to {output}")
+            # Success message to stdout
+            click.secho(f"{message_count_text} successfully decoded to {output}", fg="green")
+    except click.ClickException as e:
+        raise
     except Exception as e:
-        click.echo(f"Error decoding message: {str(e)}", err=True)
-        raise click.Abort()
+        # Error message to stderr
+        click.secho(f"Error decoding message: {str(e)}", err=True, fg="red")
+        ctx.exit(1)
 
 
 def main() -> None:

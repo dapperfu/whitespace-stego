@@ -322,6 +322,8 @@ bool whitespace_stego_decode_all(const char* carrier, size_t carrier_len, const 
             } else if (!crypto_decrypt(encrypted, encrypted_len, password, &plain, &plain_len)) {
                 decrypt_success = false;
                 utils_free(encrypted);
+                // Set error message for failed decryption (matches Python BadPasswordError behavior)
+                snprintf(last_error, sizeof(last_error), "Password was only able to decode part of the secret message");
             } else {
                 utils_free(encrypted);
             }
@@ -333,7 +335,20 @@ bool whitespace_stego_decode_all(const char* carrier, size_t carrier_len, const 
         
         free(b64_str);
         
-        if (decrypt_success && plain) {
+        if (!decrypt_success) {
+            // Return error if decryption failed (matches Python BadPasswordError behavior)
+            free(carrier_copy);
+            free(start_positions);
+            free(end_positions);
+            // Cleanup any messages already decoded
+            for (size_t i = 0; i < message_count; i++) {
+                free(messages[i]);
+            }
+            free(messages);
+            return false;
+        }
+        
+        if (plain) {
             // Copy to result as null-terminated string
             char* message = malloc(plain_len + 1);
             if (message) {

@@ -33,7 +33,8 @@ def setup_logger(
 
     # Create console handler if none exists
     if not logger.handlers:
-        # Always use stderr for all log output
+        # Always use stderr for all log output to avoid interfering with Click's stdout
+        # Click handles user-facing output through click.echo() and click.secho()
         handler = logging.StreamHandler(sys.stderr)
         handler.setLevel(level)
 

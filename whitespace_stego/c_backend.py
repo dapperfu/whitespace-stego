@@ -32,7 +32,9 @@ def _load_library():
     """
     # Try to find the library in common locations
     lib_paths = [
-        # Relative to current file
+        # When installed via pip (bundled with package)
+        Path(__file__).parent / "libwhitespace_stego.so",
+        # Development environment (relative to current file)
         Path(__file__).parent.parent / "c" / "lib" / "libwhitespace_stego.so",
         # System library path
         "libwhitespace_stego.so",
