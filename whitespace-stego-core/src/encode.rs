@@ -66,7 +66,7 @@ fn find_next_slot(carrier: &str) -> usize {
     // Remove all encoded messages to get the original carrier
     let start_escaped = regex::escape(&START_MARKER.to_string());
     let end_escaped = regex::escape(&END_MARKER.to_string());
-    let pattern = Regex::new(&format!("{}{}.*?{}", start_escaped, end_escaped)).unwrap();
+    let pattern = Regex::new(&format!("{}.*?{}", start_escaped, end_escaped)).unwrap();
     let cleaned_carrier = pattern.replace_all(carrier, "").to_string();
     
     // Count how many messages are already encoded
@@ -99,7 +99,9 @@ fn find_next_slot(carrier: &str) -> usize {
 /// The carrier text with the message inserted
 fn insert_message_at_position(carrier: &str, encoded_message: &str, position: usize) -> String {
     // Remove all encoded messages to get the original carrier
-    let pattern = Regex::new(&format!("{}{}.*?{}", regex::escape(&START_MARKER.to_string()), regex::escape(&END_MARKER.to_string()))).unwrap();
+    let start_escaped = regex::escape(&START_MARKER.to_string());
+    let end_escaped = regex::escape(&END_MARKER.to_string());
+    let pattern = Regex::new(&format!("{}.*?{}", start_escaped, end_escaped)).unwrap();
     let cleaned_carrier = pattern.replace_all(carrier, "").to_string();
     
     // Insert the encoded message at the correct position in the cleaned carrier
