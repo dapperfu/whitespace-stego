@@ -1,5 +1,5 @@
 VENV?=.venv
-.PHONY: help venv install test coverage coverage-report coverage-analyze maturin-develop maturin-build cargo-build cargo-clean clean format rust c wasi-web test-wasm test-wasm-only test-all git-clean
+.PHONY: help venv install test coverage coverage-report coverage-analyze maturin-develop maturin-build cargo-build cargo-clean clean format rust c python-binary python-binary-docker wasi-web test-wasm test-wasm-only test-all git-clean
 # Default target
 help:
 	@echo "Available targets:"
@@ -26,6 +26,8 @@ help:
 	@echo "  format          - Format code (Rust and Python)"
 	@echo "  rust            - Build Rust CLI in release mode and copy to top-level directory"
 	@echo "  c               - Build C CLI in release mode and copy to top-level directory"
+	@echo "  python-binary   - Build Python CLI binary using PyInstaller (local)"
+	@echo "  python-binary-docker - Build portable Python CLI binary using Docker"
 	@echo "  wasi-web        - Build WASI web app and serve it at http://localhost:8000"
 	@echo "  git-clean       - Clean all untracked files and directories (use with caution)"
 
@@ -48,6 +50,7 @@ clean:
 	rm -rf build
 	rm -f whitespace-stego-rs
 	rm -f whitespace-stego-c
+	rm -f whitespace-stego-py
 	rm -rf htmlcov
 	rm -f coverage.xml
 	rm -f .coverage*
@@ -97,7 +100,28 @@ rust: venv
 # Build C CLI in release mode and copy to top-level directory
 c:
 	cd c && make clean && make
-	cp c/bin/whitespace-stego-c ./whitespace-stego-c 
+	cp c/bin/whitespace-stego-c ./whitespace-stego-c
+
+# Build Python CLI binary using PyInstaller (local build)
+python-binary: venv
+	.venv/bin/pip install -e .
+	.venv/bin/pip install -r requirements-dev.txt
+	.venv/bin/pip install pyinstaller
+	@echo "Building Python CLI binary with PyInstaller..."
+	.venv/bin/pyinstaller --onefile --name whitespace-stego-py whitespace_stego_main.py
+	@echo "Python binary built: dist/whitespace-stego-py"
+
+# Build portable Python CLI binary using Docker (manylinux2014)
+python-binary-docker:
+	@echo "Building portable Python CLI binary using Docker..."
+	@echo "This will create a fully portable binary that works on most Linux distributions"
+	docker build -t whitespace-stego-py-builder .
+	@echo "Extracting binary from Docker container..."
+	mkdir -p dist
+	docker run --rm -v "$(PWD)/dist:/out" whitespace-stego-py-builder /bin/cp /build/dist/whitespace-stego-py /out/
+	@echo "Portable Python binary built: dist/whitespace-stego-py"
+	@echo "Testing the binary..."
+	./dist/whitespace-stego-py --help 
 
 # Run standard tests (excluding WASM website tests)
 test: venv maturin-develop rust

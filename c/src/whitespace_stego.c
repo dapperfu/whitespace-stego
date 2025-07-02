@@ -71,6 +71,13 @@ static unsigned char* decode_binary(const char* encoded, size_t* out_len) {
 bool whitespace_stego_encode(const char* carrier, size_t carrier_len, const char* message,
                            const char* password, char** result) {
     if (!message || !result) {
+        snprintf(last_error, sizeof(last_error), "No message or result pointer provided");
+        return false;
+    }
+    
+    // Check for empty message
+    if (strlen(message) == 0) {
+        snprintf(last_error, sizeof(last_error), "Empty message not allowed");
         return false;
     }
     unsigned char* data = NULL;

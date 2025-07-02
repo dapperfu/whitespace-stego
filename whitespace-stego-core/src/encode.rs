@@ -54,6 +54,13 @@ pub fn encode_binary(data: &[u8]) -> String {
 /// Returns `StegoError::EncodingFailed` if encryption fails
 /// Returns `StegoError::InvalidCarrier` if the carrier is invalid
 pub fn encode(message: &str, carrier: &str, password: Option<&str>) -> Result<String, StegoError> {
+    // Check for empty message with humorous error
+    if message.is_empty() {
+        return Err(StegoError::encoding_failed(
+            "🤔 There's no point in encoding nothing! Even a blank canvas needs paint, and you're trying to hide invisible ink in invisible ink. Try again with an actual message!"
+        ));
+    }
+    
     // Base64 encode the message
     let encoded = BASE64.encode(message.as_bytes());
     let mut data = encoded.as_bytes().to_vec();
@@ -127,7 +134,7 @@ mod tests {
         let encoded = encode_binary(data);
         
         // Each byte should be encoded as 8 zero-width characters
-        assert_eq!(encoded.len(), data.len() * 8);
+        assert_eq!(encoded.chars().count(), data.len() * 8);
         
         // All characters should be zero-width
         for c in encoded.chars() {

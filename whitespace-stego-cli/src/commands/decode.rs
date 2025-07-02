@@ -22,6 +22,11 @@ pub fn decode_command(
     }
 
     // Read carrier
+    if let Some(ref carrier) = carrier {
+        eprintln!("[DEBUG] Rust CLI decode carrier repr: {:?}", carrier);
+        let codepoints: Vec<String> = carrier.chars().take(40).map(|c| format!("0x{:x}", c as u32)).collect();
+        eprintln!("[DEBUG] Rust CLI decode carrier codepoints: {:?}", codepoints);
+    }
     let carrier_content = carrier
         .or_else(|| {
             carrier_file

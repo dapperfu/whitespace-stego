@@ -28,7 +28,7 @@ static void print_encode_usage(const char* program_name) {
     fprintf(stdout, "Encode a message into a carrier file using whitespace steganography.\n\n");
     fprintf(stdout, "Options:\n");
     fprintf(stdout, "  -m, --message-file PATH       Path to the file containing the message to encode [required]\n");
-    fprintf(stdout, "  -c, --carrier-file PATH       Path to the carrier file [required]\n");
+    fprintf(stdout, "  -c, --carrier-file PATH       Path to the carrier file [optional, empty if not provided]\n");
     fprintf(stdout, "  -o, --output PATH             Path where the encoded file will be saved [required]\n");
     fprintf(stdout, "  -p, --password TEXT           Optional password for encryption\n");
     fprintf(stdout, "  -h, --help                    Show this message and exit\n");
@@ -163,12 +163,6 @@ static int handle_encode(int argc, char* argv[]) {
         return 1;
     }
     
-    if (!carrier_file) {
-        fprintf(stderr, "Error: --carrier-file is required\n");
-        print_encode_usage(argv[0]);
-        return 1;
-    }
-    
     if (!output_file) {
         fprintf(stderr, "Error: --output is required\n");
         print_encode_usage(argv[0]);
@@ -182,14 +176,38 @@ static int handle_encode(int argc, char* argv[]) {
         return 1;
     }
     
-    char* carrier = read_file(carrier_file, &carrier_len);
-    if (!carrier) {
+    char* carrier = NULL;
+    if (carrier_file) {
+        carrier = read_file(carrier_file, &carrier_len);
+        if (!carrier) {
+            free(message);
+            return 1;
+        }
+    } else {
+        // No carrier file provided, use empty carrier
+        carrier = malloc(1);
+        if (!carrier) {
+            free(message);
+            return 1;
+        }
+        carrier[0] = '\0';
+        carrier_len = 0;
+    }
+    
+    // Check for empty message with humorous error
+    if (message_len == 0) {
+        fprintf(stderr, "🤔 There's no point in encoding nothing! Even a blank canvas needs paint, and you're trying to hide invisible ink in invisible ink. Try again with an actual message!\n");
         free(message);
+        free(carrier);
         return 1;
     }
     
     debug_log("Encoding message from file: %s", message_file);
-    debug_log("Using carrier from file: %s", carrier_file);
+    if (carrier_file) {
+        debug_log("Using carrier from file: %s", carrier_file);
+    } else {
+        debug_log("Using empty carrier (no carrier file provided)");
+    }
     debug_log("Using password: %s", password ? password : "None");
     debug_log("Carrier length: %zu bytes", carrier_len);
     if (carrier_len > 0) {

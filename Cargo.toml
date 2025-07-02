@@ -6,6 +6,7 @@ members = [
     "whitespace-stego-backend",
     "rust",
     "wasi",
+    "test_rust_binary",
 ]
 
 [workspace.package]

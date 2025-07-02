@@ -71,39 +71,22 @@ pub fn decode_binary(encoded: &str) -> Result<Vec<u8>, StegoError> {
 /// Returns `StegoError::DecryptionFailed` if decryption fails
 /// Returns `StegoError::InvalidBinaryData` if the encoded data is malformed
 pub fn decode(carrier: &str, password: Option<&str>) -> Result<String, StegoError> {
-    // Find the encoded message between markers
-    let start = carrier
-        .find(START_MARKER)
+    // Find byte indices for START_MARKER and END_MARKER (match Python behavior)
+    let start = carrier.find(START_MARKER)
         .ok_or_else(|| StegoError::invalid_carrier("No start marker found"))?;
-    let end = carrier
-        .find(END_MARKER)
+    let end = carrier.find(END_MARKER)
         .ok_or_else(|| StegoError::invalid_carrier("No end marker found"))?;
-
-    if end <= start {
-        return Err(StegoError::invalid_carrier("End marker before start marker"));
-    }
-
-    // Use char_indices to get char boundaries
-    let start_char = carrier
-        .char_indices()
-        .find(|&(i, c)| i == start && c == START_MARKER)
-        .map(|(i, _)| i)
-        .unwrap();
-    let end_char = carrier
-        .char_indices()
-        .find(|&(i, c)| i == end && c == END_MARKER)
-        .map(|(i, _)| i)
-        .unwrap();
-
-    let encoded = carrier[start_char + START_MARKER.len_utf8()..end_char].to_string();
-    let mut data = decode_binary(&encoded)?;
-
-    // Decrypt if password provided
+    let encoded = &carrier[start + START_MARKER.len_utf8()..end];
+    eprintln!("[DEBUG] Rust decode extracted encoded message: {:?}", encoded);
+    eprintln!("[DEBUG] Rust decode extracted length: {}", encoded.chars().count());
+    let codepoints: Vec<String> = encoded.chars().take(20).map(|c| format!("0x{:x}", c as u32)).collect();
+    eprintln!("[DEBUG] Rust decode codepoints: {:?}", codepoints);
+    let binary_string: String = encoded.chars().map(|c| if c == ONE_BIT { '1' } else { '0' }).collect();
+    eprintln!("[DEBUG] Rust decode binary string: {}", &binary_string[..80.min(binary_string.len())]);
+    let mut data = decode_binary(encoded)?;
     if let Some(pwd) = password {
         data = decrypt_data(&data, pwd)?;
     }
-
-    // Base64 decode and convert to string
     let decoded = BASE64.decode(&data)?;
     String::from_utf8(decoded).map_err(Into::into)
 }
@@ -123,36 +106,22 @@ pub fn decode(carrier: &str, password: Option<&str>) -> Result<String, StegoErro
 /// # Errors
 /// Returns `StegoError::InvalidCarrier` if no markers are found
 pub fn extract_encoded(carrier: &str) -> Result<(String, String), StegoError> {
-    let start = carrier
-        .find(START_MARKER)
+    let start = carrier.find(START_MARKER)
         .ok_or_else(|| StegoError::invalid_carrier("No start marker found"))?;
-    let end = carrier
+    let end = carrier[start + START_MARKER.len_utf8()..]
         .find(END_MARKER)
-        .ok_or_else(|| StegoError::invalid_carrier("No end marker found"))?;
-
+        .map(|e| start + START_MARKER.len_utf8() + e)
+        .ok_or_else(|| StegoError::invalid_carrier("No end marker found after start marker"))?;
     if end <= start {
         return Err(StegoError::invalid_carrier("End marker before start marker"));
     }
-
-    let start_char = carrier
-        .char_indices()
-        .find(|&(i, c)| i == start && c == START_MARKER)
-        .map(|(i, _)| i)
-        .unwrap();
-    let end_char = carrier
-        .char_indices()
-        .find(|&(i, c)| i == end && c == END_MARKER)
-        .map(|(i, _)| i)
-        .unwrap();
-
-    let encoded = carrier[start_char..=end_char + END_MARKER.len_utf8() - 1].to_string();
+    let encoded = &carrier[start..end + END_MARKER.len_utf8()];
     let remaining = format!(
         "{}{}",
-        &carrier[..start_char],
-        &carrier[end_char + END_MARKER.len_utf8()..]
+        &carrier[..start],
+        &carrier[end + END_MARKER.len_utf8()..]
     );
-    
-    Ok((encoded, remaining))
+    Ok((encoded.to_string(), remaining))
 }
 
 /// Get the position of the encoded message in the carrier text

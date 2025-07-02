@@ -263,10 +263,10 @@ def decode(
 
         logger.debug("Messages successfully decoded")
 
-        # Format output based on number of messages
-        if len(decoded_messages) == 1:
-            # Single message - output as before for backward compatibility
-            decoded_output = decoded_messages[0]
+        # Handle the return type (string for single message, list for multiple)
+        if isinstance(decoded_messages, str):
+            # Single message
+            decoded_output = decoded_messages
             message_count_text = "Message"
         else:
             # Multiple messages - output as JSON-like format

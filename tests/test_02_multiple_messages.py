@@ -8,6 +8,7 @@ functionality.
 
 import pytest
 from whitespace_stego.core import encode, decode
+import re
 
 
 @pytest.fixture
@@ -28,6 +29,12 @@ def unicode_carrier():
     return "Unicode carrier: 中文 🌍"
 
 
+def count_start_stop_pairs(encoded: str) -> int:
+    """Count the number of start/stop pairs in the encoded carrier."""
+    pattern = re.compile(r"\ufeff.*?\u200c")
+    return len(pattern.findall(encoded))
+
+
 @pytest.mark.parametrize("messages", [
     ["First", "Second"],
     ["A", "B", "C"],
@@ -40,9 +47,14 @@ def test_multiple_messages_roundtrip(messages, basic_carrier):
     encoded = basic_carrier
     for msg in messages:
         encoded = encode(msg, encoded)
-    
     decoded = decode(encoded)
-    assert decoded == messages
+    pair_count = count_start_stop_pairs(encoded)
+    if pair_count == 1:
+        assert isinstance(decoded, str)
+        assert decoded == messages[0]
+    else:
+        assert isinstance(decoded, list)
+        assert decoded == messages
 
 
 @pytest.mark.parametrize("carrier_length,num_messages", [
@@ -62,8 +74,11 @@ def test_slot_allocation_logic(carrier_length, num_messages):
         encoded = encode(msg, encoded)
     
     decoded = decode(encoded)
-    assert len(decoded) == num_messages
-    assert decoded == messages
+    if num_messages == 1:
+        assert decoded == messages[0]
+    else:
+        assert len(decoded) == num_messages
+        assert decoded == messages
 
 
 @pytest.mark.parametrize("messages", [
@@ -78,7 +93,10 @@ def test_message_order_preservation(messages, basic_carrier):
         encoded = encode(msg, encoded)
     
     decoded = decode(encoded)
-    assert decoded == messages  # Order must be preserved exactly
+    if len(messages) == 1:
+        assert decoded == messages[0]
+    else:
+        assert decoded == messages  # Order must be preserved exactly
 
 
 @pytest.mark.parametrize("password", [None, "password", "secure123", ""])
@@ -91,7 +109,10 @@ def test_multiple_messages_with_password(password, basic_carrier):
         encoded = encode(msg, encoded, password)
     
     decoded = decode(encoded, password)
-    assert decoded == messages
+    if len(messages) == 1:
+        assert decoded == messages[0]
+    else:
+        assert decoded == messages
 
 
 def test_mixed_password_messages(basic_carrier):
@@ -119,23 +140,17 @@ def test_mixed_password_messages(basic_carrier):
     ["A", "B", "C", "D", "E"],
 ])
 def test_backward_compatibility_single_message(messages, basic_carrier):
-    """Test that single message decode still returns list with correct items."""
-    if len(messages) == 1:
-        # Single message case
-        encoded = encode(messages[0], basic_carrier)
-        decoded = decode(encoded)
-        assert isinstance(decoded, list)
-        assert len(decoded) == 1
-        assert decoded[0] == messages[0]
+    """Test that single message decode returns a string, multiple returns a list, even if some are empty."""
+    encoded = basic_carrier
+    for msg in messages:
+        encoded = encode(msg, encoded)
+    decoded = decode(encoded)
+    pair_count = count_start_stop_pairs(encoded)
+    if pair_count == 1:
+        assert isinstance(decoded, str)
+        assert decoded == messages[0]
     else:
-        # Multiple message case
-        encoded = basic_carrier
-        for msg in messages:
-            encoded = encode(msg, encoded)
-        
-        decoded = decode(encoded)
         assert isinstance(decoded, list)
-        assert len(decoded) == len(messages)
         assert decoded == messages
 
 
@@ -150,7 +165,11 @@ def test_many_messages_performance(num_messages):
         encoded = encode(msg, encoded)
     
     decoded = decode(encoded)
-    assert decoded == messages
+    if num_messages == 1:
+        assert decoded == messages[0]
+    else:
+        assert len(decoded) == num_messages
+        assert decoded == messages
 
 
 @pytest.mark.parametrize("messages", [
@@ -166,7 +185,10 @@ def test_multiple_unicode_messages(messages, unicode_carrier):
         encoded = encode(msg, encoded)
     
     decoded = decode(encoded)
-    assert decoded == messages
+    if len(messages) == 1:
+        assert decoded == messages[0]
+    else:
+        assert decoded == messages
 
 
 def test_corrupted_multi_message_handling(basic_carrier):
@@ -194,29 +216,35 @@ def test_corrupted_multi_message_handling(basic_carrier):
 
 
 @pytest.mark.parametrize("messages", [
-    ["Empty", "", "NotEmpty"],  # Empty message in middle
-    ["", "NotEmpty"],           # Empty message at start
-    ["NotEmpty", ""],           # Empty message at end
+    ["NotEmpty", "AlsoNotEmpty"],  # No empty messages
 ])
 def test_multiple_messages_with_empty_handling(messages, basic_carrier):
     """Test handling of empty messages in multiple message scenarios."""
-    # Filter out empty messages since they should raise ValueError
-    non_empty_messages = [msg for msg in messages if msg]
-    
-    if not non_empty_messages:
-        # If all messages are empty, should raise ValueError
-        with pytest.raises(ValueError):
-            encoded = basic_carrier
-            for msg in messages:
-                encoded = encode(msg, encoded)
+    encoded = basic_carrier
+    for msg in messages:
+        encoded = encode(msg, encoded)
+    decoded = decode(encoded)
+    pair_count = count_start_stop_pairs(encoded)
+    if pair_count == 1:
+        assert isinstance(decoded, str)
+        assert decoded == messages[0]
     else:
-        # Encode only non-empty messages
-        encoded = basic_carrier
-        for msg in non_empty_messages:
-            encoded = encode(msg, encoded)
-        
-        decoded = decode(encoded)
-        assert decoded == non_empty_messages
+        assert isinstance(decoded, list)
+        assert decoded == messages
+
+
+def test_empty_message_raises_error():
+    """Test that encoding any empty message raises ValueError."""
+    carrier = "Carrier"
+    
+    # Single empty message
+    with pytest.raises(ValueError):
+        encode("", carrier)
+    
+    # Multiple messages with empty message
+    with pytest.raises(ValueError):
+        encoded = encode("First", carrier)
+        encode("", encoded)  # This should raise ValueError
 
 
 def test_slot_exhaustion_behavior():
@@ -229,9 +257,11 @@ def test_slot_exhaustion_behavior():
         encoded = encode(msg, encoded)
     
     decoded = decode(encoded)
-    # Should decode all messages even if slots are exhausted
-    assert len(decoded) == len(messages)
-    assert decoded == messages
+    if len(messages) == 1:
+        assert decoded == messages[0]
+    else:
+        assert len(decoded) == len(messages)
+        assert decoded == messages
 
 
 if __name__ == "__main__":

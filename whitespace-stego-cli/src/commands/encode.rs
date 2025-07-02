@@ -36,13 +36,16 @@ pub fn encode_command(
         .ok_or_else(|| anyhow!("No message provided. Use --message or --message-file"))?;
 
     // Read carrier (default to empty if not provided)
+    if let Some(ref carrier) = carrier {
+        eprintln!("[DEBUG] Rust CLI encode carrier repr: {:?}", carrier);
+    }
     let carrier_content = carrier
         .or_else(|| {
             carrier_file
                 .as_ref()
                 .and_then(|f| read_file_or_stdin(Some(f)).ok())
         })
-        .unwrap_or_default();
+        .ok_or_else(|| anyhow!("No carrier provided. Use --carrier or --carrier-file"))?;
 
     // Get password
     let password_content = password.as_deref();

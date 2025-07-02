@@ -6,7 +6,7 @@ using zero-width Unicode whitespace characters.
 
 import base64
 import logging
-from typing import Optional, Tuple, List
+from typing import Optional, Tuple, List, Union
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 import os
@@ -330,7 +330,7 @@ def encode(message: str, carrier: str = "", password: Optional[str] = None) -> s
     return result
 
 
-def decode(carrier: str, password: Optional[str] = None) -> List[str]:
+def decode(carrier: str, password: Optional[str] = None) -> Union[str, List[str]]:
     """Decode messages from carrier text containing zero-width characters.
 
     Parameters
@@ -342,8 +342,8 @@ def decode(carrier: str, password: Optional[str] = None) -> List[str]:
 
     Returns
     -------
-    List[str]
-        A list of decoded messages. Returns a single-item list for backward compatibility.
+    Union[str, List[str]]
+        A single decoded message as string, or a list of decoded messages if multiple.
 
     Raises
     ------
@@ -426,7 +426,12 @@ def decode(carrier: str, password: Optional[str] = None) -> List[str]:
         raise ValueError("No valid messages found in carrier text")
     
     logger.info("Successfully decoded %d messages", len(messages))
-    return messages
+    
+    # Return string for single message, list for multiple messages
+    if len(messages) == 1:
+        return messages[0]
+    else:
+        return messages
 
 
 def extract_encoded(carrier: str) -> Tuple[str, str]:

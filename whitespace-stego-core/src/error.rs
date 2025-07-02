@@ -143,6 +143,7 @@ mod tests {
         assert!(matches!(stego_error, StegoError::Utf8Error { .. }));
 
         // Test base64 error conversion
+        use base64::Engine;
         let base64_error = base64::engine::general_purpose::STANDARD
             .decode("invalid base64!")
             .unwrap_err();

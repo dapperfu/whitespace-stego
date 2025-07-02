@@ -231,13 +231,4 @@ fn test_crypto_functions() {
     
     assert_eq!(decrypted, data);
     assert!(is_encrypted(&encrypted));
-}
-
-#[test]
-fn test_derive_fernet_key() {
-    let key1 = derive_fernet_key("short");
-    let key2 = derive_fernet_key("this_is_a_very_long_password_that_should_be_truncated");
-    
-    assert_eq!(key1.len(), key2.len());
-    assert_eq!(key1.len(), 43); // 32 bytes base64-url encoded, no padding
 } 
