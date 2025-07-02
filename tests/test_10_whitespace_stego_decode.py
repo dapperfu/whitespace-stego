@@ -144,6 +144,52 @@ class TestDecodeMessage:
                 assert result == "decoded"
                 mock_core_decode.assert_called_once_with(sample_encoded_single, None)
 
+    def test_decode_message_rust_backend_fallback(self, sample_encoded_single, click_context):
+        """
+        Test that decode_message falls back to rust_decode when rust_decode_all raises ImportError.
+        """
+        click_context.obj["backend"] = "rust"
+        with patch('whitespace_stego.decode.rust_decode_all', side_effect=ImportError("No rust backend")):
+            with patch('whitespace_stego.decode.rust_decode') as mock_rust_decode:
+                mock_rust_decode.return_value = "decoded_fallback"
+                result = decode_message(sample_encoded_single)
+                assert result == "decoded_fallback"
+                mock_rust_decode.assert_called_once_with(sample_encoded_single, None)
+
+    def test_decode_message_rust_backend_multiple_messages(self, sample_encoded_multiple, click_context):
+        """
+        Test that decode_message correctly handles multiple messages from rust backend.
+        """
+        click_context.obj["backend"] = "rust"
+        with patch('whitespace_stego.decode.rust_decode_all') as mock_rust_decode_all:
+            mock_rust_decode_all.return_value = ["message1", "message2", "message3"]
+            result = decode_message(sample_encoded_multiple)
+            assert result == ["message1", "message2", "message3"]
+            mock_rust_decode_all.assert_called_once_with(sample_encoded_multiple, None)
+
+    def test_decode_message_rust_backend_single_message(self, sample_encoded_single, click_context):
+        """
+        Test that decode_message correctly handles single message from rust backend.
+        """
+        click_context.obj["backend"] = "rust"
+        with patch('whitespace_stego.decode.rust_decode_all') as mock_rust_decode_all:
+            mock_rust_decode_all.return_value = ["single_message"]
+            result = decode_message(sample_encoded_single)
+            assert result == "single_message"  # Should return string, not list
+            mock_rust_decode_all.assert_called_once_with(sample_encoded_single, None)
+
+    def test_decode_message_rust_backend_with_password(self, sample_encoded_with_password, click_context):
+        """
+        Test that decode_message correctly passes password to rust backend.
+        """
+        click_context.obj["backend"] = "rust"
+        password = "test_password"
+        with patch('whitespace_stego.decode.rust_decode_all') as mock_rust_decode_all:
+            mock_rust_decode_all.return_value = ["decoded_with_password"]
+            result = decode_message(sample_encoded_with_password, password)
+            assert result == "decoded_with_password"
+            mock_rust_decode_all.assert_called_once_with(sample_encoded_with_password, password)
+
 
 class TestDecodePython:
     """Test the _decode_python function."""
@@ -184,6 +230,16 @@ class TestDecodePython:
             result = _decode_python("test")
             assert isinstance(result, list)
             assert result == ["message1", "message2"]
+
+    def test_decode_python_function(self):
+        """
+        Test that _decode_python function works correctly.
+        """
+        with patch('whitespace_stego.decode.core_decode') as mock_core_decode:
+            mock_core_decode.return_value = "test_result"
+            result = _decode_python("test_input", "test_password")
+            assert result == "test_result"
+            mock_core_decode.assert_called_once_with("test_input", "test_password")
 
 
 class TestConstants:
