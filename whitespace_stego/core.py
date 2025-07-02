@@ -331,7 +331,11 @@ def encode(message: str, carrier: str = "", password: Optional[str] = None) -> s
 
 
 class BadPasswordError(ValueError):
-    """Raised when a message cannot be decrypted due to an incorrect password."""
+    """Raised when a password was only able to decode part of the secret message.
+    
+    This allows for multi-recipient scenarios where each recipient can decode
+    their intended message while other messages remain encrypted.
+    """
     pass
 
 
@@ -355,7 +359,9 @@ def decode(carrier: str, password: Optional[str] = None) -> Union[str, List[str]
     ValueError
         If no valid message is found in the carrier text.
     BadPasswordError
-        If a message cannot be decrypted due to an incorrect password.
+        If the password was only able to decode part of the secret message.
+        This allows for multi-recipient scenarios where each recipient can decode
+        their intended message while other messages remain encrypted.
     """
     logger.debug("Decoding messages from text: %s", carrier)
     if password:
@@ -413,7 +419,7 @@ def decode(carrier: str, password: Optional[str] = None) -> Union[str, List[str]
                     data = decrypt_data(data, password)
                 except Exception as e:
                     logger.warning("Failed to decrypt message: %s", e)
-                    raise BadPasswordError("Invalid password for one or more messages.") from e
+                    raise BadPasswordError("Password was only able to decode part of the secret message.") from e
 
             # Base64 decode and convert to string
             decoded_message = base64.b64decode(data).decode("utf-8")
