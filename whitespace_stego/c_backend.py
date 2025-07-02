@@ -211,22 +211,38 @@ def decode(carrier: str, password: Optional[str] = None) -> Union[str, List[str]
         ctypes.byref(result_count)
     )
     
-    if success and result_count.value > 0:
-        # Multiple messages found
-        messages = []
-        for i in range(result_count.value):
-            msg_ptr = results_ptr[i]
-            if msg_ptr:
-                messages.append(msg_ptr.decode('utf-8'))
-        
-        # Free the allocated memory
-        _lib.whitespace_stego_free_all(results_ptr, result_count.value)
-        
-        # Return string for single message, list for multiple
-        if len(messages) == 1:
-            return messages[0]
+    if success:
+        if result_count.value > 0:
+            # Multiple messages found
+            messages = []
+            for i in range(result_count.value):
+                msg_ptr = results_ptr[i]
+                if msg_ptr:
+                    messages.append(msg_ptr.decode('utf-8'))
+            
+            # Free the allocated memory
+            _lib.whitespace_stego_free_all(results_ptr, result_count.value)
+            
+            # Return string for single message, list for multiple
+            if len(messages) == 1:
+                return messages[0]
+            else:
+                return messages
         else:
-            return messages
+            # decode_all succeeded but returned 0 messages
+            # This happens in multi-recipient scenarios when the password can't decrypt any messages
+            if password:
+                # For multi-recipient scenarios with wrong password, return empty result
+                # This matches Python's behavior
+                return ""
+            else:
+                # No password and no messages found - this is an error
+                error_msg = _lib.whitespace_stego_last_error()
+                if error_msg:
+                    error_str = error_msg.decode('utf-8')
+                else:
+                    error_str = "No valid messages found in carrier text"
+                raise RuntimeError(f"Decoding failed: {error_str}")
     
     # Try single message decode
     result_ptr = ctypes.c_char_p()

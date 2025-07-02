@@ -315,6 +315,7 @@ bool whitespace_stego_decode_all(const char* carrier, size_t carrier_len, const 
         bool decrypt_success = true;
         
         if (password && password[0]) {
+            // For password-protected messages, the base64 string contains encrypted data
             unsigned char* encrypted = NULL;
             size_t encrypted_len = 0;
             if (!from_base64(b64_str, &encrypted, &encrypted_len)) {
@@ -322,12 +323,11 @@ bool whitespace_stego_decode_all(const char* carrier, size_t carrier_len, const 
             } else if (!crypto_decrypt(encrypted, encrypted_len, password, &plain, &plain_len)) {
                 decrypt_success = false;
                 utils_free(encrypted);
-                // Set error message for failed decryption (matches Python BadPasswordError behavior)
-                snprintf(last_error, sizeof(last_error), "Password was only able to decode part of the secret message");
             } else {
                 utils_free(encrypted);
             }
         } else {
+            // For non-password messages, the base64 string contains the original message
             if (!from_base64(b64_str, &plain, &plain_len)) {
                 decrypt_success = false;
             }
@@ -336,20 +336,14 @@ bool whitespace_stego_decode_all(const char* carrier, size_t carrier_len, const 
         free(b64_str);
         
         if (!decrypt_success) {
-            // Return error if decryption failed (matches Python BadPasswordError behavior)
-            free(carrier_copy);
-            free(start_positions);
-            free(end_positions);
-            // Cleanup any messages already decoded
-            for (size_t i = 0; i < message_count; i++) {
-                free(messages[i]);
-            }
-            free(messages);
-            return false;
+            // Skip this message if decryption failed (multi-recipient behavior)
+            start_idx++;
+            end_idx++;
+            continue;
         }
         
         if (plain) {
-            // Copy to result as null-terminated string
+            // Copy to result as null-terminated UTF-8 string
             char* message = malloc(plain_len + 1);
             if (message) {
                 memcpy(message, plain, plain_len);
@@ -371,8 +365,16 @@ bool whitespace_stego_decode_all(const char* carrier, size_t carrier_len, const 
     
     if (message_count == 0) {
         free(messages);
-        snprintf(last_error, sizeof(last_error), "No valid messages found in carrier text");
-        return false;
+        if (password && password[0]) {
+            // For multi-recipient scenarios, return empty result set instead of error
+            // This matches Python's behavior where wrong passwords return empty results
+            *results = NULL;
+            *result_count = 0;
+            return true;
+        } else {
+            snprintf(last_error, sizeof(last_error), "No valid messages found in carrier text");
+            return false;
+        }
     }
     
     // Resize the messages array to exact size

@@ -104,7 +104,7 @@ pub fn decode_all(carrier: &str, password: Option<&str>) -> Result<Vec<String>, 
     let mut messages = Vec::new();
     let mut decryption_failures = 0;
     
-    // Find all start and end markers using byte positions (safe for UTF-8)
+    // Find all start and end markers using byte positions, but always advance to next char boundary
     let mut start_positions = Vec::new();
     let mut end_positions = Vec::new();
     
@@ -112,8 +112,14 @@ pub fn decode_all(carrier: &str, password: Option<&str>) -> Result<Vec<String>, 
     let mut pos = 0;
     while pos < carrier.len() {
         if let Some(start_pos) = carrier[pos..].find(START_MARKER) {
-            start_positions.push(pos + start_pos);
-            pos = pos + start_pos + START_MARKER.len_utf8();
+            let abs_start = pos + start_pos;
+            start_positions.push(abs_start);
+            // Advance to the next char boundary after the marker
+            pos = abs_start + START_MARKER.len_utf8();
+            // If not at a char boundary, advance to the next one
+            while pos < carrier.len() && !carrier.is_char_boundary(pos) {
+                pos += 1;
+            }
         } else {
             break;
         }
@@ -123,8 +129,14 @@ pub fn decode_all(carrier: &str, password: Option<&str>) -> Result<Vec<String>, 
     pos = 0;
     while pos < carrier.len() {
         if let Some(end_pos) = carrier[pos..].find(END_MARKER) {
-            end_positions.push(pos + end_pos);
-            pos = pos + end_pos + END_MARKER.len_utf8();
+            let abs_end = pos + end_pos;
+            end_positions.push(abs_end);
+            // Advance to the next char boundary after the marker
+            pos = abs_end + END_MARKER.len_utf8();
+            // If not at a char boundary, advance to the next one
+            while pos < carrier.len() && !carrier.is_char_boundary(pos) {
+                pos += 1;
+            }
         } else {
             break;
         }
@@ -144,8 +156,18 @@ pub fn decode_all(carrier: &str, password: Option<&str>) -> Result<Vec<String>, 
             continue;
         }
         
-        // Extract the encoded message using byte positions (safe for UTF-8)
-        let encoded = &carrier[start_pos + START_MARKER.len_utf8()..end_pos];
+        // Calculate the start and end indices for the encoded message
+        let mut start_idx = start_pos + START_MARKER.len_utf8();
+        let mut end_idx = end_pos;
+        // Ensure indices are valid UTF-8 boundaries
+        while start_idx < carrier.len() && !carrier.is_char_boundary(start_idx) {
+            start_idx += 1;
+        }
+        while end_idx < carrier.len() && !carrier.is_char_boundary(end_idx) {
+            end_idx += 1;
+        }
+        // Extract the encoded message
+        let encoded = &carrier[start_idx..end_idx];
         
         // Convert zero-width characters back to binary
         let mut data = match decode_binary(encoded) {
