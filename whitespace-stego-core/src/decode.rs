@@ -107,7 +107,7 @@ pub fn decode_all(carrier: &str, password: Option<&str>) -> Result<Vec<String>, 
     let mut start_positions = Vec::new();
     let mut end_positions = Vec::new();
     
-    // Use char_indices to handle UTF-8 boundaries correctly
+    // Find all start and end markers using character positions
     for (char_pos, _) in carrier.char_indices() {
         if carrier[char_pos..].starts_with(START_MARKER) {
             start_positions.push(char_pos);
@@ -131,7 +131,7 @@ pub fn decode_all(carrier: &str, password: Option<&str>) -> Result<Vec<String>, 
             continue;
         }
         
-        // Extract the encoded message
+        // Extract the encoded message - char_pos from char_indices() is already a byte position
         let encoded = &carrier[start_pos + START_MARKER.len_utf8()..end_pos];
         
         // Convert zero-width characters back to binary
@@ -208,6 +208,8 @@ pub fn extract_encoded(carrier: &str) -> Result<(String, String), StegoError> {
     if end <= start {
         return Err(StegoError::invalid_carrier("End marker before start marker"));
     }
+    
+    // All positions are byte positions from find(), so slicing is safe
     let encoded = &carrier[start..end + END_MARKER.len_utf8()];
     let mut remaining = format!(
         "{}{}",

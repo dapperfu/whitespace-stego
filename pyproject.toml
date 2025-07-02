@@ -1,6 +1,6 @@
 [build-system]
-requires = ["hatchling", "setuptools", "wheel"]
-build-backend = "hatchling.build"
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "whitespace-stego"
@@ -17,12 +17,6 @@ dependencies = [
     "cryptography>=42.0.0",
     "maturin>=1.0.0",
 ]
-
-[tool.hatch.build]
-files = ["whitespace_stego/libwhitespace_stego.so"]
-
-[tool.hatch.build.targets.wheel]
-packages = ["whitespace_stego"]
 
 [project.scripts]
 whitespace-stego = "whitespace_stego.cli:main"
@@ -63,7 +57,4 @@ warn_unreachable = true
 [[tool.mypy.overrides]]
 module = ["tests.*"]
 disallow_untyped_defs = false
-disallow_incomplete_defs = false
-
-[tool.hatch.metadata]
-allow-direct-references = true 
+disallow_incomplete_defs = false 
