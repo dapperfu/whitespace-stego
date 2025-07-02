@@ -21,10 +21,12 @@ except ImportError:
 # Optionally import Rust backend
 try:
     from whitespace_stego_backend import encode as rust_encode, decode as rust_decode
-    rust_available = True
+    def rust_is_available():
+        return True
 except ImportError:
     rust_encode = rust_decode = None
-    rust_available = False
+    def rust_is_available():
+        return False
 
 __all__ = [
     "encode_message",
@@ -36,5 +38,5 @@ __all__ = [
     "c_is_available",
     "rust_encode",
     "rust_decode",
-    "rust_available",
+    "rust_is_available",
 ] 
