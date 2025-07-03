@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+import sys
+import subprocess
+import os
+sys.exit(subprocess.run([".venv/bin/whitespace-stego"] + sys.argv[1:]).returncode)

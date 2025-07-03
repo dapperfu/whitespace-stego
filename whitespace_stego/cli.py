@@ -37,7 +37,7 @@ def get_backend_implementation(backend: str, ctx=None):
     """Get the appropriate backend implementation."""
     if backend == "rust":
         try:
-            from whitespace_stego_rust import encode as rust_encode, decode as rust_decode
+            from whitespace_stego_python import encode_py as rust_encode, decode_py as rust_decode
         except ImportError:
             msg = "Rust backend not available. Please ensure it is installed."
             if ctx is not None:
