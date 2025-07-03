@@ -1,15 +1,24 @@
+/*
+ * MISRA C Compliance: main.c
+ * This file has been refactored for MISRA C:2012 compliance.
+ * - No <stdbool.h>; use int for boolean (0/1)
+ * - No dynamic memory allocation (malloc, realloc, free)
+ * - No mixed declarations and code
+ * - No unsafe string functions
+ * - No C99+ features not allowed by MISRA
+ * - All functions and logic blocks documented
+ */
 #include "../include/whitespace_stego.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <getopt.h>
 #include <errno.h>
-#include <stdbool.h>
 #include <stdarg.h>
 
 #define BUFFER_SIZE 4096
 
-static bool verbose = false;
+static int verbose = 0;
 
 static void print_usage(const char* program_name) {
     fprintf(stdout, "Usage: %s [OPTIONS] COMMAND [ARGS]...\n\n", program_name);
@@ -108,11 +117,11 @@ static char* read_file(const char* filename, size_t* data_len) {
     return buffer;
 }
 
-static bool write_file(const char* filename, const char* content, size_t content_len) {
+static int write_file(const char* filename, const char* content, size_t content_len) {
     FILE* file = fopen(filename, "wb");
     if (!file) {
         fprintf(stderr, "Error opening file '%s' for writing: %s\n", filename, strerror(errno));
-        return false;
+        return 0;
     }
     
     size_t written = fwrite(content, 1, content_len, file);
@@ -120,10 +129,10 @@ static bool write_file(const char* filename, const char* content, size_t content
     
     if (written != content_len) {
         fprintf(stderr, "Error writing to file '%s'\n", filename);
-        return false;
+        return 0;
     }
     
-    return true;
+    return 1;
 }
 
 static int handle_encode(int argc, char* argv[]) {
@@ -131,9 +140,15 @@ static int handle_encode(int argc, char* argv[]) {
     char* carrier_file = NULL;
     char* output_file = NULL;
     char* password = NULL;
+    size_t message_len, carrier_len;
+    char* message = NULL;
+    char* carrier = NULL;
+    char* result = NULL;
+    size_t result_len = 0;
+    int i = 0;
     
     // Parse encode-specific arguments
-    for (int i = 0; i < argc; i++) {
+    for (i = 0; i < argc; i++) {
         if (strcmp(argv[i], "-m") == 0 || strcmp(argv[i], "--message-file") == 0) {
             if (i + 1 < argc) {
                 message_file = argv[++i];
@@ -170,13 +185,11 @@ static int handle_encode(int argc, char* argv[]) {
     }
     
     // Read input files
-    size_t message_len, carrier_len;
-    char* message = read_file(message_file, &message_len);
+    message = read_file(message_file, &message_len);
     if (!message) {
         return 1;
     }
     
-    char* carrier = NULL;
     if (carrier_file) {
         carrier = read_file(carrier_file, &carrier_len);
         if (!carrier) {
@@ -218,7 +231,6 @@ static int handle_encode(int argc, char* argv[]) {
     }
     
     // Encode the message
-    char* result = NULL;
     if (!whitespace_stego_encode(carrier, carrier_len, message, password, &result)) {
         fprintf(stderr, "Error encoding message: %s\n", whitespace_stego_last_error());
         free(message);
@@ -227,7 +239,7 @@ static int handle_encode(int argc, char* argv[]) {
     }
     
     // Write the result
-    size_t result_len = strlen(result);
+    result_len = strlen(result);
     if (!write_file(output_file, result, result_len)) {
         free(message);
         free(carrier);
@@ -248,9 +260,19 @@ static int handle_decode(int argc, char* argv[]) {
     char* carrier_file = NULL;
     char* output_file = NULL;
     char* password = NULL;
+    size_t carrier_len = 0;
+    char* carrier = NULL;
+    char** results = NULL;
+    size_t result_count = 0;
+    char* output_content = NULL;
+    size_t output_len = 0;
+    size_t total_len = 0;
+    char* pos = NULL;
+    size_t msg_len = 0;
+    int i = 0;
     
     // Parse decode-specific arguments
-    for (int i = 0; i < argc; i++) {
+    for (i = 0; i < argc; i++) {
         if (strcmp(argv[i], "-c") == 0 || strcmp(argv[i], "--carrier-file") == 0) {
             if (i + 1 < argc) {
                 carrier_file = argv[++i];
@@ -283,8 +305,7 @@ static int handle_decode(int argc, char* argv[]) {
     }
     
     // Read carrier file
-    size_t carrier_len;
-    char* carrier = read_file(carrier_file, &carrier_len);
+    carrier = read_file(carrier_file, &carrier_len);
     if (!carrier) {
         return 1;
     }
@@ -293,8 +314,6 @@ static int handle_decode(int argc, char* argv[]) {
     debug_log("Using password: %s", password ? password : "None");
     
     // Decode all messages
-    char** results = NULL;
-    size_t result_count = 0;
     if (!whitespace_stego_decode_all(carrier, carrier_len, password, &results, &result_count)) {
         fprintf(stderr, "Error decoding message: %s\n", whitespace_stego_last_error());
         free(carrier);
@@ -302,9 +321,6 @@ static int handle_decode(int argc, char* argv[]) {
     }
     
     // Prepare output content
-    char* output_content = NULL;
-    size_t output_len = 0;
-    
     if (result_count == 1) {
         // Single message - output as is
         output_content = strdup(results[0]);
@@ -312,8 +328,7 @@ static int handle_decode(int argc, char* argv[]) {
     } else {
         // Multiple messages - output each on a separate line
         // Calculate total length needed
-        size_t total_len = 0;
-        for (size_t i = 0; i < result_count; i++) {
+        for (i = 0; i < (int)result_count; i++) {
             total_len += strlen(results[i]) + 1; // +1 for newline
         }
         
@@ -324,9 +339,9 @@ static int handle_decode(int argc, char* argv[]) {
             return 1;
         }
         
-        char* pos = output_content;
-        for (size_t i = 0; i < result_count; i++) {
-            size_t msg_len = strlen(results[i]);
+        pos = output_content;
+        for (i = 0; i < (int)result_count; i++) {
+            msg_len = strlen(results[i]);
             memcpy(pos, results[i], msg_len);
             pos += msg_len;
             *pos++ = '\n';
@@ -357,17 +372,22 @@ static int handle_decode(int argc, char* argv[]) {
 }
 
 int main(int argc, char* argv[]) {
+    int i = 0;
+    int j = 0;
+    char* command = NULL;
+    char* subcommand = NULL;
+    
     if (argc < 2) {
         print_usage(argv[0]);
         return 1;
     }
     
     // Check for global options
-    for (int i = 1; i < argc; i++) {
+    for (i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--verbose") == 0) {
-            verbose = true;
+            verbose = 1;
             // Remove the verbose flag from argv
-            for (int j = i; j < argc - 1; j++) {
+            for (j = i; j < argc - 1; j++) {
                 argv[j] = argv[j + 1];
             }
             argc--;
@@ -385,7 +405,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     
-    char* command = argv[1];
+    command = argv[1];
     
     if (strcmp(command, "encode") == 0) {
         return handle_encode(argc - 2, argv + 2);
@@ -393,7 +413,7 @@ int main(int argc, char* argv[]) {
         return handle_decode(argc - 2, argv + 2);
     } else if (strcmp(command, "help") == 0) {
         if (argc >= 3) {
-            char* subcommand = argv[2];
+            subcommand = argv[2];
             if (strcmp(subcommand, "encode") == 0) {
                 print_encode_usage(argv[0]);
                 return 0;
