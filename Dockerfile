@@ -25,6 +25,9 @@ COPY . /build
 # Build and install the Rust backend in the venv
 RUN cd whitespace-stego-python && /opt/venv/bin/maturin develop --release
 
+# Build C backend
+RUN cd c && make clean && make && cd ..
+
 # Install your Python package and dependencies in the venv
 RUN /opt/venv/bin/pip install .
 
@@ -37,4 +40,4 @@ RUN cp /build/dist/whitespace-stego-py /usr/local/bin/whitespace-stego && \
     chmod +x /usr/local/bin/whitespace-stego
 
 # Set the entrypoint to the binary
-ENTRYPOINT ["whitespace-stego"] 
+ENTRYPOINT ["/usr/local/bin/whitespace-stego"] 
