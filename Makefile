@@ -9,7 +9,7 @@
 VENV?=.venv
 BIN_DIR=bin
 
-.PHONY: help venv test all clean rust c go python-binary python-binary-docker install maturin-develop
+.PHONY: help venv test all clean rust c go python-binary python-binary-docker install maturin-develop wasi wasi-web
 
 # Default target
 help:
@@ -24,6 +24,8 @@ help:
 	@echo "  go              - Build Go CLI binary"
 	@echo "  python-binary   - Build Python CLI binary (local)"
 	@echo "  python-binary-docker - Build portable Python CLI binary (Docker)"
+	@echo "  wasi            - Build WASM web interface"
+	@echo "  wasi-web        - Build and serve WASM web interface"
 	@echo "  clean           - Remove all build artifacts"
 
 # Create Python virtual environment
@@ -93,6 +95,18 @@ all: rust c go python-binary-docker
 	@echo "All binaries built and placed in ${BIN_DIR}/ folder:"
 	@ls -la ${BIN_DIR}/
 
+# Build WASM web interface
+wasi:
+	@echo "Building WASM web interface..."
+	cd wasi && ./build.sh
+	@echo "WASM build completed. Run 'make wasi-web' to serve it."
+
+# Build and serve WASM web interface
+wasi-web: wasi
+	@echo "Starting web server on http://localhost:8000"
+	@echo "Press Ctrl+C to stop the server"
+	cd wasi/pkg && python3 -m http.server 8000
+
 # Remove all build artifacts
 clean:
 	rm -rf ${VENV}
@@ -113,5 +127,7 @@ clean:
 	rm -f encoded*.txt
 	rm -rf results
 	rm -rf ${BIN_DIR}
+	rm -rf wasi/pkg
+	rm -rf wasi/target
 	# Keep spec files for builds
 	cargo clean 
