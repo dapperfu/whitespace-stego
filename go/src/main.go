@@ -34,12 +34,15 @@ func encodeCommand() {
 	fs := flag.NewFlagSet("encode", flag.ExitOnError)
 
 	var message string
+	var messageFile string
 	var carrierFile string
 	var outputFile string
 	var password string
 
 	fs.StringVar(&message, "m", "", "Message to encode")
 	fs.StringVar(&message, "message", "", "Message to encode")
+	fs.StringVar(&messageFile, "mf", "", "Message file path")
+	fs.StringVar(&messageFile, "message-file", "", "Message file path")
 	fs.StringVar(&carrierFile, "cf", "", "Carrier file path")
 	fs.StringVar(&carrierFile, "carrier-file", "", "Carrier file path")
 	fs.StringVar(&outputFile, "o", "", "Output file path")
@@ -49,11 +52,28 @@ func encodeCommand() {
 
 	fs.Parse(os.Args[2:])
 
-	// Validate required arguments
-	if message == "" {
-		fmt.Fprintf(os.Stderr, "Error: message is required\n")
+	// Check for mutual exclusivity between message and message-file
+	if message != "" && messageFile != "" {
+		fmt.Fprintf(os.Stderr, "Error: -m/-message and -mf/-message-file are mutually exclusive\n")
 		fs.PrintDefaults()
 		os.Exit(1)
+	}
+
+	// Validate required arguments
+	if message == "" && messageFile == "" {
+		fmt.Fprintf(os.Stderr, "Error: either -m/-message or -mf/-message-file is required\n")
+		fs.PrintDefaults()
+		os.Exit(1)
+	}
+
+	// Read message from file if message-file is provided
+	if messageFile != "" {
+		messageBytes, err := os.ReadFile(messageFile)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error reading message file: %v\n", err)
+			os.Exit(1)
+		}
+		message = string(messageBytes)
 	}
 
 	// Read carrier text
@@ -160,7 +180,8 @@ Commands:
   help      Show this help message
 
 Encode options:
-  -m, -message <text>       Message to encode (required)
+  -m, -message <text>       Message to encode (mutually exclusive with -mf/-message-file)
+  -mf, -message-file <path> Message file path (mutually exclusive with -m/-message)
   -cf, -carrier-file <path> Carrier file path
   -o, -output <path>        Output file path (default: stdout)
   -p, -password <text>      Password for encryption
@@ -172,6 +193,7 @@ Decode options:
 
 Examples:
   whitespace-stego-go encode -m "Hello, World!" -cf carrier.txt -o encoded.txt
+  whitespace-stego-go encode -mf message.txt -cf carrier.txt -o encoded.txt
   whitespace-stego-go encode -m "Secret" -cf carrier.txt -p "mypassword" -o encoded.txt
   whitespace-stego-go decode -cf encoded.txt
   whitespace-stego-go decode -cf encoded.txt -p "mypassword" -o decoded.txt
