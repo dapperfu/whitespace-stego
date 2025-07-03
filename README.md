@@ -4,32 +4,31 @@
 
 > *"The best place to hide a tree is in a forest. The best place to hide a secret is in plain sight."* 🌲
 
-A modern, multi-language toolkit for hiding secret messages in text using **invisible Unicode characters** — because sometimes the most obvious place to hide something is right under everyone's nose! 👀
-
-Supports Python 🐍, Rust 🦀, C ⚡, and WebAssembly 🌐 backends. Because why choose one language when you can confuse everyone with four? 🤷‍♂️
+A modern, multi-language toolkit for hiding secret messages in text using **invisible Unicode characters**. Supports Python 🐍, Rust 🦀, C ⚡, and WebAssembly 🌐 backends.
 
 ---
 
-## 🎯 What's This All About?
+## 🎯 What is Whitespace Steganography?
 
-Ever wanted to send a secret message that looks like innocent text? Well, you've come to the right place! We use **zero-width Unicode characters** (those sneaky invisible little buggers) to hide your secrets in plain sight. It's like having a conversation in a crowded room where only you and your friend know you're actually speaking in code! 🕵️‍♀️
-
----
-
-## ✨ Features That'll Make You Go "Ooooh!"
-
-- **🔄 Multi-language Madness:** Python, Rust, C, and WASM implementations (because variety is the spice of life!)
-- **🖥️ CLI & Web UI:** Command-line for hackers, browser interface for normies
-- **🌍 Unicode & Emoji Friendly:** Works with any text, any language, any emoji (even the weird ones)
-- **🔐 Password Protection:** Optional encryption because sometimes you need that extra layer of paranoia
-- **🤝 Cross-compatibility:** Encode in Python, decode in Rust, confuse everyone in between
-- **🧪 Comprehensive Testing:** 1300+ tests because we're not animals (we're developers!)
+Whitespace steganography hides secret messages in plain text using **zero-width Unicode characters** — invisible characters that don't appear to human readers but can be detected and decoded by the right tools. It's like having a conversation in a crowded room where only you and your friend know you're actually speaking in code! 🕵️‍♀️
 
 ---
 
-## 🚀 Quick Start (For the Impatient)
+## ✨ Key Features
 
-### 1. 🛠️ Install Everything (Python, Rust, C, WASM)
+- **🔄 Multi-language Support:** Python, Rust, C, and WebAssembly implementations
+- **🖥️ Multiple Interfaces:** Command-line tools and web browser interface
+- **🌍 Unicode & Emoji Friendly:** Works with any text, language, or emoji
+- **🔐 Password Protection:** Optional AES-256 encryption for sensitive messages
+- **🤝 Cross-compatibility:** Encode in one language, decode in another
+- **🧪 Comprehensive Testing:** 1300+ tests ensuring reliability
+- **📚 MISRA C Compliant:** C implementation follows safety-critical coding standards
+
+---
+
+## 🚀 Quick Start
+
+### Installation
 
 ```bash
 git clone <repo-url>
@@ -40,62 +39,54 @@ make c        # C CLI
 make wasi-web # WebAssembly (browser UI)
 ```
 
-### 2. 🎭 Encode/Decode Like a Pro (Python CLI)
+### Basic Usage
 
+**Python CLI:**
 ```bash
-# Encode your deepest secrets
+# Encode a secret message
 python3 -m whitespace_stego.cli encode --message "Secret" --carrier "Innocent text" --output encoded.txt
 
-# Decode and discover the truth
+# Decode the message
 python3 -m whitespace_stego.cli decode --carrier-file encoded.txt
 ```
 
-### 3. 🌐 Try the Web UI (For the Clicky Types)
-
+**Web Interface:**
 ```bash
 make wasi-web
 # Open http://localhost:8000 in your browser
-# No command line required! 🎉
 ```
 
 ---
 
-## 📝 Example (See the Magic in Action!)
+## 📝 How It Works
 
-Here's a simple example showing how whitespace steganography works. The secret message is hidden using invisible Unicode characters, but we can visualize them using debug methods:
+The toolkit converts your secret message into binary data, then embeds it using invisible Unicode characters:
 
-**Message:** `Hello, World!`  
-**Carrier:** `This is innocent text that contains a secret message.`
+- **U+FEFF** (Zero-width no-break space) - Start marker
+- **U+200B** (Zero-width space) - Represents binary 0
+- **U+200D** (Zero-width joiner) - Represents binary 1
+- **U+200C** (Zero-width non-joiner) - End marker
 
-**Encoded Text (with visible whitespace):**
+**Example:**
 ```
-T[START][0][1][0][1][0][0][1][1][0][1][0][0][0][1][1][1][0][1][0][1][0][1][1][0][0][1][1][1][0][0][1][1][0][1][1][0][0][0][1][0][0][1][0][0][0][1][1][1][0][0][1][1][1][0][0][0][0][1][1][1][0][0][1][1][0][1][0][0][1][0][0][1][0][1][0][0][0][1][1][0][0][1][1][0][0][1][0][0][0][1][1][1][0][1][1][0][0][1][1][0][0][0][1][1][0][1][1][0][1][1][0][1][0][1][1][1][1][0][0][0][0][1][1][0][1][0][1][1][0][1][0][0][1][0][0][1][0][1][0][1][0][0][0][1][0][0][1][1][1][1][0][1][0][0][1][1][1][1][0][1][END]his[SPACE]is[SPACE]innocent[SPACE]text[SPACE]that[SPACE]contains[SPACE]a[SPACE]secret[SPACE]message.
+Original: "Hello, World!"
+Carrier:  "This is innocent text."
+Encoded:  "T[invisible data]his is innocent text."
 ```
 
-**What's happening here?**
-- `[START]` and `[END]` mark the beginning and end of the hidden data
-- `[0]` and `[1]` represent the binary data (your message converted to bits)
-- `[SPACE]` shows regular spaces in the carrier text
-- The actual encoded text looks completely normal to the human eye!
-
-**Try it yourself:**
-```bash
-# Save the encoded text to a file and decode it
-echo "T​‍﻿‍﻿‍‍﻿﻿‍﻿‍‍‍﻿﻿﻿‍﻿‍﻿‍﻿﻿‍‍﻿﻿﻿‍‍﻿﻿‍﻿﻿‍‍‍﻿‍‍﻿‍‍‍﻿﻿﻿‍‍﻿﻿﻿‍‍‍‍﻿﻿﻿‍‍﻿﻿‍﻿‍‍﻿‍‍﻿‍﻿‍‍‍﻿﻿‍‍﻿﻿‍‍﻿‍‍‍﻿﻿﻿‍﻿﻿‍‍﻿﻿‍‍‍﻿﻿‍﻿﻿‍﻿﻿‍﻿‍﻿﻿﻿﻿‍‍‍‍﻿﻿‍﻿‍﻿﻿‍﻿‍‍﻿‍‍﻿‍﻿‍﻿‍‍‍﻿‍‍﻿﻿﻿﻿‍﻿‍‍﻿﻿﻿﻿‍﻿‌his is innocent text that contains a secret message." > example.txt
-python3 -m whitespace_stego.cli decode --carrier-file example.txt
-```
+The encoded text looks completely normal but contains your hidden message!
 
 ---
 
-## 🥚 Easter Egg Hunt! 
+## 🥚 Easter Egg Challenge
 
-**Hidden Message Challenge:** Try decoding this innocent-looking "Hello World" message. You might discover something... *special*! 🕵️‍♂️
+Try decoding this innocent-looking "Hello World" message:
 
 ```bash
-# Copy this text and save it to a file, then decode it:
+# Save this text to a file:
 H​‍‍﻿﻿‍﻿‍‍‍﻿﻿‍﻿﻿﻿﻿‍﻿﻿‍‍‍‍﻿‍﻿‍﻿‍‍﻿‍‍‍﻿﻿‍﻿‍‍‍﻿﻿‍﻿﻿﻿﻿‍﻿﻿‍‍‍‍﻿‍﻿‍﻿‍‍﻿‍‍‍﻿﻿‍﻿‍‍‍﻿﻿‍﻿﻿﻿﻿‍﻿﻿‍‍‍‍﻿‍﻿‍﻿‍﻿‍‍‍‍﻿﻿‍﻿‍‍‍﻿﻿‍﻿﻿﻿﻿‍﻿﻿‍‍‍‍﻿‍﻿‍﻿‍﻿‍‍‍‍﻿﻿‍﻿‍‍‍﻿﻿‍﻿﻿﻿﻿‍﻿﻿‍‍‍‍﻿‍﻿‍﻿‍‍‍﻿‍‍﻿﻿‍﻿‍‍‍﻿﻿‍﻿﻿﻿﻿‍﻿﻿‍‍‍‍﻿‍﻿‍﻿‍‍﻿﻿‍‍﻿﻿‍﻿‍‍‍﻿﻿‍﻿﻿﻿﻿‍﻿﻿‍‍‍‍﻿‍﻿‍﻿‍‍‍﻿‍‍﻿﻿‍﻿‍‍‍﻿﻿‍﻿﻿﻿﻿‍﻿﻿‍‍‍‍﻿‍﻿‍﻿‍‍﻿﻿‍﻿‍﻿‍‍‍﻿‍﻿﻿‍﻿‍﻿﻿‍﻿‍‍‍﻿‍﻿‍‍﻿﻿﻿﻿‍﻿‌ello World
 
-# Then run:
+# Then decode it:
 python3 -m whitespace_stego.cli decode --carrier-file your_file.txt
 ```
 
@@ -105,75 +96,51 @@ python3 -m whitespace_stego.cli decode --carrier-file your_file.txt
 
 ## 📚 Documentation
 
-Our comprehensive documentation covers everything from quick start guides to deep technical details:
+### Getting Started
+- **[📖 Usage Guide](docs/USAGE.md)** - Complete CLI and API examples
+- **[🔧 Installation Guide](docs/INSTALLATION.md)** - Setup for all platforms
+- **[🐳 Docker Guide](docs/DOCKER.md)** - Containerized deployment
 
-### 🚀 Getting Started
-- **[📖 Usage Guide](docs/USAGE.md)** - Complete CLI and API examples with practical use cases
-- **[🔧 Installation Guide](docs/INSTALLATION.md)** - Step-by-step setup for all platforms and backends
-- **[🐳 Docker Guide](docs/DOCKER.md)** - Containerized builds and deployment options
+### Technical Details
+- **[🏗️ Architecture](docs/ARCHITECTURE.md)** - System design and components
+- **[📋 API Reference](docs/API_REFERENCE.md)** - Complete API documentation
+- **[🔒 Security](docs/SECURITY.md)** - Security considerations
+- **[🦀 Rust Implementation](docs/RUST.md)** - Rust-specific details
 
-### 🏗️ Technical Documentation
-- **[🏗️ System Architecture](docs/ARCHITECTURE.md)** - High-level system design and component interactions
-- **[📋 API Reference](docs/API_REFERENCE.md)** - Complete API documentation with examples
-- **[🔒 Security Notes](docs/SECURITY.md)** - Security considerations and best practices
+### Development
+- **[🧪 Testing](docs/TESTING.md)** - Testing strategy and coverage
+- **[📓 Notebooks](docs/NOTEBOOKS.md)** - Interactive examples
+- **[🤝 Contributing](docs/CONTRIBUTING.md)** - How to contribute
 
-### 🧪 Development & Testing
-- **[🧪 Testing Guide](docs/TESTING.md)** - Comprehensive testing strategy and coverage analysis
-- **[📓 Jupyter Notebooks](docs/NOTEBOOKS.md)** - Interactive examples and tutorials
-- **[🤝 Contributing Guidelines](docs/CONTRIBUTING.md)** - How to contribute to the project
-
-### 📊 Advanced Topics
-- **[📈 Coverage Analysis](docs/COVERAGE.md)** - Test coverage metrics and analysis
-- **[⚡ Parallel Testing](docs/COVERAGE_PARALLELIZATION.md)** - Performance optimization for test suites
-- **[🔍 Test Failure Analysis](docs/PARALLEL_TEST_FAILURE_ANALYSIS.md)** - Debugging test failures
-- **[🦀 Rust Implementation](docs/RUST.md)** - Rust-specific implementation details
+### Advanced Topics
+- **[📈 Coverage Analysis](docs/COVERAGE.md)** - Test coverage metrics
+- **[⚡ Parallel Testing](docs/COVERAGE_PARALLELIZATION.md)** - Performance optimization
+- **[🔍 Test Failure Analysis](docs/PARALLEL_TEST_FAILURE_ANALYSIS.md)** - Debugging guide
 
 ---
 
-## 🎭 Real-World Use Cases (Because We're Practical)
+## 🎭 Use Cases
 
-- **👥 Corporate Espionage:** Hide meeting notes in your lunch order (not that we condone this...)
-- **💕 Secret Love Letters:** Send romantic messages that look like grocery lists
-- **🎮 Gaming:** Hide cheat codes in your gaming forum posts (we see you!)
-- **📝 Journaling:** Hide your deepest thoughts in your work emails (just kidding... or are we?)
-
----
-
-## ⚠️ Disclaimer (Because Lawyers)
-
-This tool is for educational and legitimate purposes only. We're not responsible if you use it to hide your grocery list in your resignation letter. That's on you! 😅
+- **👥 Corporate Communication:** Hide sensitive notes in routine messages
+- **💕 Personal Messages:** Send romantic notes that look like ordinary text
+- **🎮 Gaming:** Hide cheat codes or strategies in forum posts
+- **📝 Journaling:** Conceal personal thoughts in public documents
+- **🔐 Secure Communication:** Add an extra layer of message protection
 
 ---
 
-## 📄 License
-MIT License. See [LICENSE](LICENSE). Because sharing is caring! ❤️
+## 🔧 C Backend (High Performance)
 
----
+A high-performance C backend is available for Python via ctypes, featuring MISRA C:2012 compliance for safety-critical applications.
 
-## 🌟 Final Thoughts
+### Building the C Backend
 
-Remember: The best steganography is the kind that makes people think you're just bad at typing. Keep it subtle, keep it sneaky, and most importantly — keep it fun! 🎉
-
-*"In a world full of visible secrets, be the invisible one."* ✨
-
-## Python C Backend (ctypes)
-
-A high-performance C backend is available for Python via ctypes. This backend uses the C implementation in `c/` and exposes it to Python for encoding and decoding.
-
-### Building the C Shared Library
-
-To use the C backend, you must first build the shared library:
-
-```sh
+```bash
 cd c
-make shared
+make shared  # Creates lib/libwhitespace_stego.so
 ```
 
-This will produce `lib/libwhitespace_stego.so`.
-
-### Using the C Backend in Python
-
-You can use the C backend via:
+### Using the C Backend
 
 ```python
 from whitespace_stego.c_backend import encode, decode, is_available
@@ -186,4 +153,24 @@ else:
     print("C backend not available!")
 ```
 
-You can also select the C backend in the CLI with `--backend c`.
+Use `--backend c` in the CLI to select the C backend.
+
+---
+
+## ⚠️ Disclaimer
+
+This tool is for educational and legitimate purposes only. Users are responsible for complying with applicable laws and regulations.
+
+---
+
+## 📄 License
+
+MIT License. See [LICENSE](LICENSE).
+
+---
+
+## 🌟 Contributing
+
+We welcome contributions! See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines.
+
+*"In a world full of visible secrets, be the invisible one."* ✨
