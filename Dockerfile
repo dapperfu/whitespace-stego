@@ -28,6 +28,9 @@ COPY . /build
 # Install your Python package and dependencies in the venv
 RUN /opt/venv/bin/pip install .
 
+# Debug: List contents to verify files are copied
+RUN ls -la /build/ && echo "=== Checking for spec file ===" && ls -la /build/whitespace_stego.spec || echo "Spec file not found!"
+
 # Build the binary with PyInstaller using the spec file
 RUN /opt/venv/bin/pyinstaller whitespace_stego.spec
 
