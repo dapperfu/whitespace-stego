@@ -113,5 +113,5 @@ clean:
 	rm -f encoded*.txt
 	rm -rf results
 	rm -rf ${BIN_DIR}
-	rm -f *.spec
+	# Keep spec files for builds
 	cargo clean 
