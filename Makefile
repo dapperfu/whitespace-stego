@@ -61,14 +61,16 @@ rust: venv
 # Build C CLI binary
 c:
 	@echo "Building C CLI binary..."
-	cd c && make clean && make && cd ..
+	cd c && make clean && make
+	cd ..
 	mkdir -p ${BIN_DIR}
 	cp c/bin/whitespace-stego-c ${BIN_DIR}/
 
 # Build Go CLI binary
 go:
 	@echo "Building Go CLI binary..."
-	cd go && make clean && make build && cd ..
+	cd go && make clean && make build
+	cd ..
 	mkdir -p ${BIN_DIR}
 	cp go/bin/whitespace-stego-go ${BIN_DIR}/
 
