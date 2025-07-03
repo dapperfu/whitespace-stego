@@ -200,7 +200,7 @@ cython_debug/
 
 # Project-specific ignores
 .benchmarks/
-.github/
+-.github/
 !.github/workflows/
 .ruff_cache/
 Cargo.lock
