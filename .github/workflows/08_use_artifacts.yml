@@ -1,0 +1,86 @@
+name: 08 Use Artifacts
+
+on:
+  workflow_run:
+    workflows: ["05 Make Rust", "06 Make C", "07 Make Go"]
+    types:
+      - completed
+  workflow_dispatch:
+
+jobs:
+  use-artifacts:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: List downloaded artifacts
+        run: |
+          echo "📦 Downloaded artifacts:"
+          find artifacts/ -type f -exec ls -la {} \;
+
+      - name: Set up bin directory
+        run: mkdir -p bin
+
+      - name: Copy binaries to bin directory
+        run: |
+          # Copy Python binary
+          if [ -f "artifacts/python-binary/whitespace-stego-py" ]; then
+            cp artifacts/python-binary/whitespace-stego-py bin/
+            chmod +x bin/whitespace-stego-py
+            echo "✅ Copied Python binary"
+          fi
+          
+          # Copy Rust binary
+          if [ -f "artifacts/rust-binary/whitespace-stego-rs" ]; then
+            cp artifacts/rust-binary/whitespace-stego-rs bin/
+            chmod +x bin/whitespace-stego-rs
+            echo "✅ Copied Rust binary"
+          fi
+          
+          # Copy C binary
+          if [ -f "artifacts/c-binary/whitespace-stego-c" ]; then
+            cp artifacts/c-binary/whitespace-stego-c bin/
+            chmod +x bin/whitespace-stego-c
+            echo "✅ Copied C binary"
+          fi
+          
+          # Copy Go binary
+          if [ -f "artifacts/go-binary/whitespace-stego-go" ]; then
+            cp artifacts/go-binary/whitespace-stego-go bin/
+            chmod +x bin/whitespace-stego-go
+            echo "✅ Copied Go binary"
+          fi
+
+      - name: Test all binaries
+        run: |
+          echo "🧪 Testing all binaries:"
+          for binary in bin/whitespace-stego-*; do
+            if [ -f "$binary" ]; then
+              echo "Testing $binary..."
+              if $binary --help > /dev/null 2>&1; then
+                echo "✅ $binary works"
+              else
+                echo "❌ $binary failed"
+                exit 1
+              fi
+            fi
+          done
+
+      - name: Upload combined binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: all-binaries
+          path: bin/
+          retention-days: 30 

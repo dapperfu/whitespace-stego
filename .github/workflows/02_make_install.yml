@@ -1,0 +1,49 @@
+name: 02 Make Install
+
+on:
+  workflow_run:
+    workflows: ["01 Make Venv"]
+    types:
+      - completed
+  workflow_dispatch:
+
+jobs:
+  make-install:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install make
+        run: sudo apt-get update && sudo apt-get install -y make
+
+      - name: Download venv artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: venv
+          path: .venv/
+
+      - name: Activate venv and run make install
+        run: |
+          source .venv/bin/activate
+          make install
+
+      - name: Verify installation
+        run: |
+          source .venv/bin/activate
+          python -c "import whitespace_stego; print('✅ Package installed successfully')"
+
+      - name: Upload installed package as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: installed-package
+          path: |
+            .venv/
+            whitespace_stego.egg-info/
+          retention-days: 1 
