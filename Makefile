@@ -8,7 +8,7 @@
 #
 VENV?=.venv
 BIN_DIR=bin
-MAKEFILE_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))/
+MAKEFILE_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
 .PHONY: help venv test all clean rust c go python-binary python-binary-docker install maturin-develop wasi wasi-web cov-go cov-rust cov-c cov-python coverage coverage-xml
 
@@ -71,7 +71,7 @@ c:
 	cd c && make clean && make
 	cd ..
 	mkdir -p ${BIN_DIR}
-	cp ${MAKEFILE_DIR}c/bin/whitespace-stego-c ${BIN_DIR}/
+	cp ${MAKEFILE_DIR}/c/bin/whitespace-stego-c ${BIN_DIR}/
 
 # Build Go CLI binary
 go:
@@ -79,7 +79,7 @@ go:
 	cd go && make clean && make build
 	cd ..
 	mkdir -p ${BIN_DIR}
-	cp ${MAKEFILE_DIR}go/bin/whitespace-stego-go ${BIN_DIR}/
+	cp ${MAKEFILE_DIR}/go/bin/whitespace-stego-go ${BIN_DIR}/
 
 # Build Python CLI binary using PyInstaller (local build)
 python-binary: venv install maturin-develop rust c
@@ -87,7 +87,7 @@ python-binary: venv install maturin-develop rust c
 	${VENV}/bin/pip install pyinstaller
 	${VENV}/bin/pyinstaller --clean ${MAKEFILE_DIR}/whitespace_stego.spec
 	mkdir -p ${BIN_DIR}
-	cp ${MAKEFILE_DIR}dist/whitespace-stego-py ${BIN_DIR}/
+	cp ${MAKEFILE_DIR}/dist/whitespace-stego-py ${BIN_DIR}/
 
 # Build portable Python CLI binary using Docker
 python-binary-docker:
@@ -95,7 +95,7 @@ python-binary-docker:
 	docker build -t whitespace-stego-py-builder .
 	mkdir -p dist ${BIN_DIR}
 	docker run --rm --entrypoint cp -v "$(PWD)/dist:/out" whitespace-stego-py-builder /build/dist/whitespace-stego-py /out/
-	cp ${MAKEFILE_DIR}dist/whitespace-stego-py ${BIN_DIR}/
+	cp ${MAKEFILE_DIR}/dist/whitespace-stego-py ${BIN_DIR}/
 	@echo "Testing the binary..."
 	${BIN_DIR}/whitespace-stego-py --help
 
