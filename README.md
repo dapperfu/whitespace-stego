@@ -1,4 +1,7 @@
-![Project Logo](39e228c0-fefd-4bc1-82bf-fe581329754b.png)
+[![CI](https://github.com/${{GITHUB_REPOSITORY}}/actions/workflows/ci.yml/badge.svg)](https://github.com/${{GITHUB_REPOSITORY}}/actions/workflows/ci.yml)
+[![Build & Test](https://github.com/${{GITHUB_REPOSITORY}}/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/${{GITHUB_REPOSITORY}}/actions/workflows/build-and-test.yml)
+[![Docker](https://github.com/${{GITHUB_REPOSITORY}}/actions/workflows/docker.yml/badge.svg)](https://github.com/${{GITHUB_REPOSITORY}}/actions/workflows/docker.yml)
+[![Release](https://github.com/${{GITHUB_REPOSITORY}}/actions/workflows/release.yml/badge.svg)](https://github.com/${{GITHUB_REPOSITORY}}/actions/workflows/release.yml)
 
 # 🕵️‍♂️ Whitespace Steganography
 
