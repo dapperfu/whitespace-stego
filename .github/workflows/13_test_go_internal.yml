@@ -1,0 +1,167 @@
+name: Test Go Internal
+
+on:
+  push:
+    branches: [ main, implementation5 ]
+    paths:
+      - 'go/**'
+  pull_request:
+    branches: [ main, implementation5 ]
+    paths:
+      - 'go/**'
+  workflow_dispatch:
+
+jobs:
+  test-go:
+    name: Test Go Implementation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+          cache: true
+          
+      - name: Install Go dependencies
+        run: |
+          echo "📦 Installing Go dependencies..."
+          cd go
+          go mod download
+          go mod verify
+          
+      - name: Build Go implementation
+        run: |
+          echo "🔨 Building Go implementation..."
+          cd go
+          make build
+          
+      - name: Run Go tests
+        run: |
+          echo "🧪 Running Go tests..."
+          cd go
+          make test
+          
+      - name: Run Go tests with coverage
+        run: |
+          echo "🧪 Running Go tests with coverage..."
+          cd go
+          go test -coverprofile=coverage.out ./src/stego
+          go test -coverprofile=coverage.out -covermode=atomic ./src/stego
+          
+      - name: Generate Go coverage report
+        run: |
+          echo "📊 Generating Go coverage report..."
+          cd go
+          go tool cover -html=coverage.out -o coverage.html
+          go tool cover -func=coverage.out > coverage.txt
+          
+      - name: Run Go tests with race detection
+        run: |
+          echo "🧪 Running Go tests with race detection..."
+          cd go
+          go test -race ./src/stego
+          
+      - name: Run Go tests with verbose output
+        run: |
+          echo "🧪 Running Go tests with verbose output..."
+          cd go
+          go test -v ./src/stego
+          
+      - name: Run Go benchmarks
+        run: |
+          echo "🏃 Running Go benchmarks..."
+          cd go
+          go test -bench=. ./src/stego
+          
+      - name: Check Go code formatting
+        run: |
+          echo "🎨 Checking Go code formatting..."
+          cd go
+          go fmt ./src/...
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Code formatting issues found. Please run 'go fmt' and commit changes."
+            exit 1
+          fi
+          
+      - name: Run Go vet
+        run: |
+          echo "🔍 Running Go vet..."
+          cd go
+          go vet ./src/...
+          
+      - name: Run Go staticcheck
+        run: |
+          echo "🔍 Running Go staticcheck..."
+          if command -v staticcheck >/dev/null 2>&1; then
+            cd go
+            staticcheck ./src/...
+          else
+            echo "staticcheck not available, installing..."
+            go install honnef.co/go/tools/cmd/staticcheck@latest
+            cd go
+            staticcheck ./src/...
+          fi
+          
+      - name: Run Go lint
+        run: |
+          echo "🔍 Running Go lint..."
+          if command -v golint >/dev/null 2>&1; then
+            cd go
+            golint ./src/...
+          else
+            echo "golint not available, installing..."
+            go install golang.org/x/lint/golint@latest
+            cd go
+            golint ./src/...
+          fi
+          
+      - name: Test Go binary functionality
+        run: |
+          echo "🧪 Testing Go binary functionality..."
+          cd go
+          ./bin/whitespace-stego-go help
+          ./bin/whitespace-stego-go encode --help
+          ./bin/whitespace-stego-go decode --help
+          
+      - name: Run Go integration tests
+        run: |
+          echo "🧪 Running Go integration tests..."
+          cd go
+          # Test basic encode/decode functionality
+          echo "Hello, World!" > test_message.txt
+          echo "This is carrier text." > test_carrier.txt
+          ./bin/whitespace-stego-go encode -m "Hello, World!" -cf test_carrier.txt -o test_encoded.txt
+          ./bin/whitespace-stego-go decode -cf test_encoded.txt -o test_decoded.txt
+          if [ "$(cat test_decoded.txt)" = "Hello, World!" ]; then
+            echo "✅ Integration test passed"
+          else
+            echo "❌ Integration test failed"
+            exit 1
+          fi
+          rm -f test_*.txt
+          
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: go-test-results
+          path: |
+            go/coverage.out
+            go/coverage.html
+            go/coverage.txt
+            go/bin/
+          retention-days: 7
+          
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: go-coverage-report
+          path: |
+            go/coverage.html
+            go/coverage.txt
+          retention-days: 30 

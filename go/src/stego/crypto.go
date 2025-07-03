@@ -17,7 +17,7 @@ func deriveKey(password string) []byte {
 }
 
 // encryptData encrypts data using AES-256-CBC with PKCS7 padding
-func encryptData(data []byte, password string) ([]byte, error) {
+var encryptData = func(data []byte, password string) ([]byte, error) {
 	key := deriveKey(password)
 
 	// Create AES cipher
@@ -49,7 +49,7 @@ func encryptData(data []byte, password string) ([]byte, error) {
 }
 
 // decryptData decrypts data using AES-256-CBC with PKCS7 padding
-func decryptData(data []byte, password string) ([]byte, error) {
+var decryptData = func(data []byte, password string) ([]byte, error) {
 	if len(data) < aes.BlockSize {
 		return nil, errors.New("invalid encrypted data: too short")
 	}

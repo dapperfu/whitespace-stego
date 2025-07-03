@@ -1,0 +1,140 @@
+name: Test C Internal
+
+on:
+  push:
+    branches: [ main, implementation5 ]
+    paths:
+      - 'c/**'
+      - 'src/whitespace_stego.c'
+  pull_request:
+    branches: [ main, implementation5 ]
+    paths:
+      - 'c/**'
+      - 'src/whitespace_stego.c'
+  workflow_dispatch:
+
+jobs:
+  test-c:
+    name: Test C Implementation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Install C dependencies
+        run: |
+          echo "📦 Installing C development dependencies..."
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            gcc \
+            make \
+            valgrind \
+            lcov \
+            gcovr \
+            cmake \
+            libssl-dev \
+            pkg-config
+            
+      - name: Install Unity test framework
+        run: |
+          echo "📦 Installing Unity test framework..."
+          cd c
+          make install-unity
+          
+      - name: Build C implementation
+        run: |
+          echo "🔨 Building C implementation..."
+          cd c
+          make clean
+          make all
+          
+      - name: Run basic C tests
+        run: |
+          echo "🧪 Running basic C tests..."
+          cd c
+          make test
+          
+      - name: Run C implementation tests
+        run: |
+          echo "🧪 Running C implementation tests..."
+          cd c
+          make test-c
+          
+      - name: Run Unity framework tests
+        run: |
+          echo "🧪 Running Unity framework tests..."
+          cd c
+          make test-unity
+          
+      - name: Run C coverage tests
+        run: |
+          echo "🧪 Running C coverage tests..."
+          cd c
+          make test-coverage
+          
+      - name: Generate C coverage report
+        run: |
+          echo "📊 Generating C coverage report..."
+          cd c
+          make coverage-report
+          
+      - name: Run C tests with Valgrind
+        run: |
+          echo "🔍 Running C tests with Valgrind..."
+          cd c
+          valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose --log-file=valgrind-out.txt ./bin/test-c
+          valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose --log-file=valgrind-unity.txt ./bin/test-unity
+          
+      - name: Run CMake tests
+        run: |
+          echo "🧪 Running CMake tests..."
+          cd c
+          make cmake-test
+          
+      - name: Build shared library
+        run: |
+          echo "🔨 Building C shared library..."
+          cd c
+          make shared
+          
+      - name: Check C code formatting
+        run: |
+          echo "🎨 Checking C code formatting..."
+          if command -v clang-format >/dev/null 2>&1; then
+            cd c
+            find src include -name "*.c" -o -name "*.h" | xargs clang-format --dry-run --Werror
+          else
+            echo "clang-format not available, skipping format check"
+          fi
+          
+      - name: Run static analysis
+        run: |
+          echo "🔍 Running static analysis..."
+          if command -v cppcheck >/dev/null 2>&1; then
+            cd c
+            cppcheck --enable=all --error-exitcode=1 src/ include/
+          else
+            echo "cppcheck not available, skipping static analysis"
+          fi
+          
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: c-test-results
+          path: |
+            c/coverage/
+            c/valgrind-out.txt
+            c/valgrind-unity.txt
+            c/bin/
+          retention-days: 7
+          
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: c-coverage-report
+          path: c/coverage/html/
+          retention-days: 30 
