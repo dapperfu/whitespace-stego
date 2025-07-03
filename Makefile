@@ -82,7 +82,7 @@ python-binary-docker:
 	@echo "Building portable Python CLI binary using Docker..."
 	docker build -t whitespace-stego-py-builder .
 	mkdir -p dist ${BIN_DIR}
-	docker run --rm -v "$(PWD)/dist:/out" whitespace-stego-py-builder /bin/cp /build/dist/whitespace-stego-py /out/
+	docker run --rm -v "$(PWD)/dist:/out" whitespace-stego-py-builder cp /build/dist/whitespace-stego-py /out/
 	cp dist/whitespace-stego-py ${BIN_DIR}/
 	@echo "Testing the binary..."
 	${BIN_DIR}/whitespace-stego-py --help

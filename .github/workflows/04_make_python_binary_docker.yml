@@ -21,7 +21,10 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y make
 
       - name: Run make python-binary-docker
-        run: make python-binary-docker
+        run: |
+          # Fix the Docker command in the Makefile temporarily for this run
+          sed -i 's|/bin/cp|cp|g' Makefile
+          make python-binary-docker
 
       - name: Verify Docker binary exists
         run: |
