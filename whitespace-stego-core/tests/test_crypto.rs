@@ -78,7 +78,7 @@ fn test_encrypt_decrypt_unicode_passwords() {
         assert_eq!(decrypted, test_data);
         
         // Test wrong password
-        let wrong_password = format!("{}_wrong", password);
+        let wrong_password = format!("WRONG_{}", password);
         let result = decrypt_data(&encrypted, &wrong_password);
         assert!(result.is_err());
         assert!(matches!(result.unwrap_err(), StegoError::DecryptionFailed { .. }));

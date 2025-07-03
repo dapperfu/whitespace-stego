@@ -10,7 +10,7 @@ VENV?=.venv
 BIN_DIR=bin
 MAKEFILE_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))/
 
-.PHONY: help venv test all clean rust c go python-binary python-binary-docker install maturin-develop wasi wasi-web cov-go cov-rust cov-c cov-python coverage
+.PHONY: help venv test all clean rust c go python-binary python-binary-docker install maturin-develop wasi wasi-web cov-go cov-rust cov-c cov-python coverage coverage-xml
 
 # Default target
 help:
@@ -32,6 +32,7 @@ help:
 	@echo "  cov-c           - Run C tests with coverage"
 	@echo "  cov-python      - Run Python tests with coverage"
 	@echo "  coverage        - Run coverage tests for all languages"
+	@echo "  coverage-xml    - Generate consolidated Cobertura XML reports"
 	@echo "  clean           - Remove all build artifacts"
 
 # Create Python virtual environment
@@ -140,6 +141,7 @@ clean:
 	rm -rf go/coverage.out go/coverage.html go/coverage.txt
 	rm -rf c/coverage
 	rm -rf rust/target/coverage
+	rm -rf coverage-reports
 	# Keep spec files for builds
 	cargo clean
 
@@ -178,4 +180,26 @@ coverage: cov-go cov-rust cov-c cov-python
 	@echo "  Go: go/coverage.html"
 	@echo "  Rust: rust/coverage/tarpaulin-report.html"
 	@echo "  C: c/coverage/html/index.html"
-	@echo "  Python: htmlcov/index.html" 
+	@echo "  Python: htmlcov/index.html"
+
+# Generate consolidated Cobertura XML coverage report
+coverage-xml: coverage
+	@echo "📊 Generating consolidated Cobertura XML coverage report..."
+	@mkdir -p coverage-reports
+	# Python already generates coverage.xml
+	@cp coverage.xml coverage-reports/python-coverage.xml
+	# Convert Go coverage to Cobertura XML
+	@if command -v gocover-cobertura >/dev/null 2>&1; then \
+		gocover-cobertura < go/coverage.out > coverage-reports/go-coverage.xml; \
+	else \
+		echo "gocover-cobertura not available, skipping Go XML conversion"; \
+	fi
+	# Rust already generates XML
+	@cp rust/coverage/tarpaulin.xml coverage-reports/rust-coverage.xml
+	# C coverage to XML
+	@cd c && gcovr --xml --output=../coverage-reports/c-coverage.xml
+	@echo "📊 Consolidated coverage reports in coverage-reports/"
+	@echo "  Python: coverage-reports/python-coverage.xml"
+	@echo "  Go: coverage-reports/go-coverage.xml"
+	@echo "  Rust: coverage-reports/rust-coverage.xml"
+	@echo "  C: coverage-reports/c-coverage.xml" 
