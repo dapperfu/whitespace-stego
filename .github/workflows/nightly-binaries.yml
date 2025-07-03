@@ -86,9 +86,9 @@ jobs:
           
           # Build compiled binary
           pip install pyinstaller
-          pyinstaller --onefile --name whitespace-stego-cli-${{ matrix.platform }} whitespace_stego_main.py
-          cp dist/whitespace-stego-cli-${{ matrix.platform }} bin/
-          chmod +x bin/whitespace-stego-cli-${{ matrix.platform }}
+          pyinstaller --onefile --name whitespace-stego-py-${{ matrix.platform }} whitespace_stego_main.py
+          cp dist/whitespace-stego-py-${{ matrix.platform }} bin/
+          chmod +x bin/whitespace-stego-py-${{ matrix.platform }}
 
       - name: Build Rust implementation
         run: |
@@ -126,8 +126,8 @@ jobs:
           for binary in bin/*; do
             if [[ -f "$binary" ]]; then
               echo "Testing $binary..."
-              if [[ "$binary" == *"whitespace-stego-cli"* ]]; then
-                $binary --help > /dev/null 2>&1 || echo "  ⚠ CLI binary test failed"
+              if [[ "$binary" == *"whitespace-stego-py"* ]]; then
+                $binary --help > /dev/null 2>&1 || echo "  ⚠ Python binary test failed"
               elif [[ "$binary" == *"whitespace-stego-rs"* ]]; then
                 $binary --help > /dev/null 2>&1 || echo "  ⚠ Rust binary test failed"
               elif [[ "$binary" == *"whitespace-stego-c"* ]]; then
@@ -182,9 +182,9 @@ jobs:
               cd binaries/binaries-$platform
               
               # Test Python CLI
-              if [[ -f "whitespace-stego-cli-$platform" ]]; then
+              if [[ -f "whitespace-stego-py-$platform" ]]; then
                 echo "Testing Python CLI..."
-                ./whitespace-stego-cli-$platform --help > /dev/null 2>&1 || echo "  ⚠ Python CLI test failed"
+                ./whitespace-stego-py-$platform --help > /dev/null 2>&1 || echo "  ⚠ Python CLI test failed"
               fi
               
               # Test Rust CLI

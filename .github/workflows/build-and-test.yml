@@ -89,9 +89,9 @@ jobs:
           cd ..
           # Build compiled binary
           pip install pyinstaller
-          pyinstaller --onefile --name whitespace-stego-cli whitespace_stego_main.py
-          cp dist/whitespace-stego-cli bin/
-          chmod +x bin/whitespace-stego-cli
+          pyinstaller --onefile --name whitespace-stego-py whitespace_stego_main.py
+          cp dist/whitespace-stego-py bin/
+          chmod +x bin/whitespace-stego-py
 
       - name: Build Rust implementation
         if: matrix.implementation == 'rust'
@@ -236,7 +236,7 @@ jobs:
           echo "Rust CLI: $(ls -la bin/whitespace-stego-rs 2>/dev/null || echo 'Not found')"
           echo "C CLI: $(ls -la bin/whitespace-stego-c 2>/dev/null || echo 'Not found')"
           echo "Go CLI: $(ls -la bin/whitespace-stego-go 2>/dev/null || echo 'Not found')"
-          echo "Compiled CLI: $(ls -la bin/whitespace-stego-cli 2>/dev/null || echo 'Not found')"
+          echo "Compiled CLI: $(ls -la bin/whitespace-stego-py 2>/dev/null || echo 'Not found')"
           
           echo ""
           echo "=== Python Backends ==="

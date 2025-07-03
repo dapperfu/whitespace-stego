@@ -54,7 +54,7 @@ RUN /opt/venv/bin/pyinstaller --onefile --name whitespace-stego-py whitespace_st
 RUN cd go/src && go build -o /build/bin/whitespace-stego-go main.go
 
 # Build Rust CLI binary
-RUN cd whitespace-stego-cli && cargo build --release && cp target/release/whitespace-stego /build/bin/whitespace-stego-rs
+RUN cd whitespace-stego-cli && cargo build --release && cp target/release/whitespace-stego-rs /build/bin/whitespace-stego-rs
 
 # Build C binary
 RUN cd c && make && cp bin/whitespace-stego-c /build/bin/whitespace-stego-c

@@ -29,11 +29,11 @@ RUN cd whitespace-stego-python && /opt/venv/bin/maturin develop --release
 RUN /opt/venv/bin/pip install .
 
 # Build the binary with PyInstaller (no spec file needed)
-RUN /opt/venv/bin/pyinstaller --onefile --name whitespace-stego-cli whitespace_stego_main.py
+RUN /opt/venv/bin/pyinstaller --onefile --name whitespace-stego-py whitespace_stego_main.py
 
-# The resulting binary will be in /build/dist/whitespace-stego-cli
+# The resulting binary will be in /build/dist/whitespace-stego-py
 # Copy it to a standard location
-RUN cp /build/dist/whitespace-stego-cli /usr/local/bin/whitespace-stego && \
+RUN cp /build/dist/whitespace-stego-py /usr/local/bin/whitespace-stego && \
     chmod +x /usr/local/bin/whitespace-stego
 
 # Set the entrypoint to the binary

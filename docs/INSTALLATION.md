@@ -106,7 +106,7 @@ For users who prefer the Rust implementation:
 cargo build --release --manifest-path whitespace-stego-cli/Cargo.toml
 
 # Copy to convenient location
-cp whitespace-stego-cli/target/release/whitespace-stego ~/.local/bin/
+cp whitespace-stego-cli/target/release/whitespace-stego-rs ~/.local/bin/
 ```
 
 ### 4. Go-Only Installation
