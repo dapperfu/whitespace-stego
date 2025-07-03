@@ -3,190 +3,175 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"os"
-	"strings"
 )
 
 func main() {
 	if len(os.Args) < 2 {
-		printUsageAndExit()
+		printUsage()
+		os.Exit(1)
 	}
 
-	subcommand := os.Args[1]
-
-	switch subcommand {
+	command := os.Args[1]
+	switch command {
 	case "encode":
-		encodeCmd := flag.NewFlagSet("encode", flag.ExitOnError)
-		message := encodeCmd.String("m", "", "Message to encode")
-		messageFile := encodeCmd.String("mf", "", "File containing message to encode")
-		carrier := encodeCmd.String("c", "", "Carrier text")
-		carrierFile := encodeCmd.String("cf", "", "File containing carrier text")
-		password := encodeCmd.String("p", "", "Password for encryption")
-		passwordFile := encodeCmd.String("pf", "", "File containing password")
-		output := encodeCmd.String("o", "", "Output file (use '-' for stdout)")
-
-		encodeCmd.Parse(os.Args[2:])
-
-		// Read message
-		var messageText string
-		if *message != "" {
-			messageText = *message
-		} else if *messageFile != "" {
-			content, err := os.ReadFile(*messageFile)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error reading message file: %v\n", err)
-				os.Exit(1)
-			}
-			messageText = strings.TrimSpace(string(content))
-		}
-
-		// Read carrier
-		var carrierText string
-		if *carrier != "" {
-			carrierText = *carrier
-		} else if *carrierFile != "" {
-			content, err := os.ReadFile(*carrierFile)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error reading carrier file: %v\n", err)
-				os.Exit(1)
-			}
-			carrierText = string(content)
-		}
-
-		// Read password
-		var passwordText string
-		if *password != "" {
-			passwordText = *password
-		} else if *passwordFile != "" {
-			content, err := os.ReadFile(*passwordFile)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error reading password file: %v\n", err)
-				os.Exit(1)
-			}
-			passwordText = strings.TrimSpace(string(content))
-		}
-
-		// Determine output
-		var outputWriter *os.File
-		if *output == "" || *output == "-" {
-			outputWriter = os.Stdout
-		} else {
-			var err error
-			outputWriter, err = os.Create(*output)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error creating output file: %v\n", err)
-				os.Exit(1)
-			}
-			defer outputWriter.Close()
-		}
-
-		if messageText == "" {
-			fmt.Fprintf(os.Stderr, "Error: message is required for encoding\n")
-			os.Exit(1)
-		}
-
-		result, err := Encode(messageText, carrierText, passwordText)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error encoding message: %v\n", err)
-			os.Exit(1)
-		}
-
-		fmt.Fprint(outputWriter, result)
-
+		encodeCommand()
 	case "decode":
-		decodeCmd := flag.NewFlagSet("decode", flag.ExitOnError)
-		carrier := decodeCmd.String("c", "", "Carrier text")
-		carrierFile := decodeCmd.String("cf", "", "File containing carrier text")
-		password := decodeCmd.String("p", "", "Password for decryption")
-		passwordFile := decodeCmd.String("pf", "", "File containing password")
-		output := decodeCmd.String("o", "", "Output file (use '-' for stdout)")
-
-		decodeCmd.Parse(os.Args[2:])
-
-		// Read carrier
-		var carrierText string
-		if *carrier != "" {
-			carrierText = *carrier
-		} else if *carrierFile != "" {
-			content, err := os.ReadFile(*carrierFile)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error reading carrier file: %v\n", err)
-				os.Exit(1)
-			}
-			carrierText = string(content)
-		}
-
-		// Read password
-		var passwordText string
-		if *password != "" {
-			passwordText = *password
-		} else if *passwordFile != "" {
-			content, err := os.ReadFile(*passwordFile)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error reading password file: %v\n", err)
-				os.Exit(1)
-			}
-			passwordText = strings.TrimSpace(string(content))
-		}
-
-		// Determine output
-		var outputWriter *os.File
-		if *output == "" || *output == "-" {
-			outputWriter = os.Stdout
-		} else {
-			var err error
-			outputWriter, err = os.Create(*output)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error creating output file: %v\n", err)
-				os.Exit(1)
-			}
-			defer outputWriter.Close()
-		}
-
-		if carrierText == "" {
-			fmt.Fprintf(os.Stderr, "Error: carrier is required for decoding\n")
-			os.Exit(1)
-		}
-
-		messages, err := Decode(carrierText, passwordText)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error decoding messages: %v\n", err)
-			os.Exit(1)
-		}
-
-		if len(messages) == 0 {
-			fmt.Fprintf(os.Stderr, "No messages found in carrier\n")
-			os.Exit(1)
-		}
-
-		// Output each message on a separate line (except single message: no extra newline)
-		for i, msg := range messages {
-			if i > 0 {
-				fmt.Fprintln(outputWriter)
-			}
-			fmt.Fprint(outputWriter, msg)
-		}
-
+		decodeCommand()
+	case "help":
+		printUsage()
 	default:
-		printUsageAndExit()
+		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", command)
+		printUsage()
+		os.Exit(1)
 	}
 }
 
-func printUsageAndExit() {
-	fmt.Fprintf(os.Stderr, "Usage: %s <encode|decode> [options]\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "\nOptions for encode:\n")
-	fmt.Fprintf(os.Stderr, "  -m   Message to encode\n")
-	fmt.Fprintf(os.Stderr, "  -mf  File containing message to encode\n")
-	fmt.Fprintf(os.Stderr, "  -c   Carrier text\n")
-	fmt.Fprintf(os.Stderr, "  -cf  File containing carrier text\n")
-	fmt.Fprintf(os.Stderr, "  -p   Password for encryption\n")
-	fmt.Fprintf(os.Stderr, "  -pf  File containing password\n")
-	fmt.Fprintf(os.Stderr, "  -o   Output file (use '-' for stdout)\n")
-	fmt.Fprintf(os.Stderr, "\nOptions for decode:\n")
-	fmt.Fprintf(os.Stderr, "  -c   Carrier text\n")
-	fmt.Fprintf(os.Stderr, "  -cf  File containing carrier text\n")
-	fmt.Fprintf(os.Stderr, "  -p   Password for decryption\n")
-	fmt.Fprintf(os.Stderr, "  -pf  File containing password\n")
-	fmt.Fprintf(os.Stderr, "  -o   Output file (use '-' for stdout)\n")
-	os.Exit(1)
+func encodeCommand() {
+	fs := flag.NewFlagSet("encode", flag.ExitOnError)
+
+	var message string
+	var carrierFile string
+	var outputFile string
+	var password string
+
+	fs.StringVar(&message, "m", "", "Message to encode")
+	fs.StringVar(&message, "message", "", "Message to encode")
+	fs.StringVar(&carrierFile, "cf", "", "Carrier file path")
+	fs.StringVar(&carrierFile, "carrier-file", "", "Carrier file path")
+	fs.StringVar(&outputFile, "o", "", "Output file path")
+	fs.StringVar(&outputFile, "output", "", "Output file path")
+	fs.StringVar(&password, "p", "", "Password for encryption")
+	fs.StringVar(&password, "password", "", "Password for encryption")
+
+	fs.Parse(os.Args[2:])
+
+	// Validate required arguments
+	if message == "" {
+		fmt.Fprintf(os.Stderr, "Error: message is required\n")
+		fs.PrintDefaults()
+		os.Exit(1)
+	}
+
+	// Read carrier text
+	var carrier string
+	if carrierFile != "" {
+		carrierBytes, err := os.ReadFile(carrierFile)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error reading carrier file: %v\n", err)
+			os.Exit(1)
+		}
+		carrier = string(carrierBytes)
+	}
+
+	// Encode the message
+	encoded, err := Encode(message, carrier, password)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error encoding message: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Output the result
+	if outputFile != "" {
+		err := os.WriteFile(outputFile, []byte(encoded), 0644)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error writing output file: %v\n", err)
+			os.Exit(1)
+		}
+	} else {
+		fmt.Print(encoded)
+	}
+}
+
+func decodeCommand() {
+	fs := flag.NewFlagSet("decode", flag.ExitOnError)
+
+	var carrierFile string
+	var outputFile string
+	var password string
+
+	fs.StringVar(&carrierFile, "cf", "", "Carrier file path")
+	fs.StringVar(&carrierFile, "carrier-file", "", "Carrier file path")
+	fs.StringVar(&outputFile, "o", "", "Output file path")
+	fs.StringVar(&outputFile, "output", "", "Output file path")
+	fs.StringVar(&password, "p", "", "Password for decryption")
+	fs.StringVar(&password, "password", "", "Password for decryption")
+
+	fs.Parse(os.Args[2:])
+
+	// Validate required arguments
+	if carrierFile == "" {
+		fmt.Fprintf(os.Stderr, "Error: carrier file is required\n")
+		fs.PrintDefaults()
+		os.Exit(1)
+	}
+
+	// Read carrier text
+	carrierBytes, err := os.ReadFile(carrierFile)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error reading carrier file: %v\n", err)
+		os.Exit(1)
+	}
+	carrier := string(carrierBytes)
+
+	// Decode the message
+	messages, err := Decode(carrier, password)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error decoding message: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Output the results
+	var outputWriter io.Writer
+	if outputFile != "" {
+		file, err := os.Create(outputFile)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error creating output file: %v\n", err)
+			os.Exit(1)
+		}
+		defer file.Close()
+		outputWriter = file
+	} else {
+		outputWriter = os.Stdout
+	}
+
+	// Output each message on a separate line (except single message: no extra newline)
+	// The Go CLI always writes decoded messages as UTF-8 text, never as raw bytes or with a BOM.
+	for i, msg := range messages {
+		if i > 0 {
+			fmt.Fprintln(outputWriter)
+		}
+		fmt.Fprint(outputWriter, msg)
+	}
+}
+
+func printUsage() {
+	fmt.Fprintf(os.Stderr, `whitespace-stego-go - Zero-width character steganography tool
+
+Usage:
+  whitespace-stego-go <command> [options]
+
+Commands:
+  encode    Encode a message into carrier text
+  decode    Decode messages from carrier text
+  help      Show this help message
+
+Encode options:
+  -m, -message <text>       Message to encode (required)
+  -cf, -carrier-file <path> Carrier file path
+  -o, -output <path>        Output file path (default: stdout)
+  -p, -password <text>      Password for encryption
+
+Decode options:
+  -cf, -carrier-file <path> Carrier file path (required)
+  -o, -output <path>        Output file path (default: stdout)
+  -p, -password <text>      Password for decryption
+
+Examples:
+  whitespace-stego-go encode -m "Hello, World!" -cf carrier.txt -o encoded.txt
+  whitespace-stego-go encode -m "Secret" -cf carrier.txt -p "mypassword" -o encoded.txt
+  whitespace-stego-go decode -cf encoded.txt
+  whitespace-stego-go decode -cf encoded.txt -p "mypassword" -o decoded.txt
+`)
 }

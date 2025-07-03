@@ -14,10 +14,19 @@ use commands::{decode, encode};
 use io::{read_file_or_stdin, write_file_or_stdout};
 use utils::display;
 
-/// Whitespace Steganography CLI
+/// Whitespace Steganography CLI.
 ///
 /// A command-line tool for hiding messages in text using zero-width Unicode characters.
 /// Supports optional encryption and various input/output methods.
+///
+/// # Examples
+/// ```
+/// // Encode a message
+/// whitespace-stego encode -m "secret" -c "cover text" -o output.txt
+///
+/// // Decode a message
+/// whitespace-stego decode -c "cover text with hidden message" -p "password"
+/// ```
 #[derive(Parser)]
 #[command(
     name = "whitespace-stego",
@@ -45,6 +54,7 @@ struct Cli {
 }
 
 #[derive(Subcommand)]
+/// Available subcommands for the CLI.
 enum Commands {
     /// Encode a message into carrier text
     Encode {
@@ -131,6 +141,12 @@ enum Commands {
     },
 }
 
+/// Main entry point for the CLI application.
+///
+/// Parses command-line arguments and dispatches to appropriate command handlers.
+///
+/// # Errors
+/// Returns an error if command execution fails.
 fn main() {
     let cli = Cli::parse();
 
@@ -167,7 +183,7 @@ fn main() {
                     output,
                 )
             }
-        }
+        },
 
         Commands::Decode {
             carrier,
@@ -181,11 +197,11 @@ fn main() {
             } else {
                 decode::decode_command(carrier, carrier_file, password, output)
             }
-        }
+        },
 
         Commands::Analyze { text, file, format } => {
             commands::analyze::analyze_command(text, file, format)
-        }
+        },
 
         Commands::Extract {
             carrier,

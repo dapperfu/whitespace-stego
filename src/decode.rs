@@ -1,3 +1,11 @@
+//!
+//! Decoding utilities for whitespace steganography.
+//!
+//! Provides the `decode` function for extracting messages from carrier text, optionally decrypting.
+//!
+//! ## Examples
+//! See the `decode` function for usage examples.
+
 use pyo3::exceptions::PyValueError;
 
 /// Converts StegoError to a Python error.
@@ -6,14 +14,6 @@ impl From<StegoError> for PyErr {
         PyValueError::new_err(err.0)
     }
 }
-
-//!
-//! Decoding utilities for whitespace steganography.
-//!
-//! Provides the `decode` function for extracting messages from carrier text, optionally decrypting.
-//!
-//! ## Examples
-//! See the `decode` function for usage examples.
 
 /// Decodes a message from the given carrier string, optionally decrypting with a password.
 ///

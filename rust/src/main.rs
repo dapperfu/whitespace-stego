@@ -113,7 +113,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             } else {
                 println!("{}", encoded);
             }
-        }
+        },
         Some(("decode", sub_m)) => {
             let carrier = if let Some(cf) = sub_m.get_one::<String>("carrier_file") {
                 fs::read_to_string(cf)?
@@ -131,10 +131,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             } else {
                 println!("{}", decoded);
             }
-        }
+        },
         _ => {
             return Err("No subcommand provided. Use encode or decode.".into());
-        }
+        },
     }
     Ok(())
 }

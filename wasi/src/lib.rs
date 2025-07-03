@@ -107,19 +107,19 @@ pub fn visualize_whitespace(text: &str) -> String {
         match c {
             START_MARKER => {
                 out.push_str("[START]");
-            }
+            },
             END_MARKER => {
                 out.push_str("[END]");
-            }
+            },
             ZERO_BIT => {
                 out.push('0');
-            }
+            },
             ONE_BIT => {
                 out.push('1');
-            }
+            },
             _ => {
                 out.push(c);
-            }
+            },
         }
     }
     out

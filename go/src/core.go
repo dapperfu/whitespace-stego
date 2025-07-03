@@ -1,69 +1,65 @@
-// Package whitespace_stego provides core functionality for encoding and decoding messages
-// using zero-width Unicode whitespace characters.
 package main
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
-	"crypto/rand"
-	"crypto/sha256"
-	"encoding/base64"
+	"errors"
 	"fmt"
+	"regexp"
 	"strings"
+	"unicode/utf8"
 )
 
-// Zero-width characters for encoding
-const (
-	ZERO_BIT     = '\u200b' // Zero-width space
-	ONE_BIT      = '\u200d' // Zero-width joiner
-	START_MARKER = '\ufeff' // Zero-width no-break space
-	END_MARKER   = '\u200c' // Zero-width non-joiner
-)
-
-// encodeBinary encodes binary data into zero-width characters
+// encodeBinary converts bytes to zero-width characters
 func encodeBinary(data []byte) string {
 	var result strings.Builder
 	for _, b := range data {
 		for i := 7; i >= 0; i-- {
 			if (b>>i)&1 == 1 {
-				result.WriteString(string(ONE_BIT))
+				result.WriteString(ONE_BIT)
 			} else {
-				result.WriteString(string(ZERO_BIT))
+				result.WriteString(ZERO_BIT)
 			}
 		}
 	}
 	return result.String()
 }
 
-// decodeBinary decodes zero-width characters back to binary data
+// decodeBinary converts zero-width characters back to bytes
 func decodeBinary(encoded string) ([]byte, error) {
-	// Filter out only the zero-width characters we care about
-	var filtered []rune
-	for _, char := range encoded {
-		if char == ZERO_BIT || char == ONE_BIT {
-			filtered = append(filtered, char)
+	// Filter out non-zero-width characters
+	var filtered strings.Builder
+	for _, r := range encoded {
+		if r == rune(ONE_BIT[0]) || r == rune(ZERO_BIT[0]) {
+			filtered.WriteRune(r)
 		}
 	}
 
-	if len(filtered) == 0 {
-		return nil, fmt.Errorf("no valid binary data found")
+	// Convert to bitstring
+	var bitstring strings.Builder
+	for _, r := range filtered.String() {
+		if r == rune(ONE_BIT[0]) {
+			bitstring.WriteRune('1')
+		} else {
+			bitstring.WriteRune('0')
+		}
 	}
 
-	// Ensure the binary string length is a multiple of 8
-	if len(filtered)%8 != 0 {
-		filtered = filtered[:len(filtered)-(len(filtered)%8)]
+	// Convert bitstring to bytes
+	bits := bitstring.String()
+	if len(bits)%8 != 0 {
+		// Truncate to multiple of 8
+		bits = bits[:len(bits)-(len(bits)%8)]
 	}
 
-	if len(filtered) == 0 {
-		return nil, fmt.Errorf("no valid binary data found after truncation")
+	if len(bits) == 0 {
+		return nil, errors.New("no valid bits found")
 	}
 
-	// Convert to bytes
-	result := make([]byte, len(filtered)/8)
-	for i := 0; i < len(filtered); i += 8 {
-		var b byte
-		for j := 0; j < 8; j++ {
-			if filtered[i+j] == ONE_BIT {
+	result := make([]byte, len(bits)/8)
+	for i := 0; i < len(bits); i += 8 {
+		byteStr := bits[i : i+8]
+		b := byte(0)
+		for j, bit := range byteStr {
+			if bit == '1' {
 				b |= 1 << (7 - j)
 			}
 		}
@@ -73,100 +69,10 @@ func decodeBinary(encoded string) ([]byte, error) {
 	return result, nil
 }
 
-// deriveKey derives a 32-byte key from password (same as other implementations)
-func deriveKey(password string) []byte {
-	hash := sha256.Sum256([]byte(password))
-	return hash[:]
-}
-
-// encryptData encrypts data using AES-256-CBC with PKCS7 padding
-func encryptData(data []byte, password string) ([]byte, error) {
-	key := deriveKey(password)
-
-	// Generate random IV
-	iv := make([]byte, aes.BlockSize)
-	if _, err := rand.Read(iv); err != nil {
-		return nil, fmt.Errorf("failed to generate IV: %w", err)
-	}
-
-	// Create cipher
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create cipher: %w", err)
-	}
-
-	// PKCS7 padding
-	padding := aes.BlockSize - (len(data) % aes.BlockSize)
-	paddedData := make([]byte, len(data)+padding)
-	copy(paddedData, data)
-	for i := len(data); i < len(paddedData); i++ {
-		paddedData[i] = byte(padding)
-	}
-
-	// Encrypt
-	ciphertext := make([]byte, len(paddedData))
-	mode := cipher.NewCBCEncrypter(block, iv)
-	mode.CryptBlocks(ciphertext, paddedData)
-
-	// Return IV + ciphertext
-	result := make([]byte, len(iv)+len(ciphertext))
-	copy(result, iv)
-	copy(result[len(iv):], ciphertext)
-
-	return result, nil
-}
-
-// decryptData decrypts data using AES-256-CBC with PKCS7 padding
-func decryptData(data []byte, password string) ([]byte, error) {
-	if len(data) < aes.BlockSize {
-		return nil, fmt.Errorf("invalid encrypted data: too short")
-	}
-
-	key := deriveKey(password)
-
-	// Extract IV and ciphertext
-	iv := data[:aes.BlockSize]
-	ciphertext := data[aes.BlockSize:]
-
-	// Create cipher
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create cipher: %w", err)
-	}
-
-	// Decrypt
-	if len(ciphertext)%aes.BlockSize != 0 {
-		return nil, fmt.Errorf("invalid ciphertext length")
-	}
-
-	plaintext := make([]byte, len(ciphertext))
-	mode := cipher.NewCBCDecrypter(block, iv)
-	mode.CryptBlocks(plaintext, ciphertext)
-
-	// Remove PKCS7 padding
-	if len(plaintext) == 0 {
-		return nil, fmt.Errorf("invalid plaintext")
-	}
-
-	padding := int(plaintext[len(plaintext)-1])
-	if padding > aes.BlockSize || padding == 0 {
-		return nil, fmt.Errorf("invalid padding")
-	}
-
-	// Verify padding
-	for i := len(plaintext) - padding; i < len(plaintext); i++ {
-		if plaintext[i] != byte(padding) {
-			return nil, fmt.Errorf("invalid padding")
-		}
-	}
-
-	return plaintext[:len(plaintext)-padding], nil
-}
-
-// countMessagePairs counts the number of start/end marker pairs in the carrier text
+// countMessagePairs counts the number of start/end marker pairs
 func countMessagePairs(carrier string) int {
-	startCount := strings.Count(carrier, string(START_MARKER))
-	endCount := strings.Count(carrier, string(END_MARKER))
+	startCount := strings.Count(carrier, START_MARKER)
+	endCount := strings.Count(carrier, END_MARKER)
 	if startCount < endCount {
 		return startCount
 	}
@@ -175,137 +81,194 @@ func countMessagePairs(carrier string) int {
 
 // findNextSlot finds the next available slot for encoding a message
 func findNextSlot(carrier string) int {
+	// Remove all encoded messages to get the original carrier
+	pattern := regexp.MustCompile(regexp.QuoteMeta(START_MARKER) + ".*?" + regexp.QuoteMeta(END_MARKER))
+	cleanedCarrier := pattern.ReplaceAllString(carrier, "")
+
+	// Count how many messages are already encoded
 	existingMessages := countMessagePairs(carrier)
 
 	// If no existing messages, place after first character
 	if existingMessages == 0 {
-		if len(carrier) > 0 {
+		if utf8.RuneCountInString(cleanedCarrier) > 1 {
 			return 1
 		}
 		return 0
 	}
 
-	// For subsequent messages, place after the last character
-	return len(carrier)
+	// For subsequent messages, place in slots between characters
+	charCount := utf8.RuneCountInString(cleanedCarrier)
+	if existingMessages < charCount-1 {
+		return existingMessages + 1
+	}
+	// Place before the last visible character
+	return charCount - 1
 }
 
-// insertMessageAtPosition inserts a message at a specific position in the carrier
-func insertMessageAtPosition(carrier string, encodedMessage string, position int) string {
+// insertMessageAtPosition inserts an encoded message at a specific position
+func insertMessageAtPosition(carrier, encodedMessage string, position int) string {
+	// Remove all encoded messages to get the original carrier
+	pattern := regexp.MustCompile(regexp.QuoteMeta(START_MARKER) + ".*?" + regexp.QuoteMeta(END_MARKER))
+	cleanedCarrier := pattern.ReplaceAllString(carrier, "")
+
+	// Insert the encoded message at the correct position in the cleaned carrier
+	var newCarrier string
 	if position == 0 {
-		return encodedMessage + carrier
+		newCarrier = encodedMessage + cleanedCarrier
+	} else if position >= utf8.RuneCountInString(cleanedCarrier) {
+		newCarrier = cleanedCarrier + encodedMessage
+	} else {
+		// Convert to rune slice for proper insertion
+		runes := []rune(cleanedCarrier)
+		var result strings.Builder
+		for i, r := range runes {
+			if i == position {
+				result.WriteString(encodedMessage)
+			}
+			result.WriteRune(r)
+		}
+		newCarrier = result.String()
 	}
-	if position >= len(carrier) {
-		return carrier + encodedMessage
+
+	// Now, re-insert all previously encoded messages at their original positions
+	result := newCarrier
+	matches := pattern.FindAllStringIndex(carrier, -1)
+	offset := 0
+
+	for _, match := range matches {
+		// Find the position in the cleaned carrier where this encoded message was originally
+		pre := carrier[:match[0]]
+		cleanedPre := pattern.ReplaceAllString(pre, "")
+		insertPos := utf8.RuneCountInString(cleanedPre) + offset
+
+		// Insert at the correct character position
+		runes := []rune(result)
+		var newResult strings.Builder
+		for i, r := range runes {
+			if i == insertPos {
+				newResult.WriteString(carrier[match[0]:match[1]])
+			}
+			newResult.WriteRune(r)
+		}
+		if insertPos >= len(runes) {
+			newResult.WriteString(carrier[match[0]:match[1]])
+		}
+		result = newResult.String()
+		offset += utf8.RuneCountInString(carrier[match[0]:match[1]])
 	}
-	return carrier[:position] + encodedMessage + carrier[position:]
+
+	return result
 }
 
-// Encode encodes a message into a carrier using zero-width characters
-func Encode(message string, carrier string, password string) (string, error) {
-	// Encrypt if password provided, then base64 encode
-	var finalData []byte
+// Encode encodes a message into carrier text using zero-width characters
+func Encode(message, carrier, password string) (string, error) {
+	// Check for empty message
+	if message == "" {
+		return "", errors.New("message must not be empty")
+	}
+
+	var data []byte
 	var err error
+
+	// Encrypt if password provided, then base64 encode
 	if password != "" {
 		// Encrypt the original message first
-		finalData, err = encryptData([]byte(message), password)
+		encrypted, err := encryptData([]byte(message), password)
 		if err != nil {
-			return "", fmt.Errorf("failed to encrypt data: %w", err)
+			return "", fmt.Errorf("encryption failed: %w", err)
 		}
 		// Base64 encode the encrypted data to convert random bytes to safe ASCII
-		finalData = []byte(base64.StdEncoding.EncodeToString(finalData))
+		data = []byte(base64Encode(encrypted))
 	} else {
 		// For non-password messages, base64 encode the original message
-		finalData = []byte(base64.StdEncoding.EncodeToString([]byte(message)))
+		data = []byte(base64Encode([]byte(message)))
 	}
 
-	// Encode to binary
-	binaryEncoded := encodeBinary(finalData)
+	// Convert to zero-width characters
+	zeroWidth := encodeBinary(data)
+	encodedMessage := START_MARKER + zeroWidth + END_MARKER
 
-	// Create the full encoded message with markers
-	encodedMessage := string(START_MARKER) + binaryEncoded + string(END_MARKER)
+	// Handle carrier embedding
+	if carrier == "" {
+		return encodedMessage, nil
+	}
 
-	// Find insertion position
-	position := findNextSlot(carrier)
-
-	// Insert the message
-	result := insertMessageAtPosition(carrier, encodedMessage, position)
-
-	return result, nil
+	pos := findNextSlot(carrier)
+	return insertMessageAtPosition(carrier, encodedMessage, pos), nil
 }
 
-// BadPasswordError represents an error when the wrong password is used
-type BadPasswordError struct {
-	message string
-}
+// Decode decodes messages from carrier text using zero-width characters
+func Decode(carrier, password string) ([]string, error) {
+	// Find all start/end marker pairs
+	pattern := regexp.MustCompile(regexp.QuoteMeta(START_MARKER) + "(.*?)" + regexp.QuoteMeta(END_MARKER))
+	matches := pattern.FindAllStringSubmatch(carrier, -1)
 
-func (e BadPasswordError) Error() string {
-	return e.message
-}
+	if len(matches) == 0 {
+		return nil, errors.New("no valid messages found in carrier text")
+	}
 
-// Decode decodes messages from a carrier
-func Decode(carrier string, password string) ([]string, error) {
-	var messages []string
-	pos := 0
-	for {
-		start := strings.Index(carrier[pos:], string(START_MARKER))
-		if start == -1 {
-			break
-		}
-		start += pos
-		end := strings.Index(carrier[start+len(string(START_MARKER)):], string(END_MARKER))
-		if end == -1 {
-			break
-		}
-		end += start + len(string(START_MARKER))
+	var results []string
+	passwordErrors := 0
 
-		// Extract the encoded data between markers
-		encodedData := carrier[start+len(string(START_MARKER)) : end]
+	for _, match := range matches {
+		zw := match[1]
 
-		// Decode binary
-		decodedBytes, err := decodeBinary(encodedData)
+		// Decode binary data
+		data, err := decodeBinary(zw)
 		if err != nil {
-			pos = end + len(string(END_MARKER))
-			continue // Skip invalid messages
+			continue
 		}
 
-		// Decrypt if password provided
-		var finalData []byte
 		if password != "" {
-			// Base64 decode the data to get encrypted bytes
-			encryptedBytes, err := base64.StdEncoding.DecodeString(string(decodedBytes))
+			// Try to base64 decode and decrypt
+			encrypted, err := base64Decode(string(data))
 			if err != nil {
-				pos = end + len(string(END_MARKER))
-				continue // Skip invalid messages
+				passwordErrors++
+				continue
 			}
-			// Decrypt the encrypted bytes
-			finalData, err = decryptData(encryptedBytes, password)
-			if err != nil {
-				pos = end + len(string(END_MARKER))
-				continue // Skip invalid messages
-			}
-			// The decrypted data is the original message
-		} else {
-			// For non-password messages, base64 decode the data directly
-			finalData, err = base64.StdEncoding.DecodeString(string(decodedBytes))
-			if err != nil {
-				pos = end + len(string(END_MARKER))
-				continue // Skip invalid messages
-			}
-		}
 
-		messages = append(messages, string(finalData))
-		pos = end + len(string(END_MARKER))
+			decoded, err := decryptData(encrypted, password)
+			if err != nil {
+				passwordErrors++
+				continue
+			}
+
+			// Ensure the result is valid UTF-8
+			if !utf8.Valid(decoded) {
+				passwordErrors++
+				continue
+			}
+
+			results = append(results, string(decoded))
+		} else {
+			// Base64 decode the data directly
+			decoded, err := base64Decode(string(data))
+			if err != nil {
+				continue
+			}
+			if !utf8.Valid(decoded) {
+				continue
+			}
+			results = append(results, string(decoded))
+		}
 	}
 
-	return messages, nil
+	if len(results) == 0 {
+		if password != "" && passwordErrors > 0 {
+			return nil, errors.New("invalid password or no valid messages found in carrier text")
+		}
+		return nil, errors.New("no valid messages found in carrier text")
+	}
+
+	return results, nil
 }
 
-// HasEncodedMessage checks if a text contains encoded messages
+// HasEncodedMessage checks if the text contains encoded messages
 func HasEncodedMessage(text string) bool {
-	return strings.Contains(text, string(START_MARKER)) && strings.Contains(text, string(END_MARKER))
+	return strings.Contains(text, START_MARKER) && strings.Contains(text, END_MARKER)
 }
 
-// CountMessages counts the number of encoded messages in a carrier
+// CountMessages counts the number of encoded messages in the text
 func CountMessages(carrier string) int {
 	return countMessagePairs(carrier)
 }

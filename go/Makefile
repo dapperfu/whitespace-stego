@@ -1,49 +1,56 @@
-GO = go
-GOFLAGS = -ldflags="-s -w"
-BIN_DIR = bin
-TARGET = $(BIN_DIR)/whitespace-stego-go
-TEST_DIR = test
+# Makefile for whitespace-stego-go
 
-.PHONY: all clean test build
+.PHONY: all clean build test
 
-all: $(TARGET)
+# Binary name
+BINARY_NAME = whitespace-stego-go
+BINARY_PATH = bin/$(BINARY_NAME)
 
-build: $(TARGET)
+# Source files
+SRC_DIR = src
+SRC_FILES = $(wildcard $(SRC_DIR)/*.go)
 
-$(TARGET): src/*.go go.mod
-	@mkdir -p $(BIN_DIR)
-	$(GO) build $(GOFLAGS) -o $@ ./src
+# Build flags
+LDFLAGS = -ldflags "-s -w"
+
+all: build
+
+build: $(BINARY_PATH)
+
+$(BINARY_PATH): $(SRC_FILES)
+	@echo "Building $(BINARY_NAME)..."
+	@mkdir -p bin
+	go build $(LDFLAGS) -o $(BINARY_PATH) ./$(SRC_DIR)
 
 clean:
-	rm -rf $(BIN_DIR)
-	$(GO) clean
+	@echo "Cleaning..."
+	@rm -rf bin/
+	@go clean
 
-test: $(TARGET)
-	@echo "Running Go implementation tests..."
-	@cd $(TEST_DIR) && ./run_tests.sh
+test:
+	@echo "Running tests..."
+	@go test ./...
 
-install: $(TARGET)
-	@echo "Installing whitespace-stego-go..."
-	@cp $(TARGET) ../whitespace-stego-go
+install: build
+	@echo "Installing $(BINARY_NAME)..."
+	@cp $(BINARY_PATH) /usr/local/bin/$(BINARY_NAME)
+
+uninstall:
+	@echo "Uninstalling $(BINARY_NAME)..."
+	@rm -f /usr/local/bin/$(BINARY_NAME)
 
 # Development targets
-dev-build:
-	$(GO) build -o $(TARGET) ./src
+dev: build
+	@echo "Running in development mode..."
+	@./$(BINARY_PATH) help
 
-dev-test:
-	$(GO) test ./src
-
-fmt:
-	$(GO) fmt ./src
-
-vet:
-	$(GO) vet ./src
-
-# Run with specific arguments for testing
-run-encode: $(TARGET)
-	@echo "Testing encode operation..."
-	@echo "Hello" | $(TARGET) encode -m "Secret message" -c "Hello"
-
-run-decode: $(TARGET)
-	@echo "Testing decode operation..."
-	@$(TARGET) decode -c "Hello" -o - 
+# Show help
+help:
+	@echo "Available targets:"
+	@echo "  build     - Build the binary"
+	@echo "  clean     - Clean build artifacts"
+	@echo "  test      - Run tests"
+	@echo "  install   - Install to /usr/local/bin"
+	@echo "  uninstall - Remove from /usr/local/bin"
+	@echo "  dev       - Build and show help"
+	@echo "  help      - Show this help" 

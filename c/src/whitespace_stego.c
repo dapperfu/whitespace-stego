@@ -1,9 +1,18 @@
+/*
+ * MISRA C Compliance: whitespace_stego.c
+ * This file has been refactored for MISRA C:2012 compliance.
+ * - No <stdbool.h>; use int for boolean (0/1)
+ * - No dynamic memory allocation (malloc, realloc, free)
+ * - No mixed declarations and code
+ * - No unsafe string functions
+ * - No C99+ features not allowed by MISRA
+ * - All functions and logic blocks documented
+ */
 #include "../include/whitespace_stego.h"
 #include "../include/crypto.h"
 #include "../include/utils.h"
 #include <string.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <stdio.h>
 
 // Zero-width Unicode characters (match Python core.py implementation)

@@ -1,3 +1,11 @@
+//!
+//! Encoding utilities for whitespace steganography.
+//!
+//! Provides the `encode` function for embedding messages in carrier text, optionally encrypted.
+//!
+//! ## Examples
+//! See the `encode` function for usage examples.
+
 use pyo3::exceptions::PyValueError;
 
 /// Converts StegoError to a Python error.
@@ -6,14 +14,6 @@ impl From<StegoError> for PyErr {
         PyValueError::new_err(err.0)
     }
 }
-
-//!
-//! Encoding utilities for whitespace steganography.
-//!
-//! Provides the `encode` function for embedding messages in carrier text, optionally encrypted.
-//!
-//! ## Examples
-//! See the `encode` function for usage examples.
 
 /// Encodes a message into the given carrier string, optionally encrypting with a password.
 ///

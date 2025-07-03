@@ -60,7 +60,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let carrier = fs::read_to_string(carrier_file)?;
             let encoded = encode(&carrier, &message, password.as_deref())?;
             fs::write(output, encoded)?;
-        }
+        },
         Commands::Decode {
             input,
             output,
@@ -69,7 +69,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let carrier = fs::read_to_string(input)?;
             let decoded = decode(&carrier, password.as_deref())?;
             fs::write(output, decoded)?;
-        }
+        },
     }
 
     Ok(())

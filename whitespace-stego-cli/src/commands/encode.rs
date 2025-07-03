@@ -9,7 +9,36 @@ use whitespace_stego_core::encode;
 use crate::io::{read_file_or_stdin, write_file_or_stdout};
 use crate::utils::display;
 
-/// Encode a message into carrier text
+/// Encode a message into carrier text.
+///
+/// This function handles the encoding command with support for various input methods
+/// including direct strings, files, and interactive input.
+///
+/// # Arguments
+/// * `message` - Optional message string
+/// * `message_file` - Optional file containing the message
+/// * `carrier` - Optional carrier string
+/// * `carrier_file` - Optional file containing the carrier
+/// * `password` - Optional password for encryption
+/// * `output` - Optional output file path
+///
+/// # Returns
+/// `Ok(())` on success
+///
+/// # Errors
+/// Returns an error if input validation fails, file operations fail, or encoding fails.
+///
+/// # Examples
+/// ```
+/// let result = encode_command(
+///     Some("secret".to_string()),
+///     None,
+///     Some("cover text".to_string()),
+///     None,
+///     None,
+///     None
+/// );
+/// ```
 pub fn encode_command(
     message: Option<String>,
     message_file: Option<PathBuf>,
@@ -73,7 +102,20 @@ pub fn encode_command(
     Ok(())
 }
 
-/// Interactive encode mode
+/// Interactive encode mode.
+///
+/// Prompts the user for message, carrier, and password interactively.
+///
+/// # Returns
+/// `Ok(())` on success
+///
+/// # Errors
+/// Returns an error if input is invalid, encoding fails, or I/O operations fail.
+///
+/// # Examples
+/// ```
+/// let result = interactive_encode();
+/// ```
 pub fn interactive_encode() -> Result<()> {
     use std::io::{self, Write};
 

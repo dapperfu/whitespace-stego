@@ -10,7 +10,7 @@ use crate::constants::{END_MARKER, ONE_BIT, START_MARKER, ZERO_BIT};
 use crate::crypto::{encrypt_data, is_encrypted};
 use crate::error::StegoError;
 
-/// Convert bytes to a string of zero-width characters
+/// Convert bytes to a string of zero-width characters.
 ///
 /// Each byte is converted to 8 zero-width characters, where:
 /// - `ZERO_BIT` represents a 0 bit
@@ -21,6 +21,11 @@ use crate::error::StegoError;
 ///
 /// # Returns
 /// A string containing only zero-width Unicode characters
+///
+/// # Examples
+/// ```
+/// let encoded = encode_binary(b"hi");
+/// ```
 pub fn encode_binary(data: &[u8]) -> String {
     data.iter()
         .flat_map(|&byte| {
@@ -157,7 +162,7 @@ fn insert_message_at_position(carrier: &str, encoded_message: &str, position: us
     result
 }
 
-/// Encode a message into carrier text using zero-width characters
+/// Encode a message into carrier text using zero-width characters.
 ///
 /// This function:
 /// 1. Base64 encodes the message
@@ -176,6 +181,12 @@ fn insert_message_at_position(carrier: &str, encoded_message: &str, position: us
 /// # Errors
 /// Returns `StegoError::EncodingFailed` if encryption fails
 /// Returns `StegoError::InvalidCarrier` if the carrier is invalid
+///
+/// # Examples
+/// ```
+/// let carrier = "cover text";
+/// let encoded = encode("secret", carrier, None)?;
+/// ```
 pub fn encode(message: &str, carrier: &str, password: Option<&str>) -> Result<String, StegoError> {
     // Check for empty message with humorous error
     if message.is_empty() {
@@ -213,24 +224,34 @@ pub fn encode(message: &str, carrier: &str, password: Option<&str>) -> Result<St
     Ok(result)
 }
 
-/// Check if text contains an encoded message
+/// Check if text contains an encoded message.
 ///
 /// # Arguments
 /// * `text` - The text to check
 ///
 /// # Returns
 /// `true` if the text contains both start and end markers
+///
+/// # Examples
+/// ```
+/// assert!(has_encoded_message("\u200Bhidden\u200C"));
+/// ```
 pub fn has_encoded_message(text: &str) -> bool {
     text.contains(START_MARKER) && text.contains(END_MARKER)
 }
 
-/// Get the size of an encoded message in bytes
+/// Get the size of an encoded message in bytes.
 ///
 /// # Arguments
 /// * `text` - The text containing the encoded message
 ///
 /// # Returns
 /// The size of the encoded message in bytes, or `None` if no message found
+///
+/// # Examples
+/// ```
+/// let size = get_encoded_message_size("\u200Bhidden\u200C");
+/// ```
 pub fn get_encoded_message_size(text: &str) -> Option<usize> {
     let start = text.find(START_MARKER)?;
     let end = text.find(END_MARKER)?;

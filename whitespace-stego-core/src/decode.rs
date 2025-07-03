@@ -21,7 +21,7 @@ fn debug_log(msg: &str) {
     }
 }
 
-/// Convert a string of zero-width characters back to bytes
+/// Convert a string of zero-width characters back to bytes.
 ///
 /// Each 8 zero-width characters are converted back to a single byte, where:
 /// - `ZERO_BIT` represents a 0 bit
@@ -35,6 +35,11 @@ fn debug_log(msg: &str) {
 ///
 /// # Errors
 /// Returns `StegoError::InvalidBinaryData` if the encoded data is malformed
+///
+/// # Examples
+/// ```
+/// let decoded = decode_binary("\u200D\u200D\u200D\u200D\u200D\u200D\u200D\u200D")?;
+/// ```
 pub fn decode_binary(encoded: &str) -> Result<Vec<u8>, StegoError> {
     let mut result = Vec::new();
     let mut current_byte = 0u8;
@@ -64,7 +69,7 @@ pub fn decode_binary(encoded: &str) -> Result<Vec<u8>, StegoError> {
     Ok(result)
 }
 
-/// Decode messages from carrier text containing zero-width characters
+/// Decode messages from carrier text containing zero-width characters.
 ///
 /// This function:
 /// 1. Finds all encoded messages between start and end markers
@@ -83,6 +88,11 @@ pub fn decode_binary(encoded: &str) -> Result<Vec<u8>, StegoError> {
 /// Returns `StegoError::InvalidCarrier` if no markers are found
 /// Returns `StegoError::DecryptionFailed` if decryption fails
 /// Returns `StegoError::InvalidBinaryData` if the encoded data is malformed
+///
+/// # Examples
+/// ```
+/// let decoded = decode("carrier\u200Bhidden\u200C", None)?;
+/// ```
 pub fn decode(carrier: &str, password: Option<&str>) -> Result<String, StegoError> {
     let messages = decode_all(carrier, password)?;
 
@@ -94,7 +104,7 @@ pub fn decode(carrier: &str, password: Option<&str>) -> Result<String, StegoErro
     }
 }
 
-/// Decode all messages from carrier text containing zero-width characters
+/// Decode all messages from carrier text containing zero-width characters.
 ///
 /// This function:
 /// 1. Finds all encoded messages between start and end markers
@@ -113,6 +123,11 @@ pub fn decode(carrier: &str, password: Option<&str>) -> Result<String, StegoErro
 /// Returns `StegoError::InvalidCarrier` if no markers are found
 /// Returns `StegoError::DecryptionFailed` if decryption fails
 /// Returns `StegoError::InvalidBinaryData` if the encoded data is malformed
+///
+/// # Examples
+/// ```
+/// let messages = decode_all("carrier\u200Bhidden1\u200C\u200Bhidden2\u200C", None)?;
+/// ```
 pub fn decode_all(carrier: &str, password: Option<&str>) -> Result<Vec<String>, StegoError> {
     debug_log("[DEBUG] decode_all: function entered");
     debug_log(&format!("[DEBUG] decode_all input carrier: {:?}", carrier));
@@ -154,7 +169,7 @@ pub fn decode_all(carrier: &str, password: Option<&str>) -> Result<Vec<String>, 
                             decryption_failures += 1;
                             i = j + end_marker_len;
                             break;
-                        }
+                        },
                     };
                     // Decrypt if password provided
                     if let Some(pwd) = password {
@@ -172,23 +187,23 @@ pub fn decode_all(carrier: &str, password: Option<&str>) -> Result<Vec<String>, 
                                                 decryption_failures += 1;
                                                 i = j + end_marker_len;
                                                 break;
-                                            }
+                                            },
                                         }
-                                    }
+                                    },
                                     Err(_) => {
                                         // Map decryption error to decryption failed
                                         decryption_failures += 1;
                                         i = j + end_marker_len;
                                         break;
-                                    }
+                                    },
                                 }
-                            }
+                            },
                             Err(_) => {
                                 // Map base64 decode error to decryption failed
                                 decryption_failures += 1;
                                 i = j + end_marker_len;
                                 break;
-                            }
+                            },
                         }
                     } else {
                         // For non-password messages, base64 decode the data directly
@@ -201,15 +216,15 @@ pub fn decode_all(carrier: &str, password: Option<&str>) -> Result<Vec<String>, 
                                         decryption_failures += 1;
                                         i = j + end_marker_len;
                                         break;
-                                    }
+                                    },
                                 }
-                            }
+                            },
                             Err(_) => {
                                 // Map base64 decode error to decryption failed
                                 decryption_failures += 1;
                                 i = j + end_marker_len;
                                 break;
-                            }
+                            },
                         }
                     }
                     // Move i past this message
@@ -254,7 +269,7 @@ pub fn decode_all(carrier: &str, password: Option<&str>) -> Result<Vec<String>, 
     Ok(messages)
 }
 
-/// Extract the encoded message and remaining carrier text
+/// Extract the encoded message and remaining carrier text.
 ///
 /// This function separates the encoded message from the carrier text,
 /// returning both parts. This is useful for analyzing the structure
@@ -268,6 +283,11 @@ pub fn decode_all(carrier: &str, password: Option<&str>) -> Result<Vec<String>, 
 ///
 /// # Errors
 /// Returns `StegoError::InvalidCarrier` if no markers are found
+///
+/// # Examples
+/// ```
+/// let (encoded, remaining) = extract_encoded("text\u200Bhidden\u200Cmore")?;
+/// ```
 pub fn extract_encoded(carrier: &str) -> Result<(String, String), StegoError> {
     let start = carrier
         .find(START_MARKER)
@@ -326,13 +346,18 @@ pub fn extract_encoded(carrier: &str) -> Result<(String, String), StegoError> {
     Ok((encoded, remaining))
 }
 
-/// Get the position of the encoded message in the carrier text
+/// Get the position of the encoded message in the carrier text.
 ///
 /// # Arguments
 /// * `carrier` - The carrier text containing the encoded message
 ///
 /// # Returns
 /// A tuple of (start_position, end_position) in characters, or `None` if not found
+///
+/// # Examples
+/// ```
+/// let pos = get_encoded_message_position("text\u200Bhidden\u200Cmore");
+/// ```
 pub fn get_encoded_message_position(carrier: &str) -> Option<(usize, usize)> {
     let start = carrier.find(START_MARKER)?;
     let end = carrier.find(END_MARKER)?;
@@ -344,7 +369,7 @@ pub fn get_encoded_message_position(carrier: &str) -> Option<(usize, usize)> {
     Some((start, end))
 }
 
-/// Count the number of messages embedded in the carrier text
+/// Count the number of messages embedded in the carrier text.
 ///
 /// This function counts the number of complete start/end marker pairs,
 /// which represents the number of messages that have been embedded.
@@ -354,12 +379,33 @@ pub fn get_encoded_message_position(carrier: &str) -> Option<(usize, usize)> {
 ///
 /// # Returns
 /// The number of messages embedded in the carrier text
+///
+/// # Examples
+/// ```
+/// let count = count_messages("text\u200Bhidden1\u200C\u200Bhidden2\u200C");
+/// assert_eq!(count, 2);
+/// ```
 pub fn count_messages(carrier: &str) -> usize {
     let start_count = carrier.matches(START_MARKER).count();
     let end_count = carrier.matches(END_MARKER).count();
     start_count.min(end_count)
 }
 
+/// Debug function that only logs the input carrier text.
+///
+/// This function is used for debugging purposes to log carrier text
+/// without performing any decoding operations.
+///
+/// # Arguments
+/// * `carrier` - The carrier text to log
+///
+/// # Returns
+/// Always returns `Ok(())`
+///
+/// # Examples
+/// ```
+/// let _ = decode_debug_log_only("test input");
+/// ```
 #[allow(dead_code)]
 pub fn decode_debug_log_only(carrier: &str) -> Result<(), StegoError> {
     debug_log("[DEBUG] decode_debug_log_only: function entered");

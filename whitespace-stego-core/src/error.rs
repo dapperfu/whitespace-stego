@@ -10,27 +10,39 @@ use thiserror::Error;
 pub enum StegoError {
     /// Invalid carrier text (no markers found, malformed data, etc.)
     #[error("Invalid carrier text: {message}")]
-    InvalidCarrier { message: String },
+    InvalidCarrier {
+        message: String,
+    },
 
     /// Decryption failed (wrong password, corrupted data, etc.)
     #[error("Decryption failed: {message}")]
-    DecryptionFailed { message: String },
+    DecryptionFailed {
+        message: String,
+    },
 
     /// Encoding failed (invalid input, encryption error, etc.)
     #[error("Encoding failed: {message}")]
-    EncodingFailed { message: String },
+    EncodingFailed {
+        message: String,
+    },
 
     /// Base64 encoding/decoding error
     #[error("Base64 error: {message}")]
-    Base64Error { message: String },
+    Base64Error {
+        message: String,
+    },
 
     /// UTF-8 encoding/decoding error
     #[error("UTF-8 error: {message}")]
-    Utf8Error { message: String },
+    Utf8Error {
+        message: String,
+    },
 
     /// Invalid key for encryption/decryption
     #[error("Invalid key: {message}")]
-    InvalidKey { message: String },
+    InvalidKey {
+        message: String,
+    },
 
     /// No encoded message found in carrier text
     #[error("No encoded message found in carrier text")]
@@ -38,7 +50,9 @@ pub enum StegoError {
 
     /// Invalid binary data (wrong length, malformed bits, etc.)
     #[error("Invalid binary data: {message}")]
-    InvalidBinaryData { message: String },
+    InvalidBinaryData {
+        message: String,
+    },
 }
 
 impl StegoError {

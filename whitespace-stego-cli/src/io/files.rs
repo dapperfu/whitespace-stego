@@ -28,7 +28,7 @@ pub fn read_file_or_stdin(path: Option<&PathBuf>) -> Result<String> {
                 .read_to_string(&mut buffer)
                 .map_err(|e| anyhow!("Failed to read from stdin: {}", e))?;
             Ok(buffer)
-        }
+        },
     }
 }
 
@@ -49,7 +49,7 @@ pub fn write_file_or_stdout(content: &str, path: Option<&PathBuf>) -> Result<()>
             io::stdout()
                 .flush()
                 .map_err(|e| anyhow!("Failed to write to stdout: {}", e))
-        }
+        },
     }
 }
 

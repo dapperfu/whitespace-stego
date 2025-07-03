@@ -1,5 +1,17 @@
+//!
+//! Example binary for inspecting whitespace steganography constants.
+//!
+//! Prints the Unicode code points for the start, end, zero, and one markers used in the core library.
+//!
+//! ## Usage
+//! Run this binary to see the marker values and their Unicode code points.
+//!
+//! ## License
+//! SPDX-License-Identifier: MIT
+
 use whitespace_stego_core::constants::{END_MARKER, ONE_BIT, START_MARKER, ZERO_BIT};
 
+/// Prints the Unicode code points for the steganography markers.
 fn main() {
     println!("START_MARKER: {:?}", START_MARKER);
     println!("END_MARKER: {:?}", END_MARKER);

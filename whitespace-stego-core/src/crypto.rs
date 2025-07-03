@@ -11,13 +11,25 @@ use sha2::{Digest, Sha256};
 
 type Aes256Cbc = Cbc<Aes256, Pkcs7>;
 
-/// Derive a 32-byte key from password using SHA-256 (same as C/Python implementation)
+/// Derive a 32-byte key from password using SHA-256 (same as C/Python implementation).
 ///
 /// This function creates a 32-byte key from a password by:
 /// 1. Converting the password to UTF-8 bytes
 /// 2. Computing SHA-256 hash of the password bytes
 ///
 /// This is compatible with the C and Python implementations.
+///
+/// # Arguments
+/// * `password` - The password to derive the key from
+///
+/// # Returns
+/// A 32-byte key derived from the password
+///
+/// # Examples
+/// ```
+/// let key = derive_key("my_password");
+/// assert_eq!(key.len(), 32);
+/// ```
 pub fn derive_key(password: &str) -> [u8; 32] {
     let mut hasher = Sha256::new();
     hasher.update(password.as_bytes());
@@ -25,7 +37,7 @@ pub fn derive_key(password: &str) -> [u8; 32] {
     result.into()
 }
 
-/// Encrypt data using AES-256-CBC (same as C/Python implementation)
+/// Encrypt data using AES-256-CBC (same as C/Python implementation).
 ///
 /// # Arguments
 /// * `data` - The data to encrypt
@@ -36,6 +48,11 @@ pub fn derive_key(password: &str) -> [u8; 32] {
 ///
 /// # Errors
 /// Returns `StegoError::EncodingFailed` if encryption fails
+///
+/// # Examples
+/// ```
+/// let encrypted = encrypt_data(b"secret", "password")?;
+/// ```
 pub fn encrypt_data(data: &[u8], password: &str) -> Result<Vec<u8>, StegoError> {
     let key = derive_key(password);
 
@@ -61,7 +78,7 @@ pub fn encrypt_data(data: &[u8], password: &str) -> Result<Vec<u8>, StegoError> 
     Ok(result)
 }
 
-/// Decrypt data using AES-256-CBC (same as C/Python implementation)
+/// Decrypt data using AES-256-CBC (same as C/Python implementation).
 ///
 /// # Arguments
 /// * `data` - The encrypted data (IV + ciphertext)
@@ -72,6 +89,11 @@ pub fn encrypt_data(data: &[u8], password: &str) -> Result<Vec<u8>, StegoError> 
 ///
 /// # Errors
 /// Returns `StegoError::DecryptionFailed` if decryption fails
+///
+/// # Examples
+/// ```
+/// let decrypted = decrypt_data(&encrypted_data, "password")?;
+/// ```
 pub fn decrypt_data(data: &[u8], password: &str) -> Result<Vec<u8>, StegoError> {
     if data.len() < 16 {
         return Err(StegoError::DecryptionFailed {
@@ -99,13 +121,19 @@ pub fn decrypt_data(data: &[u8], password: &str) -> Result<Vec<u8>, StegoError> 
         })
 }
 
-/// Check if data appears to be encrypted (has minimum length for IV + ciphertext)
+/// Check if data appears to be encrypted (has minimum length for IV + ciphertext).
 ///
 /// # Arguments
 /// * `data` - The data to check
 ///
 /// # Returns
 /// `true` if the data appears to be encrypted
+///
+/// # Examples
+/// ```
+/// assert!(!is_encrypted(b"plain text"));
+/// assert!(is_encrypted(&encrypted_data));
+/// ```
 pub fn is_encrypted(data: &[u8]) -> bool {
     if data.len() < 16 {
         return false; // Too short to be encrypted

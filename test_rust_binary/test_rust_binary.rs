@@ -18,7 +18,7 @@ fn main() {
             println!("Decoded bytes: {:?}", decoded);
             let decoded_str = String::from_utf8(decoded).unwrap();
             println!("Decoded string: {}", decoded_str);
-        }
+        },
         Err(e) => println!("Decode error: {}", e),
     }
 }
