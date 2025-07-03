@@ -7,7 +7,7 @@
 
 > *"The best place to hide a tree is in a forest. The best place to hide a secret is in plain sight."* 🌲
 
-A modern, multi-language toolkit for hiding secret messages in text using **invisible Unicode characters**. Supports Python 🐍, Rust 🦀, C ⚡, and WebAssembly 🌐 backends.
+A modern, multi-language toolkit for hiding secret messages in text using **invisible Unicode characters**. Supports Python 🐍, Rust 🦀, C ⚡, Go 🐹, and WebAssembly 🌐 backends.
 
 ---
 
@@ -19,7 +19,7 @@ Whitespace steganography hides secret messages in plain text using **zero-width 
 
 ## ✨ Key Features
 
-- **🔄 Multi-language Support:** Python, Rust, C, and WebAssembly implementations
+- **🔄 Multi-language Support:** Python, Rust, C, Go, and WebAssembly implementations
 - **🖥️ Multiple Interfaces:** Command-line tools and web browser interface
 - **🌍 Unicode & Emoji Friendly:** Works with any text, language, or emoji
 - **🔐 Password Protection:** Optional AES-256 encryption for sensitive messages
@@ -39,6 +39,7 @@ cd whitespace-stego3
 make install  # Python + Rust backend
 make rust     # Rust CLI
 make c        # C CLI
+make go       # Go CLI
 make wasi-web # WebAssembly (browser UI)
 ```
 
@@ -157,6 +158,36 @@ else:
 ```
 
 Use `--backend c` in the CLI to select the C backend.
+
+---
+
+## 🐹 Go Backend (Cross-platform)
+
+A cross-platform Go implementation is available, providing excellent performance and easy deployment across different operating systems.
+
+### Building the Go Backend
+
+```bash
+cd go
+make build  # Creates bin/whitespace-stego-go
+```
+
+### Using the Go Backend
+
+```bash
+# Direct usage
+./go/bin/whitespace-stego-go encode -m "secret message" -c "carrier text"
+./go/bin/whitespace-stego-go decode -c "encoded text"
+
+# Or use the Python CLI with Go backend
+python3 -m whitespace_stego.cli encode --backend go --message "secret" --carrier "text"
+```
+
+The Go implementation provides:
+- **🚀 Fast Performance:** Efficient string processing and memory management
+- **🌍 Cross-platform:** Single binary for Linux, macOS, and Windows
+- **🔧 Simple Deployment:** No external dependencies required
+- **📦 Easy Distribution:** Self-contained executable
 
 ---
 
