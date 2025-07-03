@@ -31,7 +31,7 @@ venv:
 	python3 -m venv ${VENV}
 
 # Install Python package and dependencies
-install: venv
+install: venv maturin-develop
 	${VENV}/bin/pip install -e .
 	${VENV}/bin/pip install -r requirements-dev.txt
 
@@ -59,14 +59,14 @@ rust: venv
 # Build C CLI binary
 c:
 	@echo "Building C CLI binary..."
-	cd c && make clean && make
+	cd c && make clean && make && cd ..
 	mkdir -p ${BIN_DIR}
 	cp c/bin/whitespace-stego-c ${BIN_DIR}/
 
 # Build Go CLI binary
 go:
 	@echo "Building Go CLI binary..."
-	cd go && make clean && make build
+	cd go && make clean && make build && cd ..
 	mkdir -p ${BIN_DIR}
 	cp go/bin/whitespace-stego-go ${BIN_DIR}/
 
