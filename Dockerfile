@@ -22,16 +22,19 @@ RUN /opt/venv/bin/pip install --upgrade pip && \
 WORKDIR /build
 COPY . /build
 
-    # Build and install the Rust backend in the venv
-    RUN cd whitespace-stego-python && /opt/venv/bin/maturin develop --release
+# Build and install the Rust backend in the venv
+RUN cd whitespace-stego-python && /opt/venv/bin/maturin develop --release
 
 # Install your Python package and dependencies in the venv
 RUN /opt/venv/bin/pip install .
 
-# Debug: List contents to verify files are copied
-RUN ls -la /build/ && echo "=== Checking for spec files ===" && find /build -name "*.spec" -type f && echo "=== Checking for specific spec file ===" && ls -la /build/whitespace_stego.spec || echo "Spec file not found!"
+# Build the binary with PyInstaller (no spec file needed)
+RUN /opt/venv/bin/pyinstaller --onefile --name whitespace-stego-cli whitespace_stego_main.py
 
-# Build the binary with PyInstaller using the spec file
-RUN /opt/venv/bin/pyinstaller whitespace_stego.spec
+# The resulting binary will be in /build/dist/whitespace-stego-cli
+# Copy it to a standard location
+RUN cp /build/dist/whitespace-stego-cli /usr/local/bin/whitespace-stego && \
+    chmod +x /usr/local/bin/whitespace-stego
 
-# The resulting binary will be in /build/dist/whitespace-stego-py 
+# Set the entrypoint to the binary
+ENTRYPOINT ["whitespace-stego"] 
