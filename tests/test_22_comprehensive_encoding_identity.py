@@ -232,14 +232,15 @@ class TestComprehensiveEncodingIdentity:
     
     def test_encoding_identity_with_password(self, test_data, all_implementations):
         """
-        Test that all implementations produce identical encoded output 
-        for the same message, carrier, and password.
+        Test that all implementations can encode and decode password-protected messages.
+        Since each implementation generates its own random IV, the encoded output will
+        be different, but all implementations should be able to decode each other's messages.
         """
         message = test_data['message']
         carrier = test_data['carrier']
         password = test_data['password']
         
-        print(f"\n=== Testing Encoding Identity (With Password) ===")
+        print(f"\n=== Testing Password-Protected Encoding Compatibility ===")
         print(f"Message: {repr(message)}")
         print(f"Carrier: {repr(carrier)}")
         print(f"Password: {repr(password)}")
@@ -286,63 +287,91 @@ class TestComprehensiveEncodingIdentity:
                     print(f"    stderr: {e.stderr}")
                     pytest.fail(f"{impl_name} failed to encode: {e}")
             
-            # Validate all outputs are identical
-            if not encoded_outputs:
-                pytest.fail("No implementations produced output")
-            
-            first_name = list(encoded_outputs.keys())[0]
-            first_output = encoded_outputs[first_name]
-            first_hash = hashlib.sha256(first_output.encode('utf-8')).hexdigest()[:16]
-            
-            print(f"\n=== Results ===")
-            print(f"Reference ({first_name}): {first_hash}")
-            
-            all_identical = True
-            differences = []
+            # For password-protected messages, we don't expect identical output
+            # because each implementation generates its own random IV
+            print(f"\n=== Password-Protected Encoding Results ===")
+            print(f"Note: Different outputs are expected due to random IV generation")
             
             for impl_name, output in encoded_outputs.items():
                 output_hash = hashlib.sha256(output.encode('utf-8')).hexdigest()[:16]
-                
-                if output == first_output:
-                    print(f"✓ {impl_name}: {output_hash} (IDENTICAL)")
-                else:
-                    print(f"✗ {impl_name}: {output_hash} (DIFFERENT)")
-                    all_identical = False
-                    
-                    # Find first difference
-                    min_len = min(len(output), len(first_output))
-                    for i in range(min_len):
-                        if output[i] != first_output[i]:
-                            differences.append({
-                                'impl': impl_name,
-                                'position': i,
-                                'expected': repr(first_output[i]),
-                                'got': repr(output[i]),
-                                'context': repr(first_output[max(0, i-10):i+10])
-                            })
-                            break
+                print(f"{impl_name}: {output_hash}")
             
-            if not all_identical:
-                print(f"\n=== Differences Found ===")
-                for diff in differences[:5]:  # Show first 5 differences
-                    print(f"{diff['impl']} at position {diff['position']}: "
-                          f"expected {diff['expected']}, got {diff['got']}")
-                    print(f"  Context: {diff['context']}")
+            # Test cross-implementation decoding
+            print(f"\n=== Testing Cross-Implementation Decoding ===")
+            
+            # Test that each implementation can decode messages from other implementations
+            for encoder_name, encoded_output in encoded_outputs.items():
+                print(f"\nTesting decoding of {encoder_name} output:")
                 
-                # Show all outputs for debugging
-                print(f"\n=== All Outputs for Comparison ===")
-                for impl_name, output in encoded_outputs.items():
-                    output_hash = hashlib.sha256(output.encode('utf-8')).hexdigest()[:16]
-                    print(f"{impl_name}: {output_hash}")
-                    print(f"  Length: {len(output)}")
-                    print(f"  First 100 chars: {repr(output[:100])}")
-                    print(f"  Last 50 chars: {repr(output[-50:])}")
-                    print()
-                
-                pytest.fail(f"Not all implementations produce identical output. "
-                           f"Found {len(differences)} differences.")
-            else:
-                print(f"\n✓ SUCCESS: All {len(encoded_outputs)} implementations produce identical output!")
+                # Test each implementation's ability to decode this output
+                for decoder_name in encoded_outputs.keys():
+                    if decoder_name == encoder_name:
+                        continue  # Skip self-test
+                    
+                    # Write the encoded output to a temporary file
+                    test_input_path = os.path.join(tmpdir, f'test_input_{encoder_name}.txt')
+                    with open(test_input_path, 'w', encoding='utf-8') as f:
+                        f.write(encoded_output)
+                    
+                    # Build decode command
+                    if decoder_name.startswith('python-cli-'):
+                        decode_cmd = [
+                            '.venv/bin/whitespace-stego', 
+                            '-b', decoder_name.split('-')[-1], 
+                            'decode', 
+                            '--carrier-file', test_input_path, 
+                            '-p', password
+                        ]
+                    elif decoder_name.startswith('py-'):
+                        decode_cmd = [
+                            'bin/whitespace-stego-py', 
+                            '-b', decoder_name.split('-')[-1], 
+                            'decode', 
+                            '--carrier-file', test_input_path, 
+                            '-p', password
+                        ]
+                    elif decoder_name == 'c-standalone':
+                        decode_cmd = [
+                            'bin/whitespace-stego-c', 
+                            'decode', 
+                            '--carrier-file', test_input_path, 
+                            '--password', password
+                        ]
+                    elif decoder_name == 'go-standalone':
+                        decode_cmd = [
+                            'bin/whitespace-stego-go', 
+                            'decode', 
+                            '-cf', test_input_path, 
+                            '-p', password
+                        ]
+                    elif decoder_name == 'rs-standalone':
+                        decode_cmd = [
+                            'bin/whitespace-stego-rs', 
+                            'decode', 
+                            '--cf', test_input_path, 
+                            '-p', password
+                        ]
+                    else:
+                        continue
+                    
+                    try:
+                        result = subprocess.run(decode_cmd, capture_output=True, text=True, check=True)
+                        decoded_message = result.stdout.strip()
+                        
+                        if message in decoded_message:
+                            print(f"  ✓ {decoder_name} can decode {encoder_name} output")
+                        else:
+                            print(f"  ✗ {decoder_name} failed to decode {encoder_name} output")
+                            print(f"    Expected: {repr(message)}")
+                            print(f"    Got: {repr(decoded_message)}")
+                            pytest.fail(f"{decoder_name} cannot decode {encoder_name} output")
+                            
+                    except subprocess.CalledProcessError as e:
+                        print(f"  ✗ {decoder_name} failed to decode {encoder_name} output: {e}")
+                        print(f"    stderr: {e.stderr}")
+                        pytest.fail(f"{decoder_name} cannot decode {encoder_name} output")
+            
+            print(f"\n✓ SUCCESS: All implementations can decode each other's password-protected messages!")
     
     def test_encoding_identity_edge_cases(self, all_implementations):
         """

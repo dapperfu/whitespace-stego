@@ -113,13 +113,19 @@ def encode(message: str, carrier: str = "", password: Optional[str] = None) -> s
     """Encode a message into carrier text using whitespace steganography."""
     if not message:
         raise ValueError("Message must not be empty.")
+    
+    # Base64 encode the message first (same as Rust/C implementations)
+    import base64
+    encoded = base64.b64encode(message.encode('utf-8'))
+    
     if password:
-        import base64
-        encrypted = encrypt_data(message.encode('utf-8'), password)
-        b64 = base64.b64encode(encrypted)
-        payload = b64
+        # Encrypt the base64-encoded message
+        encrypted = encrypt_data(encoded, password)
+        payload = encrypted
     else:
-        payload = message.encode('utf-8')
+        # Use the base64-encoded message directly
+        payload = encoded
+    
     zw = _encode_binary(payload)
     encoded_message = START_MARKER + zw + END_MARKER
     if not carrier:
@@ -146,18 +152,19 @@ def decode(carrier: str, password: Optional[str] = None) -> Union[str, List[str]
             if password:
                 import base64
                 try:
-                    encrypted = base64.b64decode(data)
-                except Exception:
-                    password_errors += 1
-                    continue
-                try:
-                    decoded = decrypt_data(encrypted, password)
+                    # Decrypt the data
+                    decrypted = decrypt_data(data, password)
+                    # Base64 decode the decrypted data
+                    decoded = base64.b64decode(decrypted)
                 except Exception:
                     password_errors += 1
                     continue
                 results.append(decoded.decode('utf-8'))
             else:
-                results.append(data.decode('utf-8'))
+                # Base64 decode the data directly
+                import base64
+                decoded = base64.b64decode(data)
+                results.append(decoded.decode('utf-8'))
         except Exception as e:
             logger.warning(f"Failed to decode message: {e}")
             continue

@@ -84,21 +84,26 @@ bool whitespace_stego_encode(const char* carrier, size_t carrier_len, const char
     size_t data_len = 0;
     char* b64 = NULL;
 
+    // Base64 encode the message first (same as Python/Rust implementations)
+    if (!to_base64((const unsigned char*)message, strlen(message), &b64)) {
+        return false;
+    }
+
     // Encrypt if password
     if (password && password[0]) {
-        if (!crypto_encrypt((const unsigned char*)message, strlen(message), password, &data, &data_len)) {
+        // Encrypt the base64-encoded message
+        if (!crypto_encrypt((const unsigned char*)b64, strlen(b64), password, &data, &data_len)) {
+            utils_free(b64);
             return false;
         }
-        // Base64 encode the Fernet token (same as Python/Rust)
-        if (!to_base64(data, data_len, &b64)) {
-            crypto_free(data);
-            return false;
-        }
-        crypto_free(data);
+        utils_free(b64);
+        // Use the encrypted data as payload
+        b64 = NULL;  // Don't use b64 anymore, use data directly
     } else {
-        if (!to_base64((const unsigned char*)message, strlen(message), &b64)) {
-            return false;
-        }
+        // Use the base64-encoded message directly
+        data = (unsigned char*)b64;
+        data_len = strlen(b64);
+        b64 = NULL;  // Don't free b64, it's now data
     }
 
     // Encode base64 string to zero-width
@@ -307,7 +312,6 @@ bool whitespace_stego_decode_all(const char* carrier, size_t carrier_len, const 
         }
         memcpy(b64_str, b64_bytes, b64_len);
         b64_str[b64_len] = '\0';
-        free(b64_bytes);
         
         // Decrypt if password
         unsigned char* plain = NULL;
@@ -315,22 +319,32 @@ bool whitespace_stego_decode_all(const char* carrier, size_t carrier_len, const 
         bool decrypt_success = true;
         
         if (password && password[0]) {
-            // For password-protected messages, the base64 string contains encrypted data
-            unsigned char* encrypted = NULL;
-            size_t encrypted_len = 0;
-            if (!from_base64(b64_str, &encrypted, &encrypted_len)) {
+            // For password-protected messages, the data contains encrypted base64-encoded message
+            // Decrypt the data first
+            if (!crypto_decrypt(b64_bytes, b64_len, password, &plain, &plain_len)) {
                 decrypt_success = false;
-            } else if (!crypto_decrypt(encrypted, encrypted_len, password, &plain, &plain_len)) {
-                decrypt_success = false;
-                utils_free(encrypted);
             } else {
-                utils_free(encrypted);
+                // The decrypted data is base64-encoded, decode it
+                unsigned char* decoded = NULL;
+                size_t decoded_len = 0;
+                if (!from_base64((char*)plain, &decoded, &decoded_len)) {
+                    decrypt_success = false;
+                    crypto_free(plain);
+                } else {
+                    crypto_free(plain);
+                    plain = decoded;
+                    plain_len = decoded_len;
+                }
             }
+            // Free b64_bytes after using it
+            free(b64_bytes);
         } else {
-            // For non-password messages, the base64 string contains the original message
+            // For non-password messages, the data is base64-encoded message
             if (!from_base64(b64_str, &plain, &plain_len)) {
                 decrypt_success = false;
             }
+            // Free b64_bytes after using it
+            free(b64_bytes);
         }
         
         free(b64_str);
