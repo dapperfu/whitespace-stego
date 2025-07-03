@@ -14,14 +14,14 @@ python3 -m whitespace_stego.cli decode --carrier-file encoded.txt
 - `--carrier`, `--carrier-file`: Carrier text (inline or file)
 - `--output`: Output file (or `-` for stdout)
 - `--password`: Optional password for encryption
-- `--backend`: Choose backend (python, rust, c)
+- `--backend`: Choose backend (python, rust, c, go)
 - `--verbose`: Verbose logging
 
 ### Rust CLI
 
 ```bash
-./rust/target/release/whitespace-stego-rs encode --mf message.txt --cf carrier.txt -o encoded.txt
-./rust/target/release/whitespace-stego-rs decode --cf encoded.txt -o decoded.txt
+./bin/whitespace-stego-rs encode --mf message.txt --cf carrier.txt -o encoded.txt
+./bin/whitespace-stego-rs decode --cf encoded.txt -o decoded.txt
 ```
 
 #### Options
@@ -36,8 +36,8 @@ python3 -m whitespace_stego.cli decode --carrier-file encoded.txt
 ### C CLI
 
 ```bash
-./whitespace-stego-c encode --message-file message.txt --carrier-file carrier.txt --output encoded.txt
-./whitespace-stego-c decode --carrier-file encoded.txt --output decoded.txt
+./bin/whitespace-stego-c encode --message-file message.txt --carrier-file carrier.txt --output encoded.txt
+./bin/whitespace-stego-c decode --carrier-file encoded.txt --output decoded.txt
 ```
 
 #### Options
@@ -46,6 +46,20 @@ python3 -m whitespace_stego.cli decode --carrier-file encoded.txt
 - `--output`, `-o`: Output file
 - `--password`, `-p`: Password
 - `--verbose`, `-v`: Verbose
+
+### Go CLI
+
+```bash
+./bin/whitespace-stego-go encode -m "Secret" -cf carrier.txt -o encoded.txt -p password
+./bin/whitespace-stego-go decode -cf encoded.txt -o decoded.txt -p password
+```
+
+#### Options
+- `-m`: Message to encode
+- `-cf`: Carrier file
+- `-o`: Output file
+- `-p`: Password for encryption/decryption
+- `--verbose`: Verbose logging
 
 ### WebAssembly (Browser UI)
 
@@ -74,6 +88,13 @@ let encoded = encode("Secret", "Carrier", Some("pw")).unwrap();
 let decoded = decode(&encoded, Some("pw")).unwrap();
 ```
 
+### Go
+```go
+import "github.com/your-repo/whitespace-stego"
+encoded, err := whitespace_stego.Encode("Secret", "Carrier", "pw")
+decoded, err := whitespace_stego.Decode(encoded, "pw")
+```
+
 ### WASM (JavaScript)
 ```js
 import init, { encode, decode } from './whitespace_stego_wasi.js';
@@ -91,11 +112,13 @@ const decoded = decode(encoded);
 - **Password Protection:**
   - Use `--password` or API `password` argument for encryption
 - **Cross-backend:**
-  - Encode in Python, decode in Rust or C, and vice versa
+  - Encode in Python, decode in Rust, C, or Go, and vice versa
 - **Pipeline Usage:**
   - `python3 -m whitespace_stego.cli encode ... | python3 -m whitespace_stego.cli decode --carrier-file -`
 - **Verbose Debugging:**
   - Add `--verbose` to any CLI command
+- **Cross-implementation Unicode:**
+  - Encode with emojis in Go, decode in Python or Rust, and verify round-trip
 
 ---
 

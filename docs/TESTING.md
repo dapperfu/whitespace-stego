@@ -3,10 +3,11 @@
 ## Test Strategy
 
 - **Pytest suite:** 1300+ tests for all features
-- **Cross-backend:** Encode/decode between Python, Rust, C, WASM
-- **CLI tests:** Python, Rust, and C command-line interfaces
+- **Cross-backend:** Encode/decode between Python, Rust, C, Go, WASM
+- **CLI tests:** Python, Rust, C, and Go command-line interfaces
 - **WebAssembly:** Browser-based tests for WASM UI
 - **Jupyter notebooks:** Interactive, executable examples
+- **Cross-implementation:** Round-trip and Unicode tests for all backends
 
 ## Running Tests
 
@@ -35,26 +36,37 @@ make test-wasm
 ### Individual implementation tests
 ```bash
 python3 -m whitespace_stego.cli --help
-./whitespace-stego-c --help
-./rust/target/release/whitespace-stego-rs --help
+./bin/whitespace-stego-c --help
+./bin/whitespace-stego-rs --help
+./bin/whitespace-stego-go --help
+```
+
+### Cross-implementation tests
+```bash
+python tests/test_20_cross_impl_roundtrip.py
+python tests/test_21_unicode_cross_impl.py
+python tests/test_22_comprehensive_encoding_identity.py
 ```
 
 ## Test Coverage
 - >95% for core functionality
 - Unicode, emoji, password, error handling, and pipeline support
-- Cross-compatibility: encode in one backend, decode in another
+- Cross-compatibility: encode in one backend, decode in another (Python, Rust, C, Go, WASM)
+- CLI, API, and web interface coverage
 
 ## Troubleshooting
 - Ensure all dependencies are installed: `make install`
-- Build all implementations: `make rust`, `make c`
+- Build all implementations: `make rust`, `make c`, `make go`
 - For WASM: ensure port 8000 is free, run `make wasi-web`
 - For detailed logs: add `--verbose` to CLI or `-v` to pytest
 - Run failing tests individually for debugging
+- For Go: ensure Go is installed and in PATH
 
 ## Continuous Integration
 - All tests run in GitHub Actions on push/PR
 - Parallelized pytest for fast feedback
-- WASM and CLI tests included in CI
+- WASM, Go, and CLI tests included in CI
+- Cross-implementation and Unicode tests included in CI
 
 ## Manual Testing
 - See [examples/practical_use_cases.md](../examples/practical_use_cases.md) for manual test scenarios

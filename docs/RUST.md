@@ -2,7 +2,7 @@
 
 ## Current State Analysis
 
-The project currently has multiple Rust implementations with overlapping functionality but different architectures. This document provides a detailed breakdown of the current structure and a comprehensive plan for reorganization.
+The project currently has multiple Rust implementations with overlapping functionality but different architectures. This document provides a detailed breakdown of the current structure and a comprehensive plan for reorganization, including integration with Go and C backends.
 
 ## Current Rust Implementations
 
@@ -101,6 +101,32 @@ whitespace-stego-backend/
 - **CLI Binary**: Separate CLI tool
 - **Dependency**: Uses `whitespace-stego-core` as dependency
 
+### 5. Go Backend (`go/`)
+**Location**: `go/` directory  
+**Purpose**: Go implementation for CLI and library use  
+**Architecture**: Standalone Go module
+
+#### Structure:
+```
+go/
+├── go.mod
+├── src/
+│   ├── main.go         # Go CLI entry point
+│   └── stego/          # Go core library
+│       ├── core.go     # Core logic
+│       ├── crypto.go   # Encryption
+│       ├── constants.go# Unicode constants
+│       └── core_test.go# Tests
+└── bin/
+    └── whitespace-stego-go
+```
+
+#### Key Features:
+- **Core Logic**: Encoding, decoding, and encryption functions
+- **CLI**: Full-featured Go CLI
+- **Testing**: Standard Go test suite
+- **Cross-compatibility**: Designed for cross-implementation tests
+
 ## Problems with Current Structure
 
 ### 1. **Code Duplication**
@@ -133,6 +159,8 @@ whitespace-stego/
 ├── whitespace-stego-core/        # Shared core library
 ├── whitespace-stego-cli/         # CLI application
 ├── whitespace-stego-python/      # Python module
+├── go/                           # Go implementation
+├── c/                            # C implementation
 └── whitespace-stego-wasm/        # WebAssembly module (future)
 ```
 
@@ -144,6 +172,7 @@ members = [
     "whitespace-stego-core",
     "whitespace-stego-cli", 
     "whitespace-stego-python",
+    # Go and C are managed outside Cargo but included in cross-impl tests
 ]
 
 [workspace.package]
@@ -193,6 +222,7 @@ whitespace-stego-core/
 - **Performance Benchmarks**: Built-in benchmarking
 - **Error Handling**: Consistent error types with detailed messages
 - **Documentation**: Complete API documentation with examples
+- **Cross-Implementation Compatibility**: Used in Python, Rust, Go, and C tests
 
 #### Public API:
 ```rust
@@ -248,6 +278,7 @@ whitespace-stego-cli/
 - **Progress Indicators**: Progress bars for large operations
 - **Configuration**: Support for config files and environment variables
 - **Examples**: Comprehensive usage examples
+- **Cross-Implementation Testing**: CLI is included in all cross-impl test scripts
 
 #### CLI Commands:
 ```bash
@@ -328,6 +359,11 @@ except whitespace_stego.StegoError as e:
     print(f"Decoding failed: {e}")
 ```
 
+### 5. Go and C Integration
+
+- **Go Backend**: The Go implementation in `go/` provides a CLI and library for cross-compatibility testing. It is included in all cross-implementation test scripts and is designed to match the encoding/decoding logic of the Rust and Python backends.
+- **C Backend**: The C implementation in `c/` provides a CLI and shared library for Python and cross-compatibility. It is included in all cross-implementation and CLI test scripts.
+
 ## Implementation Plan
 
 ### Phase 1: Core Library Consolidation
@@ -351,7 +387,13 @@ except whitespace_stego.StegoError as e:
 4. **Create Python documentation**
 5. **Add Python CLI interface**
 
-### Phase 4: Migration and Cleanup
+### Phase 4: Go and C Integration
+1. **Ensure Go and C backends match encoding/decoding logic**
+2. **Add Go and C to all cross-implementation tests**
+3. **Document Go and C integration in all relevant guides**
+4. **Standardize Unicode and encryption constants across all languages**
+
+### Phase 5: Migration and Cleanup
 1. **Update existing code** to use new structure
 2. **Remove duplicate implementations**
 3. **Update build scripts and CI/CD**
@@ -376,7 +418,7 @@ except whitespace_stego.StegoError as e:
 - Consistent API across all interfaces
 
 ### 4. **Extensibility**
-- Easy to add new interfaces (WebAssembly, etc.)
+- Easy to add new interfaces (WebAssembly, Go, C, etc.)
 - Modular architecture supports future enhancements
 - Clean dependency management
 
@@ -384,7 +426,7 @@ except whitespace_stego.StegoError as e:
 - Comprehensive test coverage
 - Property-based testing for correctness
 - Performance benchmarking
-- Multiple interface testing
+- Multiple interface and cross-implementation testing
 
 ## Migration Strategy
 
@@ -398,13 +440,18 @@ except whitespace_stego.StegoError as e:
 2. **Performance**: Leverage Rust backend for high-performance operations
 3. **Extension**: Add Python-specific features in the Python wrapper
 
-### For Both:
+### For Go and C Developers:
+1. **Go/C API**: Use `go/` and `c/` for native and cross-compatibility features
+2. **Cross-Implementation**: Ensure compatibility with Rust and Python backends
+3. **Testing**: Use the cross-implementation test suite for validation
+
+### For All:
 1. **Shared Logic**: All improvements to core algorithms benefit all interfaces
 2. **Consistent API**: Same functionality available across all platforms
 3. **Documentation**: Comprehensive docs for all use cases
 
 ## Conclusion
 
-This reorganization will create a maintainable, performant, and extensible codebase that serves both Rust and Python developers effectively. The modular architecture ensures that core improvements benefit all interfaces while maintaining clean separation of concerns.
+This reorganization will create a maintainable, performant, and extensible codebase that serves Rust, Python, Go, and C developers effectively. The modular architecture ensures that core improvements benefit all interfaces while maintaining clean separation of concerns.
 
 The proposed structure eliminates code duplication, provides consistent APIs, and creates a solid foundation for future enhancements while maintaining backward compatibility through careful migration planning. 
