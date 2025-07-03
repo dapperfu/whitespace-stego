@@ -171,10 +171,16 @@ fn test_encrypt_decrypt_corrupted_data() {
     let data = b"Hello, World!";
     let encrypted = encrypt_data(data, password).unwrap();
     
-    // Test with corrupted encrypted data
+    // Test with corrupted encrypted data - corrupt bytes in the ciphertext portion
     let mut corrupted = encrypted.clone();
-    if corrupted.len() > 10 {
-        corrupted[10] = corrupted[10].wrapping_add(1);
+    
+    // Corrupt bytes in the ciphertext portion (after the 16-byte IV)
+    if corrupted.len() > 16 {
+        for i in 16..corrupted.len() {
+            if i % 2 == 0 { // Corrupt every 2nd byte to make it more severe
+                corrupted[i] = corrupted[i].wrapping_add(1);
+            }
+        }
     }
     
     let result = decrypt_data(&corrupted, password);
