@@ -82,7 +82,7 @@ logs/
 !Cargo.lock
 !Makefile
 !README.md
-!whitespace_stego.spec
+!*.spec
 
 # Rust
 target/
