@@ -10,7 +10,7 @@ keywords.workspace = true
 categories.workspace = true
 
 [lib]
-name = "whitespace_stego_python"
+name = "whitespace_stego_rust"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]

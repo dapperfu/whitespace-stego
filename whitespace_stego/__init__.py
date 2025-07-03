@@ -11,7 +11,7 @@ from .core import encode, decode, BadPasswordError
 
 # Try to import Rust backend for better performance
 try:
-    from whitespace_stego_rust import encode as rust_encode, decode as rust_decode, count_messages as rust_count_messages
+    from whitespace_stego_rust import encode_py as rust_encode, decode_py as rust_decode, has_encoded_message_py as rust_count_messages
     rust_available = True
 except ImportError:
     rust_available = False

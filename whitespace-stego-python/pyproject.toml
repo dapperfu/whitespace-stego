@@ -3,7 +3,7 @@ requires = ["maturin>=1.4,<2.0"]
 build-backend = "maturin"
 
 [project]
-name = "whitespace-stego-python"
+name = "whitespace-stego-rust"
 version = "0.1.0"
 description = "Python bindings for whitespace steganography using zero-width Unicode characters (Rust backend)"
 authors = [

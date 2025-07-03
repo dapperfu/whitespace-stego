@@ -81,7 +81,7 @@ fn has_encoded_message_py(text: &str) -> bool {
 
 /// Python module definition
 #[pymodule]
-fn whitespace_stego_python(_py: Python, m: &PyModule) -> PyResult<()> {
+fn whitespace_stego_rust(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(encode_py, m)?)?;
     m.add_function(wrap_pyfunction!(decode_py, m)?)?;
     m.add_function(wrap_pyfunction!(extract_encoded_py, m)?)?;
