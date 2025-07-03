@@ -163,6 +163,9 @@ def encode(message: str, carrier: str = "", password: Optional[str] = None) -> s
         raise RuntimeError(f"Encoding failed: {error_str}")
     
     # Get result and convert back to string
+    if result_ptr.value is None:
+        raise RuntimeError("Encoding failed: No result returned from C library")
+    
     result = result_ptr.value.decode('utf-8')
     
     # Free the allocated memory
@@ -209,7 +212,7 @@ def decode(carrier: str, password: Optional[str] = None) -> Union[str, List[str]
         ctypes.byref(result_ptr)
     )
     
-    if success:
+    if success and result_ptr.value is not None:
         # Get result and convert back to string
         result = result_ptr.value.decode('utf-8')
         
@@ -230,27 +233,39 @@ def decode(carrier: str, password: Optional[str] = None) -> Union[str, List[str]
         ctypes.byref(result_count)
     )
     
-    if success and result_count.value > 0:
-        # Multiple messages found
-        messages = []
-        for i in range(result_count.value):
-            msg_ptr = results_ptr[i]
-            if msg_ptr:
-                try:
-                    decoded = msg_ptr.decode('utf-8')
-                    messages.append(decoded)
-                except UnicodeDecodeError:
-                    # Skip invalid UTF-8 messages
-                    continue
-        
-        # Free the allocated memory
-        _lib.whitespace_stego_free_all(results_ptr, result_count.value)
-        
-        # Return string for single message, list for multiple
-        if len(messages) == 1:
-            return messages[0]
+    if success:
+        if result_count.value > 0:
+            # Multiple messages found
+            messages = []
+            for i in range(result_count.value):
+                msg_ptr = results_ptr[i]
+                if msg_ptr:
+                    try:
+                        decoded = msg_ptr.decode('utf-8')
+                        messages.append(decoded)
+                    except UnicodeDecodeError:
+                        # Skip invalid UTF-8 messages
+                        continue
+            
+            # Free the allocated memory
+            _lib.whitespace_stego_free_all(results_ptr, result_count.value)
+            
+            # Return string for single message, list for multiple
+            if len(messages) == 1:
+                return messages[0]
+            else:
+                return messages
         else:
-            return messages
+            # decode_all succeeded but returned 0 messages
+            if password:
+                raise ValueError("Invalid password or no valid messages found")
+            else:
+                error_msg = _lib.whitespace_stego_last_error()
+                if error_msg:
+                    error_str = error_msg.decode('utf-8')
+                else:
+                    error_str = "No valid messages found in carrier text"
+                raise ValueError(f"Invalid carrier text: {error_str}")
     
     # Both decode attempts failed
     error_msg = _lib.whitespace_stego_last_error()
