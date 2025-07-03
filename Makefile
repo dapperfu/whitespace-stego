@@ -8,7 +8,7 @@
 #
 VENV?=.venv
 BIN_DIR=bin
-MAKEFILE_DIR:=$(dir $(realpath $(firstword $(MAKEFILE_LIST))))
+MAKEFILE_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
 .PHONY: help venv test all clean rust c go python-binary python-binary-docker install maturin-develop wasi wasi-web
 
