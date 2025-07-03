@@ -1,0 +1,52 @@
+name: 09 Make Python Binary Local
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+  workflow_dispatch:
+
+jobs:
+  make-python-binary-local:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install make
+        run: sudo apt-get update && sudo apt-get install -y make
+
+      - name: Run make python-binary
+        run: make python-binary
+
+      - name: Verify binary exists
+        run: |
+          if [ ! -f "bin/whitespace-stego-py" ]; then
+            echo "❌ Python binary not created"
+            exit 1
+          fi
+          echo "✅ Python binary created successfully"
+          ls -la bin/whitespace-stego-py
+
+      - name: Test binary
+        run: |
+          echo "🧪 Testing Python binary..."
+          if bin/whitespace-stego-py --help > /dev/null 2>&1; then
+            echo "✅ Python binary works"
+          else
+            echo "❌ Python binary failed"
+            exit 1
+          fi
+
+      - name: Upload Python binary as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-binary-local
+          path: bin/whitespace-stego-py
+          retention-days: 7 
