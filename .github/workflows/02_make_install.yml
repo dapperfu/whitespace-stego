@@ -2,7 +2,7 @@ name: 02 Make Install
 
 on:
   workflow_run:
-    workflows: ["01 Make Venv"]
+    workflows: ["01 Make Venv", "10 Test Standalone Binaries", "11 Test Rust Internal", "12 Test C Internal", "13 Test Go Internal", "14 Test All Internal Languages"]
     types:
       - completed
   workflow_dispatch:
@@ -46,4 +46,32 @@ jobs:
           path: |
             .venv/
             whitespace_stego.egg-info/
-          retention-days: 1 
+          retention-days: 1
+
+  pytest-after-all:
+    name: Run Pytest After All Internal Tests
+    runs-on: ubuntu-latest
+    needs: []
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Download installed venv artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: installed-package
+          path: .venv/
+
+      - name: Install make
+        run: sudo apt-get update && sudo apt-get install -y make
+
+      - name: Run pytest via make test
+        run: |
+          source .venv/bin/activate
+          make test 
