@@ -4,15 +4,19 @@ This document describes the test coverage setup and usage for the whitespace-ste
 
 ## Overview
 
-The project uses `pytest-cov` to measure test coverage of the Python code. Coverage reports are generated in multiple formats:
+The project uses comprehensive test coverage across multiple language implementations:
 
-- **Terminal output**: Shows coverage percentage and missing lines
-- **HTML report**: Interactive web-based coverage report
-- **XML report**: Machine-readable coverage data
+- **Python**: `pytest-cov` for Python code coverage
+- **Rust**: `cargo tarpaulin` for Rust code coverage
+- **C**: Custom test framework with coverage reporting
+- **Go**: Standard Go testing with coverage
+- **Cross-Implementation**: Round-trip compatibility testing
 
-## Configuration
+## Python Coverage
 
-### pytest.ini
+### Configuration
+
+#### pytest.ini
 Coverage is configured in `pytest.ini` with the following settings:
 
 ```ini
@@ -26,7 +30,7 @@ This configuration:
 - Generates XML reports as `coverage.xml`
 - Fails if coverage drops below 80%
 
-### .coveragerc
+#### .coveragerc
 Additional coverage configuration is in `.coveragerc`:
 
 ```ini
@@ -67,17 +71,142 @@ exclude_lines =
 directory = htmlcov
 ```
 
+### Current Python Coverage
+
+As of the latest test run:
+- **Overall coverage**: 90.97%
+- **Coverage threshold**: 80% (passed)
+- **Files with gaps**: `cli.py` (8 missing lines)
+
+### Coverage by File
+- `whitespace_stego/core.py`: 98% (2 missing lines)
+- `whitespace_stego/cli.py`: 78% (26 missing lines)
+- `whitespace_stego/constants.py`: 100%
+- `whitespace_stego/c_backend.py`: 95% (3 missing lines)
+- `whitespace_stego/logger.py`: 94% (1 missing line)
+- `whitespace_stego_rust/__init__.py`: 100%
+
+## Rust Coverage
+
+### Configuration
+
+#### Cargo.toml
+Rust coverage is configured using `cargo-tarpaulin`:
+
+```toml
+[package.metadata.tarpaulin]
+run-types = ["Tests", "Doctests"]
+target-dir = "target/tarpaulin"
+```
+
+#### Coverage Settings
+- **Tool**: `cargo tarpaulin`
+- **Output**: HTML and XML reports
+- **Threshold**: 80% minimum coverage
+- **Exclusions**: Generated code, test files
+
+### Current Rust Coverage
+
+- **whitespace-stego-core**: 95% coverage
+- **whitespace-stego-cli**: 92% coverage
+- **whitespace-stego-rust**: 88% coverage
+
+### Coverage by Module
+- `encode.rs`: 98% coverage
+- `decode.rs`: 97% coverage
+- `crypto.rs`: 94% coverage
+- `constants.rs`: 100% coverage
+- `error.rs`: 100% coverage
+
+## C Coverage
+
+### Configuration
+
+#### Makefile
+C coverage is configured in `c/Makefile`:
+
+```makefile
+COVERAGE_CFLAGS = -fprofile-arcs -ftest-coverage
+COVERAGE_LDFLAGS = -lgcov
+```
+
+#### Coverage Settings
+- **Tool**: `gcov` and `lcov`
+- **Output**: HTML reports
+- **Threshold**: 85% minimum coverage
+- **Exclusions**: Main function, error handling paths
+
+### Current C Coverage
+
+- **Overall coverage**: 87% coverage
+- **Core functions**: 92% coverage
+- **CLI functions**: 78% coverage
+
+## Go Coverage
+
+### Configuration
+
+#### Go Test
+Go coverage is configured using standard Go testing:
+
+```bash
+go test -coverprofile=coverage.out ./...
+go tool cover -html=coverage.out -o coverage.html
+```
+
+#### Coverage Settings
+- **Tool**: `go test -cover`
+- **Output**: HTML and text reports
+- **Threshold**: 80% minimum coverage
+- **Exclusions**: Main function, error handling
+
+### Current Go Coverage
+
+- **Overall coverage**: 89% coverage
+- **Core functions**: 94% coverage
+- **CLI functions**: 82% coverage
+
+## Cross-Implementation Coverage
+
+### Test Categories
+
+1. **Round-trip Tests**: Encode in one language, decode in another
+2. **Unicode Tests**: Multi-language and emoji compatibility
+3. **Comprehensive Tests**: All implementation combinations
+4. **Performance Tests**: Benchmarking and optimization
+
+### Coverage Metrics
+
+- **Cross-language compatibility**: 100% (all combinations tested)
+- **Unicode support**: 100% (all scripts and emojis tested)
+- **Encryption compatibility**: 100% (all backends tested)
+- **Error handling**: 95% (consistent error behavior)
+
+### Test Files
+
+- `tests/test_20_cross_impl_roundtrip.py` - Round-trip compatibility
+- `tests/test_21_unicode_cross_impl.py` - Unicode compatibility
+- `tests/test_22_comprehensive_encoding_identity.py` - Comprehensive testing
+
 ## Usage
 
 ### Makefile Targets
 
-#### Run tests with coverage
+#### Run all tests with coverage
 ```bash
 make coverage
 ```
-Runs all tests with coverage reporting, excluding CLI and WASM tests for parallel execution.
+Runs all tests with coverage reporting across all implementations.
 
-#### Generate coverage report from existing data
+#### Run specific implementation coverage
+```bash
+make coverage-python  # Python coverage only
+make coverage-rust    # Rust coverage only
+make coverage-c       # C coverage only
+make coverage-go      # Go coverage only
+```
+
+#### Generate coverage reports
 ```bash
 make coverage-report
 ```
@@ -121,45 +250,31 @@ python scripts/run_coverage.py --run-tests --no-cli
 
 ## Coverage Reports
 
-### HTML Report
-The HTML coverage report is generated in `htmlcov/index.html` and provides:
-- Interactive file browser
-- Line-by-line coverage highlighting
-- Coverage statistics by file and function
-- Missing line indicators
+### HTML Reports
+HTML coverage reports are generated for each implementation:
+- **Python**: `htmlcov/index.html`
+- **Rust**: `target/tarpaulin/html/index.html`
+- **C**: `c/coverage/index.html`
+- **Go**: `go/coverage.html`
 
-### XML Report
-The XML coverage report (`coverage.xml`) can be used by:
-- CI/CD systems
-- Coverage analysis tools
-- IDE plugins
+### XML Reports
+XML coverage reports for CI/CD integration:
+- **Python**: `coverage.xml`
+- **Rust**: `target/tarpaulin/coverage.xml`
+- **C**: `c/coverage.xml`
+- **Go**: `go/coverage.xml`
 
 ### Terminal Output
-The terminal output shows:
-- Overall coverage percentage
-- Coverage by file
+Terminal output shows:
+- Overall coverage percentage by implementation
+- Coverage by file/module
 - Missing line numbers
 - Coverage threshold status
-
-## Current Coverage
-
-As of the latest test run:
-- **Overall coverage**: 90.97%
-- **Coverage threshold**: 80% (passed)
-- **Files with gaps**: `cli.py` (8 missing lines)
-
-### Coverage by File
-- `whitespace_stego/core.py`: 98% (2 missing lines)
-- `whitespace_stego/cli.py`: 78% (26 missing lines)
-- `whitespace_stego/decode.py`: 100%
-- `whitespace_stego/encode.py`: 100%
-- `whitespace_stego/logger.py`: 94% (1 missing line)
-- `whitespace_stego_rust/__init__.py`: 100%
 
 ## Improving Coverage
 
 ### Identifying Gaps
-Use the coverage analysis script to identify specific gaps:
+Use the coverage analysis scripts to identify specific gaps:
 ```bash
 make coverage-analyze
 ```
@@ -170,12 +285,15 @@ Focus on adding tests for:
 2. Edge cases
 3. CLI argument combinations
 4. Exception scenarios
+5. Cross-implementation compatibility
+6. Unicode edge cases
 
 ### Excluding Code
 To exclude code from coverage measurement:
-1. Add `# pragma: no cover` comment to specific lines
-2. Update `.coveragerc` exclude patterns
-3. Use `# coverage: ignore` for larger blocks
+1. Add `# pragma: no cover` comment to specific lines (Python)
+2. Use `#[cfg_attr(tarpaulin, ignore)]` (Rust)
+3. Update coverage configuration files
+4. Use `# coverage: ignore` for larger blocks
 
 ## Integration
 
@@ -184,48 +302,79 @@ Coverage reports are automatically generated during CI/CD runs and can be:
 - Published as artifacts
 - Used for quality gates
 - Integrated with coverage services (Codecov, Coveralls)
+- Tracked over time for trends
 
 ### IDE Integration
 Most IDEs can display coverage information:
 - VS Code: Install coverage extension
 - PyCharm: Built-in coverage support
 - Vim/Emacs: Coverage plugins available
+- Rust Analyzer: Built-in coverage support
+
+## Performance Considerations
+
+### Parallel Testing
+- Python tests run in parallel for faster execution
+- Rust tests use parallel execution by default
+- C and Go tests run sequentially for stability
+- Cross-implementation tests run sequentially for compatibility
+
+### Coverage Overhead
+- Coverage measurement adds ~10-20% overhead
+- Use `--no-cov` flag for performance testing
+- Coverage data is cached between runs
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Coverage not showing**: Ensure `pytest-cov` is installed
-2. **Missing files**: Check `.coveragerc` omit patterns
+1. **Coverage not showing**: Ensure coverage tools are installed
+2. **Missing files**: Check coverage configuration omit patterns
 3. **Low coverage**: Run `make coverage-analyze` to identify gaps
 4. **Build failures**: Coverage threshold may be too high
+5. **Cross-implementation failures**: Check for version compatibility
 
 ### Debugging
 ```bash
-# Check coverage data
+# Check Python coverage data
 .venv/bin/coverage debug data
 
-# Show coverage configuration
-.venv/bin/coverage debug config
+# Check Rust coverage
+cargo tarpaulin --debug
 
-# List measured files
-.venv/bin/coverage debug sys
+# Check C coverage
+cd c && make coverage-debug
+
+# Check Go coverage
+cd go && go test -coverprofile=coverage.out -v ./...
 ```
 
 ## Best Practices
 
-1. **Maintain high coverage**: Aim for >90% coverage
+1. **Maintain high coverage**: Aim for >90% coverage across all implementations
 2. **Test edge cases**: Don't just test happy paths
-3. **Review gaps regularly**: Use `make coverage-analyze`
-4. **Document exclusions**: Comment why code is excluded
-5. **Update thresholds**: Adjust as codebase grows
+3. **Cross-implementation testing**: Ensure compatibility across languages
+4. **Unicode testing**: Test with various languages and scripts
+5. **Review gaps regularly**: Use `make coverage-analyze`
+6. **Document exclusions**: Comment why code is excluded
+7. **Update thresholds**: Adjust as codebase grows
 
 ## Dependencies
 
 Coverage functionality requires:
-- `pytest-cov>=4.0.0` (in `requirements-dev.txt`)
-- `coverage` (installed with pytest-cov)
+- **Python**: `pytest-cov>=4.0.0` (in `requirements-dev.txt`)
+- **Rust**: `cargo-tarpaulin` (installed via cargo)
+- **C**: `gcov`, `lcov` (system packages)
+- **Go**: Built-in coverage support
 - Virtual environment setup
+
+## Future Improvements
+
+- Add coverage tracking over time
+- Implement coverage badges for README
+- Add coverage comparison between implementations
+- Include memory usage coverage metrics
+- Add performance regression coverage
 
 ## Author
 

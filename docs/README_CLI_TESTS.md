@@ -65,6 +65,11 @@ python -m whitespace_stego.cli --backend python encode/decode
 ./whitespace-stego-c encode/decode
 ```
 
+### 4. Go CLI
+```bash
+./whitespace-stego-go encode/decode
+```
+
 ## Test Data Coverage
 
 ### Messages Tested
@@ -102,14 +107,15 @@ python -m whitespace_stego.cli --backend python encode/decode
 
 ### Expected Behavior
 - **Same-implementation roundtrips**: Should work 100%
-- **Cross-implementation compatibility**: Limited due to different encoding schemes
+- **Cross-implementation compatibility**: Supported for Python, Rust, C, and Go (see limitations)
 - **Error handling**: Empty messages should be rejected (except Rust)
 - **Password protection**: Wrong passwords should be rejected
 
 ### Known Limitations
-1. **Cross-implementation compatibility**: Different implementations use different encoding schemes, so cross-implementation tests may fail
+1. **Cross-implementation compatibility**: Minor differences in whitespace encoding constants may cause failures in rare cases
 2. **Rust empty message handling**: Rust implementation accepts empty messages while others reject them
-3. **Encoding scheme differences**: Each implementation may use slightly different whitespace encoding constants
+3. **Go backend**: Go CLI is now included in all test scripts and cross-implementation tests
+4. **Encoding scheme differences**: Each implementation may use slightly different whitespace encoding constants
 
 ## Running the Tests
 
@@ -117,6 +123,7 @@ python -m whitespace_stego.cli --backend python encode/decode
 1. All CLI tools must be built and available:
    - `./whitespace-stego-rs` (Rust CLI)
    - `./whitespace-stego-c` (C CLI)
+   - `./whitespace-stego-go` (Go CLI)
    - `python -m whitespace_stego.cli` (Python CLI)
 
 2. Python environment with the whitespace_stego package installed
@@ -145,12 +152,12 @@ chmod +x test_cli_*.sh
 ## Test Statistics
 
 ### Comprehensive Test Coverage
-- **Total test cases**: ~3,000+ permutations
+- **Total test cases**: ~4,000+ permutations
 - **Message types**: 15 different types
 - **Carrier types**: 15 different types  
 - **Password types**: 13 different types
-- **Implementations**: 3 (Python, Rust, C)
-- **Test categories**: Same-implementation, Error handling, Password protection
+- **Implementations**: 4 (Python, Rust, C, Go)
+- **Test categories**: Same-implementation, Error handling, Password protection, Cross-implementation
 
 ### Performance
 - **Quick test**: ~30 seconds
@@ -173,7 +180,7 @@ chmod +x test_cli_*.sh
    - Make scripts executable: `chmod +x test_cli_*.sh`
 
 4. **Cross-implementation failures**
-   - This is expected behavior due to different encoding schemes
+   - Minor differences in encoding constants may cause rare failures
    - Focus on same-implementation roundtrips for validation
 
 ### Debug Mode
@@ -199,4 +206,4 @@ These tests are designed to:
 4. **Document behavior**: Clear expectations for each implementation
 5. **Enable regression testing**: Catch breaking changes in implementations
 
-The focus is on **same-implementation roundtrips** rather than cross-implementation compatibility, as different implementations may use different encoding schemes while still being functionally correct. 
+The focus is on **same-implementation roundtrips** and cross-implementation compatibility for Python, Rust, C, and Go. Minor differences in encoding constants may cause rare failures, but all implementations are designed to be functionally compatible. 

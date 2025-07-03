@@ -1,7 +1,12 @@
+/*
+ * MISRA C Compliance: whitespace_stego.h
+ * This file has been refactored for MISRA C:2012 compliance.
+ * - No <stdbool.h>; use int for boolean (0/1)
+ * - All functions and logic blocks documented
+ */
 #ifndef WHITESPACE_STEGO_H
 #define WHITESPACE_STEGO_H
 
-#include <stdbool.h>
 #include <stddef.h>
 
 /**
@@ -12,9 +17,9 @@
  * @param message The message to encode
  * @param password Optional password for encryption (NULL if not used)
  * @param result Pointer to store the resulting encoded text
- * @return true if encoding was successful, false otherwise
+ * @return 1 if encoding was successful, 0 otherwise
  */
-bool whitespace_stego_encode(const char* carrier, size_t carrier_len, const char* message, 
+int whitespace_stego_encode(const char* carrier, size_t carrier_len, const char* message, 
                            const char* password, char** result);
 
 /**
@@ -24,9 +29,9 @@ bool whitespace_stego_encode(const char* carrier, size_t carrier_len, const char
  * @param carrier_len Length of the carrier text in bytes
  * @param password Optional password for decryption (NULL if not used)
  * @param result Pointer to store the decoded message
- * @return true if decoding was successful, false otherwise
+ * @return 1 if decoding was successful, 0 otherwise
  */
-bool whitespace_stego_decode(const char* carrier, size_t carrier_len, const char* password, 
+int whitespace_stego_decode(const char* carrier, size_t carrier_len, const char* password, 
                            char** result);
 
 /**
@@ -37,9 +42,9 @@ bool whitespace_stego_decode(const char* carrier, size_t carrier_len, const char
  * @param password Optional password for decryption (NULL if not used)
  * @param results Pointer to store array of decoded messages
  * @param result_count Pointer to store the number of decoded messages
- * @return true if decoding was successful, false otherwise
+ * @return 1 if decoding was successful, 0 otherwise
  */
-bool whitespace_stego_decode_all(const char* carrier, size_t carrier_len, const char* password, 
+int whitespace_stego_decode_all(const char* carrier, size_t carrier_len, const char* password, 
                                 char*** results, size_t* result_count);
 
 /**

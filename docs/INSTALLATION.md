@@ -7,6 +7,7 @@ This guide covers installation of the whitespace steganography toolkit across di
 ### System Requirements
 - **Python**: 3.8 or higher
 - **Rust**: Latest stable version (for Rust backend and CLI)
+- **Go**: 1.18+ (for Go implementation)
 - **C Compiler**: GCC/Clang (for C implementation)
 - **Node.js**: 18+ (for WASM development, optional)
 - **Docker**: (for portable binary builds, optional)
@@ -17,7 +18,7 @@ This guide covers installation of the whitespace steganography toolkit across di
 ```bash
 # Install system dependencies
 sudo apt-get update
-sudo apt-get install -y build-essential python3-dev git curl
+sudo apt-get install -y build-essential python3-dev git curl golang-go
 
 # Install Rust
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
@@ -33,7 +34,7 @@ python3 -m pip install --upgrade pip
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
 # Install dependencies
-brew install python3 rust git
+brew install python3 rust go git
 
 # Install Python dependencies
 python3 -m pip install --upgrade pip
@@ -43,6 +44,8 @@ python3 -m pip install --upgrade pip
 ```bash
 # Install Rust
 # Download and run rustup-init.exe from https://rustup.rs/
+
+# Install Go from https://go.dev/dl/
 
 # Install Python from https://python.org/
 
@@ -66,13 +69,14 @@ make install
 # Build all implementations
 make rust     # Rust CLI
 make c        # C CLI  
+make go       # Go CLI
 make wasi-web # WebAssembly UI
 ```
 
 This installs:
 - Python package with Rust backend
 - Development dependencies
-- All CLI implementations
+- All CLI implementations (Python, Rust, C, Go)
 - WebAssembly interface
 
 ### 2. Python-Only Installation
@@ -88,7 +92,7 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -e .
 
 # Install Rust backend (optional, for performance)
-cd whitespace-stego-backend
+cd whitespace-stego-rust
 maturin develop --release
 cd ..
 ```
@@ -99,25 +103,51 @@ For users who prefer the Rust implementation:
 
 ```bash
 # Build Rust CLI
-cargo build --release --manifest-path rust/Cargo.toml
+cargo build --release --manifest-path whitespace-stego-cli/Cargo.toml
 
 # Copy to convenient location
-cp rust/target/release/whitespace-stego-rs ~/.local/bin/
+cp whitespace-stego-cli/target/release/whitespace-stego ~/.local/bin/
 ```
 
-### 4. Docker Installation
+### 4. Go-Only Installation
+
+For users who prefer the Go implementation:
+
+```bash
+# Build Go CLI
+cd go/src
+go build -o ../../bin/whitespace-stego-go main.go
+cd ../..
+
+# Copy to convenient location
+cp bin/whitespace-stego-go ~/.local/bin/
+```
+
+### 5. C-Only Installation
+
+For users who prefer the C implementation:
+
+```bash
+# Build C CLI
+cd c
+make
+cp bin/whitespace-stego-c ~/.local/bin/
+cd ..
+```
+
+### 6. Docker Installation
 
 For portable, isolated builds:
 
 ```bash
-# Build portable Python binary
-make python-binary-docker
+# Build all binaries in Docker
+make all-binaries-docker
 
-# The binary is now available at dist/whitespace-stego-py
-# This binary works on most Linux distributions
+# The binaries are now available at dist/ or bin/
+# These binaries work on most Linux distributions
 ```
 
-### 5. WebAssembly Installation
+### 7. WebAssembly Installation
 
 For browser-based usage:
 
@@ -139,10 +169,13 @@ After installation, verify everything works:
 python3 -m whitespace_stego.cli --help
 
 # Test Rust CLI
-./whitespace-stego-rs --help
+./bin/whitespace-stego-rs --help
+
+# Test Go CLI
+./bin/whitespace-stego-go --help
 
 # Test C CLI
-./whitespace-stego-c --help
+./bin/whitespace-stego-c --help
 
 # Test WebAssembly (if built)
 # Open http://localhost:8000 and try encoding/decoding
@@ -182,6 +215,18 @@ xcode-select --install
 # Ensure Visual Studio Build Tools are installed
 ```
 
+#### Go Build Issues
+```bash
+# Ensure Go is installed and in PATH
+go version
+
+# Clean and rebuild
+cd go/src
+go clean
+go build -o ../../bin/whitespace-stego-go main.go
+cd ../..
+```
+
 #### WASM Build Issues
 ```bash
 # Install wasm-pack
@@ -196,7 +241,7 @@ rm -rf pkg/ target/
 ### Platform-Specific Issues
 
 #### Windows
-- Ensure PATH includes Python and Rust binaries
+- Ensure PATH includes Python, Rust, and Go binaries
 - Use PowerShell or Git Bash for better compatibility
 - Install Visual Studio Build Tools for C compilation
 
@@ -235,6 +280,9 @@ export VENV=.venv
 
 # Rust target directory
 export CARGO_TARGET_DIR=target
+
+# Go binary output directory
+export GOBIN=bin
 
 # Test configuration
 export PYTEST_ADDOPTS="-v --tb=short"

@@ -1,4 +1,4 @@
-package main
+package stego
 
 import (
 	"errors"
@@ -8,15 +8,18 @@ import (
 	"unicode/utf8"
 )
 
+var zeroBitRune = []rune(ZERO_BIT)[0]
+var oneBitRune = []rune(ONE_BIT)[0]
+
 // encodeBinary converts bytes to zero-width characters
 func encodeBinary(data []byte) string {
 	var result strings.Builder
 	for _, b := range data {
 		for i := 7; i >= 0; i-- {
 			if (b>>i)&1 == 1 {
-				result.WriteString(ONE_BIT)
+				result.WriteRune(oneBitRune)
 			} else {
-				result.WriteString(ZERO_BIT)
+				result.WriteRune(zeroBitRune)
 			}
 		}
 	}
@@ -28,7 +31,7 @@ func decodeBinary(encoded string) ([]byte, error) {
 	// Filter out non-zero-width characters
 	var filtered strings.Builder
 	for _, r := range encoded {
-		if r == rune(ONE_BIT[0]) || r == rune(ZERO_BIT[0]) {
+		if r == oneBitRune || r == zeroBitRune {
 			filtered.WriteRune(r)
 		}
 	}
@@ -36,7 +39,7 @@ func decodeBinary(encoded string) ([]byte, error) {
 	// Convert to bitstring
 	var bitstring strings.Builder
 	for _, r := range filtered.String() {
-		if r == rune(ONE_BIT[0]) {
+		if r == oneBitRune {
 			bitstring.WriteRune('1')
 		} else {
 			bitstring.WriteRune('0')
@@ -168,7 +171,6 @@ func Encode(message, carrier, password string) (string, error) {
 	}
 
 	var data []byte
-	var err error
 
 	// Encrypt if password provided, then base64 encode
 	if password != "" {
@@ -200,7 +202,7 @@ func Encode(message, carrier, password string) (string, error) {
 // Decode decodes messages from carrier text using zero-width characters
 func Decode(carrier, password string) ([]string, error) {
 	// Find all start/end marker pairs
-	pattern := regexp.MustCompile(regexp.QuoteMeta(START_MARKER) + "(.*?)" + regexp.QuoteMeta(END_MARKER))
+	pattern := regexp.MustCompile("(?s)" + regexp.QuoteMeta(START_MARKER) + "(.*?)" + regexp.QuoteMeta(END_MARKER))
 	matches := pattern.FindAllStringSubmatch(carrier, -1)
 
 	if len(matches) == 0 {
@@ -242,10 +244,7 @@ func Decode(carrier, password string) ([]string, error) {
 			results = append(results, string(decoded))
 		} else {
 			// Base64 decode the data directly
-			decoded, err := base64Decode(string(data))
-			if err != nil {
-				continue
-			}
+			decoded, _ := base64Decode(string(data))
 			if !utf8.Valid(decoded) {
 				continue
 			}

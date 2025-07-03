@@ -65,6 +65,46 @@ print(message)  # "Secret message"
 message = decode(encoded_text, password="mypassword")
 ```
 
+#### `whitespace_stego.core.extract_encoded(carrier)`
+
+Extracts the encoded message and remaining carrier text separately.
+
+**Parameters:**
+- `carrier` (str): The carrier text containing the hidden message
+
+**Returns:**
+- `tuple[str, str]`: (encoded_message, remaining_carrier)
+
+**Raises:**
+- `ValueError`: If no hidden message is found
+
+**Example:**
+```python
+from whitespace_stego.core import extract_encoded
+
+encoded_part, remaining = extract_encoded(encoded_text)
+print(f"Encoded: {encoded_part}")
+print(f"Remaining: {remaining}")
+```
+
+#### `whitespace_stego.core.count_messages(carrier)`
+
+Counts the number of messages embedded in carrier text.
+
+**Parameters:**
+- `carrier` (str): The carrier text to analyze
+
+**Returns:**
+- `int`: Number of embedded messages
+
+**Example:**
+```python
+from whitespace_stego.core import count_messages
+
+count = count_messages(encoded_text)
+print(f"Found {count} embedded messages")
+```
+
 ### CLI Interface
 
 #### `whitespace_stego.cli.main()`
@@ -165,6 +205,70 @@ fn main() -> Result<(), StegoError> {
 }
 ```
 
+#### `whitespace_stego_core::decode_all(carrier: &str, password: Option<&str>) -> Result<Vec<String>, StegoError>`
+
+Decodes all messages from carrier text.
+
+**Parameters:**
+- `carrier`: The carrier text containing hidden messages
+- `password`: Optional password for decryption
+
+**Returns:**
+- `Result<Vec<String>, StegoError>`: Vector of decoded messages or error
+
+**Example:**
+```rust
+use whitespace_stego_core::{decode_all, StegoError};
+
+fn main() -> Result<(), StegoError> {
+    let messages = decode_all(&encoded_text, None)?;
+    for message in messages {
+        println!("{}", message);
+    }
+    Ok(())
+}
+```
+
+#### `whitespace_stego_core::extract_encoded(carrier: &str) -> Result<(String, String), StegoError>`
+
+Extracts encoded message and remaining carrier text.
+
+**Parameters:**
+- `carrier`: The carrier text containing the hidden message
+
+**Returns:**
+- `Result<(String, String), StegoError>`: (encoded_message, remaining_carrier) or error
+
+**Example:**
+```rust
+use whitespace_stego_core::{extract_encoded, StegoError};
+
+fn main() -> Result<(), StegoError> {
+    let (encoded, remaining) = extract_encoded(&carrier_text)?;
+    println!("Encoded: {}", encoded);
+    println!("Remaining: {}", remaining);
+    Ok(())
+}
+```
+
+#### `whitespace_stego_core::count_messages(carrier: &str) -> usize`
+
+Counts embedded messages in carrier text.
+
+**Parameters:**
+- `carrier`: The carrier text to analyze
+
+**Returns:**
+- `usize`: Number of embedded messages
+
+**Example:**
+```rust
+use whitespace_stego_core::count_messages;
+
+let count = count_messages(&carrier_text);
+println!("Found {} messages", count);
+```
+
 ### Error Types
 
 #### `StegoError`
@@ -172,64 +276,85 @@ fn main() -> Result<(), StegoError> {
 Enumeration of possible steganography errors.
 
 ```rust
-#[derive(Debug, thiserror::Error)]
+#[derive(Error, Debug, Clone, PartialEq)]
 pub enum StegoError {
-    #[error("Empty message not allowed")]
-    EmptyMessage,
-    
-    #[error("No hidden message found in carrier")]
+    /// Invalid carrier text (no markers found, malformed data, etc.)
+    #[error("Invalid carrier text: {message}")]
+    InvalidCarrier { message: String },
+
+    /// Decryption failed (wrong password, corrupted data, etc.)
+    #[error("Decryption failed: {message}")]
+    DecryptionFailed { message: String },
+
+    /// Encoding failed (invalid input, encryption error, etc.)
+    #[error("Encoding failed: {message}")]
+    EncodingFailed { message: String },
+
+    /// Base64 encoding/decoding error
+    #[error("Base64 error: {message}")]
+    Base64Error { message: String },
+
+    /// UTF-8 encoding/decoding error
+    #[error("UTF-8 error: {message}")]
+    Utf8Error { message: String },
+
+    /// Invalid key for encryption/decryption
+    #[error("Invalid key: {message}")]
+    InvalidKey { message: String },
+
+    /// No encoded message found in carrier text
+    #[error("No encoded message found in carrier text")]
     NoMessageFound,
-    
-    #[error("Invalid carrier text")]
-    InvalidCarrier,
-    
-    #[error("Encryption error: {0}")]
-    EncryptionError(String),
-    
-    #[error("Decryption error: {0}")]
-    DecryptionError(String),
-    
-    #[error("Base64 encoding error: {0}")]
-    Base64Error(String),
-    
-    #[error("IO error: {0}")]
-    IoError(#[from] std::io::Error),
+
+    /// Invalid binary data (wrong length, malformed bits, etc.)
+    #[error("Invalid binary data: {message}")]
+    InvalidBinaryData { message: String },
 }
 ```
 
 ### CLI Interface
 
-#### `whitespace_stego_cli::main()`
+#### `whitespace-stego-cli`
 
 Main CLI entry point for Rust implementation.
 
 **Usage:**
 ```bash
-whitespace-stego-rs encode --mf message.txt --cf carrier.txt -o encoded.txt
-whitespace-stego-rs decode --cf encoded.txt -o decoded.txt
+whitespace-stego encode -m "message" -c "carrier" -o output.txt
+whitespace-stego decode -c "encoded_text" -o decoded.txt
+whitespace-stego analyze -t "text_to_analyze"
+whitespace-stego extract -c "encoded_text" -o output_dir
 ```
+
+**Commands:**
+- `encode`: Encode a message into carrier text
+- `decode`: Decode a message from carrier text
+- `analyze`: Analyze text for encoded messages
+- `extract`: Extract encoded message and remaining carrier
 
 **Options:**
 - `-m, --message`: Inline message
-- `--mf`: Message file
+- `-f, --message-file`: Message file
 - `-c, --carrier`: Inline carrier
-- `--cf`: Carrier file
+- `-F, --carrier-file`: Carrier file
 - `-o, --output`: Output file (or `-` for stdout)
 - `-p, --password`: Password
+- `-i, --interactive`: Interactive mode
 - `--verbose`: Verbose logging
+- `--quiet`: Quiet mode
+- `--progress`: Show progress indicators
 
 ## C API
 
 ### Core Functions
 
-#### `bool whitespace_stego_encode(const char* carrier, size_t carrier_len, const char* message, const char* password, char** result)`
+#### `bool whitespace_stego_encode(const char* message, const char* carrier, const char* password, char** result)`
 
 Encodes a message into carrier text.
 
 **Parameters:**
-- `carrier`: The carrier text (can be NULL for empty carrier)
-- `carrier_len`: Length of carrier text
 - `message`: The secret message to hide
+- `carrier`: The carrier text where the message will be hidden
 - `password`: Optional password for encryption (can be NULL)
 - `result`: Pointer to store the encoded result
 
@@ -241,19 +366,18 @@ Encodes a message into carrier text.
 #include "whitespace_stego.h"
 
 char* result;
-if (whitespace_stego_encode("Hello world!", 12, "Secret", "password", &result)) {
+if (whitespace_stego_encode("Secret", "Hello world!", "password", &result)) {
     printf("Encoded: %s\n", result);
     whitespace_stego_free(result);
 }
 ```
 
-#### `bool whitespace_stego_decode(const char* carrier, size_t carrier_len, const char* password, char** result)`
+#### `bool whitespace_stego_decode(const char* carrier, const char* password, char** result)`
 
 Decodes a hidden message from carrier text.
 
 **Parameters:**
 - `carrier`: The carrier text containing the hidden message
-- `carrier_len`: Length of carrier text
 - `password`: Optional password for decryption (can be NULL)
 - `result`: Pointer to store the decoded result
 
@@ -265,47 +389,24 @@ Decodes a hidden message from carrier text.
 #include "whitespace_stego.h"
 
 char* result;
-if (whitespace_stego_decode(encoded_text, strlen(encoded_text), "password", &result)) {
+if (whitespace_stego_decode(encoded_text, "password", &result)) {
     printf("Decoded: %s\n", result);
     whitespace_stego_free(result);
 }
 ```
 
-#### `const char* whitespace_stego_last_error(void)`
-
-Returns the last error message.
-
-**Returns:**
-- `const char*`: Error message string
-
-**Example:**
-```c
-if (!whitespace_stego_encode(...)) {
-    printf("Error: %s\n", whitespace_stego_last_error());
-}
-```
-
 #### `void whitespace_stego_free(char* ptr)`
 
-Frees memory allocated by the library.
+Frees memory allocated by the C API.
 
 **Parameters:**
-- `ptr`: Pointer to memory to free
-
-**Example:**
-```c
-char* result;
-if (whitespace_stego_encode(...)) {
-    // Use result
-    whitespace_stego_free(result);
-}
-```
+- `ptr`: Pointer to memory allocated by whitespace_stego functions
 
 ### CLI Interface
 
 #### `whitespace-stego-c`
 
-Command-line interface for C implementation.
+Main CLI entry point for C implementation.
 
 **Usage:**
 ```bash
@@ -314,17 +415,16 @@ whitespace-stego-c decode --carrier-file encoded.txt --output decoded.txt
 ```
 
 **Options:**
-- `--message-file, -m`: Message file
-- `--carrier-file, -c`: Carrier file
-- `--output, -o`: Output file
-- `--password, -p`: Password
-- `--verbose, -v`: Verbose output
+- `--message-file`: File containing message to encode
+- `--carrier-file`: File containing carrier text
+- `--output`: Output file
+- `--password`: Password for encryption/decryption
 
 ## WebAssembly API
 
 ### JavaScript Interface
 
-#### `encode(message, carrier, password = null)`
+#### `whitespace_stego_wasi.encode(message, carrier, password)`
 
 Encodes a message into carrier text.
 
@@ -341,11 +441,11 @@ Encodes a message into carrier text.
 import init, { encode } from './whitespace_stego_wasi.js';
 
 await init();
-const encoded = encode("Secret message", "Hello world!");
+const encoded = encode("Secret message", "Hello world!", "password");
 console.log(encoded);
 ```
 
-#### `decode(carrier, password = null)`
+#### `whitespace_stego_wasi.decode(carrier, password)`
 
 Decodes a hidden message from carrier text.
 
@@ -361,143 +461,119 @@ Decodes a hidden message from carrier text.
 import init, { decode } from './whitespace_stego_wasi.js';
 
 await init();
-const message = decode(encoded_text);
+const message = decode(encoded_text, "password");
 console.log(message);
 ```
 
-### Web Interface
+## Go API
 
-The WASM implementation includes a complete web interface accessible at `http://localhost:8000` after running `make wasi-web`.
+### Core Functions
 
-**Features:**
-- Real-time encoding/decoding
-- Copy-to-clipboard functionality
-- Mobile-responsive design
-- No server-side processing required
+#### `whitespace_stego.Encode(message, carrier, password)`
 
-## Error Handling
+Encodes a message into carrier text.
 
-### Python Errors
+**Parameters:**
+- `message` (string): The secret message to hide
+- `carrier` (string): The carrier text where the message will be hidden
+- `password` (string): Optional password for encryption
 
-```python
-from whitespace_stego.core import encode, decode, StegoError
+**Returns:**
+- `string`: The encoded carrier text
+- `error`: Error if encoding fails
 
-try:
-    encoded = encode("", "carrier")  # Empty message
-except ValueError as e:
-    print(f"Value error: {e}")
+**Example:**
+```go
+package main
 
-try:
-    message = decode("invalid", password="wrong")
-except ValueError as e:
-    print(f"Decode error: {e}")
-```
+import "github.com/your-repo/whitespace-stego"
 
-### Rust Errors
-
-```rust
-use whitespace_stego_core::{encode, StegoError};
-
-match encode("", "carrier", None) {
-    Ok(encoded) => println!("Success: {}", encoded),
-    Err(StegoError::EmptyMessage) => println!("Empty message not allowed"),
-    Err(e) => println!("Other error: {}", e),
+func main() {
+    encoded, err := whitespace_stego.Encode("Secret message", "Hello world!", "password")
+    if err != nil {
+        panic(err)
+    }
+    fmt.Println(encoded)
 }
 ```
 
-### C Errors
+#### `whitespace_stego.Decode(carrier, password)`
 
-```c
-char* result;
-if (!whitespace_stego_encode("carrier", 7, "", "password", &result)) {
-    printf("Error: %s\n", whitespace_stego_last_error());
+Decodes a hidden message from carrier text.
+
+**Parameters:**
+- `carrier` (string): The carrier text containing the hidden message
+- `password` (string): Optional password for decryption
+
+**Returns:**
+- `string`: The decoded message
+- `error`: Error if decoding fails
+
+**Example:**
+```go
+package main
+
+import "github.com/your-repo/whitespace-stego"
+
+func main() {
+    message, err := whitespace_stego.Decode(encoded_text, "password")
+    if err != nil {
+        panic(err)
+    }
+    fmt.Println(message)
 }
 ```
 
-## Performance Considerations
+### CLI Interface
 
-### Backend Selection
+#### `whitespace-stego-go`
 
-```python
-# Use fastest available backend
-from whitespace_stego.core import get_available_backends, set_default_backend
+Main CLI entry point for Go implementation.
 
-backends = get_available_backends()
-if 'rust' in backends:
-    set_default_backend('rust')  # Fastest
-elif 'c' in backends:
-    set_default_backend('c')     # Second fastest
-else:
-    set_default_backend('python')  # Fallback
+**Usage:**
+```bash
+whitespace-stego-go encode -m "message" -cf carrier.txt -o output.txt
+whitespace-stego-go decode -cf encoded.txt -o decoded.txt
 ```
 
-### Memory Management
-
-```c
-// Always free allocated memory
-char* result;
-if (whitespace_stego_encode(...)) {
-    // Use result
-    whitespace_stego_free(result);
-}
-```
-
-### Batch Processing
-
-```python
-# For multiple operations, reuse backend
-from whitespace_stego.core import encode, decode
-
-# Set backend once
-import whitespace_stego.core as ws
-ws.set_default_backend('rust')
-
-# Process multiple messages
-messages = ["msg1", "msg2", "msg3"]
-carrier = "Hello world!"
-encoded_list = [encode(msg, carrier) for msg in messages]
-```
+**Options:**
+- `-m`: Message to encode
+- `-cf`: Carrier file
+- `-o`: Output file
+- `-p`: Password for encryption/decryption
 
 ## Cross-Language Compatibility
 
-All implementations are designed to be compatible:
+All implementations are designed to be cross-compatible. You can encode a message in Python and decode it in Rust, or encode in C and decode in Go. The encoding format is consistent across all language implementations.
 
-```python
-# Encode in Python
-encoded = encode("Secret", "Hello", password="pass")
+### Unicode Support
 
-# Decode in Rust
-# (Same encoded text works across languages)
-```
+All implementations support full Unicode text, including:
+- Multi-byte characters (UTF-8)
+- Emojis and symbols
+- Right-to-left languages
+- Combining characters
 
-```rust
-// Encode in Rust
-let encoded = encode("Secret", "Hello", Some("pass"))?;
+### Encryption Compatibility
 
-// Decode in Python
-// (Same encoded text works across languages)
-```
+Password-protected messages are compatible across all implementations using the same Fernet encryption standard.
 
-## Version Compatibility
+## Performance Characteristics
 
-### API Versioning
+| Implementation | Encoding Speed | Decoding Speed | Memory Usage |
+|----------------|----------------|----------------|--------------|
+| Rust           | Very Fast      | Very Fast      | Low          |
+| C              | Fast           | Fast           | Very Low     |
+| Python         | Medium         | Medium         | Medium       |
+| Go             | Fast           | Fast           | Low          |
+| WebAssembly    | Medium         | Medium         | Low          |
 
-- **Python**: Follows semantic versioning
-- **Rust**: Uses workspace versioning
-- **C**: ABI-compatible within major versions
-- **WASM**: Bundled with web interface
+## Error Handling
 
-### Breaking Changes
+All implementations provide consistent error handling:
 
-Breaking changes are documented in release notes and may require:
-- Updated function signatures
-- New error types
-- Changed default behaviors
-- Deprecated function removal
-
-## Related Documentation
-
-- [Usage Guide](USAGE.md) - Practical usage examples
-- [Installation Guide](INSTALLATION.md) - Setup instructions
-- [Architecture](ARCHITECTURE.md) - System design overview
-- [Testing Guide](TESTING.md) - Testing procedures 
+- **Empty messages**: Rejected with appropriate error
+- **Invalid carriers**: Clear error messages
+- **Wrong passwords**: Cryptographic errors
+- **Malformed data**: Graceful degradation with error reporting
+- **Missing dependencies**: Clear installation instructions 

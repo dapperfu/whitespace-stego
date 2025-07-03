@@ -14,6 +14,7 @@ make install
 # Build all implementations
 make rust     # Rust CLI
 make c        # C CLI
+make go       # Go CLI
 make wasi-web # WebAssembly UI
 ```
 
@@ -24,6 +25,9 @@ make test-all
 
 # Run specific test suites
 make test        # Python tests
+make test-rust   # Rust tests
+make test-c      # C tests
+make test-go     # Go tests
 make test-wasm   # WebAssembly tests
 ```
 
@@ -82,7 +86,7 @@ def encode_message(message: str, carrier: str, password: Optional[str] = None) -
 #### Rust
 - **Formatting**: Use `cargo fmt`
 - **Linting**: Use `cargo clippy`
-- **Documentation**: Use `///` for doc comments
+- **Documentation**: Use `///` for doc comments following Microsoft Project Mu conventions
 - **Error Handling**: Use `thiserror` for custom errors
 
 ```rust
@@ -97,6 +101,11 @@ def encode_message(message: str, carrier: str, password: Optional[str] = None) -
 /// # Returns
 ///
 /// The encoded carrier text or an error
+///
+/// # Errors
+///
+/// Returns `StegoError::EncodingFailed` if encoding fails
+/// Returns `StegoError::InvalidCarrier` if carrier is invalid
 ///
 /// # Examples
 ///
@@ -120,16 +129,36 @@ pub fn encode(message: &str, carrier: &str, password: Option<&str>) -> Result<St
 /**
  * Encode a message into carrier text using whitespace steganography.
  *
- * @param carrier The carrier text (can be NULL for empty carrier)
- * @param carrier_len Length of carrier text
  * @param message The secret message to hide
+ * @param carrier The carrier text where the message will be hidden
  * @param password Optional password for encryption (can be NULL)
  * @param result Pointer to store the encoded result
  * @return true on success, false on failure
  */
-bool whitespace_stego_encode(const char* carrier, size_t carrier_len, 
-                            const char* message, const char* password, 
-                            char** result);
+bool whitespace_stego_encode(const char* message, const char* carrier, 
+                            const char* password, char** result);
+```
+
+#### Go
+- **Formatting**: Use `gofmt`
+- **Linting**: Use `golint` and `golangci-lint`
+- **Documentation**: Use standard Go documentation format
+- **Error Handling**: Return error values
+
+```go
+// Encode encodes a message into carrier text using whitespace steganography.
+//
+// Parameters:
+//   - message: The secret message to hide
+//   - carrier: The carrier text where the message will be hidden
+//   - password: Optional password for encryption
+//
+// Returns:
+//   - The encoded carrier text
+//   - Error if encoding fails
+func Encode(message, carrier, password string) (string, error) {
+    // Implementation
+}
 ```
 
 ### Testing Requirements
@@ -137,7 +166,7 @@ bool whitespace_stego_encode(const char* carrier, size_t carrier_len,
 #### Python Tests
 - **Coverage**: Maintain >95% coverage
 - **Style**: Use pytest with fixtures
-- **Categories**: Unit, integration, CLI, cross-backend
+- **Categories**: Unit, integration, CLI, cross-backend, unicode
 - **Running**: `pytest tests/ -v`
 
 ```python
@@ -153,11 +182,17 @@ def test_encode_with_password():
     assert decode(result, password="test") == "Secret"
     with pytest.raises(ValueError):
         decode(result, password="wrong")
+
+def test_unicode_support():
+    """Test Unicode and emoji support."""
+    result = encode("Secret 😎", "Hello 🌍 world!")
+    assert decode(result) == "Secret 😎"
 ```
 
 #### Rust Tests
 - **Style**: Use standard Rust testing
 - **Property Testing**: Use proptest for comprehensive testing
+- **Integration Tests**: Test cross-backend compatibility
 - **Running**: `cargo test`
 
 ```rust
@@ -174,6 +209,12 @@ fn test_encode_with_password() {
     assert_eq!(decode(&result, Some("test")).unwrap(), "Secret");
     assert!(decode(&result, Some("wrong")).is_err());
 }
+
+#[test]
+fn test_unicode_support() {
+    let result = encode("Secret 😎", "Hello 🌍 world!", None).unwrap();
+    assert_eq!(decode(&result, None).unwrap(), "Secret 😎");
+}
 ```
 
 #### C Tests
@@ -183,39 +224,79 @@ fn test_encode_with_password() {
 ```c
 void test_encode_basic() {
     char* result;
-    assert(whitespace_stego_encode("Hello world!", 12, "Secret", NULL, &result));
+    assert(whitespace_stego_encode("Secret", "Hello world!", NULL, &result));
     assert(strstr(result, "Hello world!") != NULL);
     whitespace_stego_free(result);
 }
 ```
 
-### Cross-Backend Compatibility
+#### Go Tests
+- **Style**: Use standard Go testing
+- **Running**: `cd go && go test ./...`
+
+```go
+func TestEncodeBasic(t *testing.T) {
+    result, err := Encode("Secret", "Hello world!", "")
+    if err != nil {
+        t.Fatal(err)
+    }
+    if !strings.Contains(result, "Hello world!") {
+        t.Error("Result should contain carrier text")
+    }
+}
+```
+
+### Cross-Implementation Testing
 
 All implementations must be compatible:
-- **Encoding**: Any backend can encode messages
-- **Decoding**: Any backend can decode messages from any other backend
-- **Password Protection**: All backends use the same encryption scheme
-- **Error Handling**: Consistent error messages across backends
+- **Encoding**: Any implementation can encode messages
+- **Decoding**: Any implementation can decode messages from any other
+- **Password Protection**: All implementations use the same encryption scheme
+- **Error Handling**: Consistent error messages across implementations
+- **Unicode Support**: Full Unicode compatibility across all implementations
 
-### Documentation Requirements
+### Cross-Implementation Test Files
+- `tests/test_20_cross_impl_roundtrip.py` - Round-trip compatibility tests
+- `tests/test_21_unicode_cross_impl.py` - Unicode compatibility tests
+- `tests/test_22_comprehensive_encoding_identity.py` - Comprehensive identity tests
 
-#### Code Documentation
+## Documentation Requirements
+
+### Code Documentation
 - **Functions**: Document all public functions
 - **Classes**: Document all classes and their methods
 - **Examples**: Include usage examples in docstrings
 - **Parameters**: Document all parameters and return values
+- **Errors**: Document all possible error conditions
 
-#### User Documentation
+### User Documentation
 - **Installation**: Update [Installation Guide](INSTALLATION.md) for new dependencies
 - **Usage**: Update [Usage Guide](USAGE.md) for new features
 - **API**: Update [API Reference](API_REFERENCE.md) for new functions
 - **Architecture**: Update [Architecture](ARCHITECTURE.md) for structural changes
+- **Benchmarks**: Update [Benchmarks](BENCHMARKS.md) for performance changes
 
-#### Commit Messages
+### Commit Messages
 
-Use conventional commit format:
+Use conventional commit format with detailed technical attribution:
+
 ```
 type(scope): description
+
+/**
+ * This code written by Claude Sonnet 4 (claude-3-5-sonnet-20241022)
+ * Generated via Cursor IDE (cursor.sh) with AI assistance
+ * Model: Anthropic Claude 3.5 Sonnet
+ * Generation timestamp: 2024-12-19T10:30:00Z
+ * Context: Brief description of what this code does
+ * 
+ * Technical details:
+ * - LLM: Claude 3.5 Sonnet (2024-10-22)
+ * - IDE: Cursor (cursor.sh)
+ * - Generation method: AI-assisted pair programming
+ * - Code style: Language-specific style guide
+ * - Dependencies: Key dependencies
+ */
 
 [optional body]
 
@@ -235,6 +316,21 @@ type(scope): description
 ```
 feat(python): add new backend selection API
 
+/**
+ * This code written by Claude Sonnet 4 (claude-3-5-sonnet-20241022)
+ * Generated via Cursor IDE (cursor.sh) with AI assistance
+ * Model: Anthropic Claude 3.5 Sonnet
+ * Generation timestamp: 2024-12-19T10:30:00Z
+ * Context: Added backend selection API for Python implementation
+ * 
+ * Technical details:
+ * - LLM: Claude 3.5 Sonnet (2024-10-22)
+ * - IDE: Cursor (cursor.sh)
+ * - Generation method: AI-assisted pair programming
+ * - Code style: Python with full mypy typing
+ * - Dependencies: whitespace_stego, cryptography
+ */
+
 - Add get_available_backends() function
 - Add set_default_backend() function
 - Update CLI to show available backends
@@ -242,112 +338,98 @@ feat(python): add new backend selection API
 Closes #123
 ```
 
-```
-fix(rust): handle empty carrier text correctly
+## Project Structure
 
-The Rust implementation now properly handles empty carrier text
-by inserting the encoded message at the beginning.
+### Core Components
+- `whitespace_stego/` - Python implementation
+- `whitespace-stego-core/` - Rust core library
+- `whitespace-stego-cli/` - Rust CLI application
+- `whitespace-stego-rust/` - Python bindings for Rust
+- `c/` - C implementation
+- `go/` - Go implementation
+- `wasi/` - WebAssembly implementation
 
-Fixes #456
-```
+### Testing Structure
+- `tests/` - Python test suite
+- `whitespace-stego-core/tests/` - Rust tests
+- `c/test/` - C tests
+- `go/` - Go tests (integrated)
 
-### Pull Request Process
+### Documentation Structure
+- `docs/` - User documentation
+- `notebooks/` - Jupyter notebooks
+- `examples/` - Usage examples
 
-1. **Fork and Clone**: Fork the repository and clone your fork
-2. **Create Branch**: Create a feature branch from `main`
-3. **Make Changes**: Implement your changes following the guidelines
-4. **Add Tests**: Include tests for all new functionality
-5. **Update Docs**: Update relevant documentation
-6. **Run Tests**: Ensure all tests pass
-7. **Submit PR**: Create a pull request with clear description
+## Build System
 
-#### PR Description Template
-```markdown
-## Description
-Brief description of changes
+### Makefile Targets
+- `make install` - Install Python package
+- `make rust` - Build Rust CLI
+- `make c` - Build C implementation
+- `make go` - Build Go implementation
+- `make wasi-web` - Build WebAssembly UI
+- `make test-all` - Run all tests
+- `make coverage` - Generate coverage reports
 
-## Type of Change
-- [ ] Bug fix
-- [ ] New feature
-- [ ] Documentation update
-- [ ] Performance improvement
-- [ ] Refactoring
+### Cargo Workspace
+- `whitespace-stego-core` - Core library
+- `whitespace-stego-cli` - CLI application
+- `whitespace-stego-rust` - Python bindings
+- `wasi` - WebAssembly module
 
-## Testing
-- [ ] Unit tests added/updated
-- [ ] Integration tests pass
-- [ ] Cross-backend compatibility verified
-- [ ] Manual testing completed
+## Performance Considerations
 
-## Checklist
-- [ ] Code follows style guidelines
-- [ ] Documentation updated
-- [ ] Tests added and passing
-- [ ] No breaking changes (or documented)
-- [ ] Cross-backend compatibility maintained
-```
+### Benchmarking
+- Run benchmarks before and after changes
+- Compare performance across implementations
+- Document performance impacts
+- Update benchmark documentation
 
-## Development Tools
+### Optimization Guidelines
+- **Rust**: Focus on zero-copy operations
+- **C**: Minimize memory allocations
+- **Python**: Use efficient data structures
+- **Go**: Leverage standard library optimizations
 
-### Required Tools
-- **Python**: 3.8+
-- **Rust**: Latest stable
-- **C Compiler**: GCC/Clang
-- **Docker**: For portable builds
-- **Git**: Version control
+## Security Guidelines
 
-### Recommended Tools
-- **IDE**: VS Code with Rust/Python extensions
-- **Terminal**: iTerm2, Alacritty, or similar
-- **Git Hooks**: Pre-commit hooks for formatting
+### Cryptographic Security
+- Use cryptographically secure random number generation
+- Implement proper key derivation
+- Clear sensitive memory when possible
+- Validate all inputs
 
-### Development Commands
+### Steganographic Security
+- Ensure no obvious patterns in encoded text
+- Maintain consistent encoding across implementations
+- Test with various text types and languages
 
-```bash
-# Setup development environment
-make install
+## Release Process
 
-# Run tests
-make test-all
+### Version Management
+- Follow semantic versioning
+- Update version numbers in all implementations
+- Tag releases in git
+- Update documentation for new features
 
-# Format code
-make format
-
-# Build all implementations
-make rust c wasi-web
-
-# Create portable binary
-make python-binary-docker
-
-# Clean everything
-make clean
-```
+### Distribution
+- **Python**: PyPI package
+- **Rust**: Cargo crates
+- **C**: Static binaries
+- **Go**: Go modules
+- **WASM**: Web distribution
 
 ## Getting Help
 
+### Communication Channels
+- GitHub Issues for bug reports
+- GitHub Discussions for questions
+- Pull Requests for contributions
+
 ### Resources
-- [Architecture Documentation](ARCHITECTURE.md) - System design overview
-- [API Reference](API_REFERENCE.md) - Complete API documentation
-- [Testing Guide](TESTING.md) - Testing strategies and procedures
-- [Issue Tracker](https://github.com/your-repo/issues) - Report bugs and request features
+- [Architecture Documentation](ARCHITECTURE.md)
+- [API Reference](API_REFERENCE.md)
+- [Testing Guide](TESTING.md)
+- [Benchmarks](BENCHMARKS.md)
 
-### Communication
-- **Issues**: Use GitHub issues for bugs and feature requests
-- **Discussions**: Use GitHub discussions for questions and ideas
-- **Code Review**: All PRs require review before merging
-
-## Code of Conduct
-
-Be respectful and constructive in all interactions:
-- **Respect**: Treat all contributors with respect
-- **Constructive**: Provide constructive feedback
-- **Inclusive**: Welcome contributors from all backgrounds
-- **Professional**: Maintain professional communication
-
----
-
-For more information, see:
-- [Testing & Quality Assurance](TESTING.md)
-- [Usage Guide](USAGE.md)
-- [Installation Guide](INSTALLATION.md)
-- [Architecture](ARCHITECTURE.md) 
+Thank you for contributing to the whitespace steganography toolkit! 

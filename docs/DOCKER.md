@@ -1,28 +1,28 @@
 # Docker Guide
 
-This guide covers Docker usage for the whitespace steganography toolkit, including building portable binaries and development environments.
+This guide covers Docker usage for the whitespace steganography toolkit, including building portable binaries and development environments for all supported backends.
 
 ## Overview
 
 Docker is used in this project for:
-- **Portable Binary Creation**: Building standalone executables that work across Linux distributions
+- **Portable Binary Creation**: Building standalone executables for Python, Rust, C, and Go
 - **Development Environment**: Consistent build environment for contributors
-- **Testing**: Isolated testing environments
-- **Deployment**: Containerized applications
+- **Testing**: Isolated testing environments for all implementations
+- **Deployment**: Containerized applications and web UI
 
 ## Dockerfile Architecture
 
 ### Main Dockerfile
 
-The main `Dockerfile` creates a portable Python binary with Rust backend:
+The main `Dockerfile` creates a portable Python binary with Rust backend, and can be adapted for other backends:
 
 ```dockerfile
 # Use Python 3.10 slim for portability
 FROM python:3.10-slim
 
-# Install build dependencies for Python, Rust, and maturin
+# Install build dependencies for Python, Rust, Go, and maturin
 RUN apt-get update && \
-    apt-get install -y build-essential python3-dev git curl && \
+    apt-get install -y build-essential python3-dev git curl golang-go && \
     rm -rf /var/lib/apt/lists/*
 
 # Install Rust using rustup (for up-to-date cargo)
@@ -42,48 +42,63 @@ WORKDIR /build
 COPY . /build
 
 # Build and install the Rust backend in the venv
-RUN cd whitespace-stego-backend && /opt/venv/bin/maturin develop --release
+RUN cd whitespace-stego-rust && /opt/venv/bin/maturin develop --release
 
 # Install your Python package and dependencies in the venv
 RUN /opt/venv/bin/pip install .
 
 # Build the binary with PyInstaller entry point using venv's python
 RUN /opt/venv/bin/pyinstaller --onefile --name whitespace-stego-py whitespace_stego_main.py
+
+# Build Go binary
+RUN cd go/src && go build -o /build/bin/whitespace-stego-go main.go
+
+# Build Rust CLI binary
+RUN cd whitespace-stego-cli && cargo build --release && cp target/release/whitespace-stego /build/bin/whitespace-stego-rs
+
+# Build C binary
+RUN cd c && make && cp bin/whitespace-stego-c /build/bin/whitespace-stego-c
 ```
 
 ### Key Features
 
-1. **Multi-stage Build**: Optimized for binary creation
+1. **Multi-language Build**: Python, Rust, C, and Go binaries
 2. **Virtual Environment**: Isolated Python environment
-3. **Rust Integration**: Builds Rust backend for performance
-4. **PyInstaller**: Creates standalone executable
-5. **Portability**: Works on most Linux distributions
+3. **Rust Integration**: Builds Rust backend and CLI
+4. **Go Integration**: Builds Go CLI
+5. **C Integration**: Builds C CLI
+6. **PyInstaller**: Creates standalone Python executable
+7. **Portability**: Works on most Linux distributions
 
 ## Build Process
 
-### Building Portable Binary
+### Building All Binaries
 
 ```bash
-# Build the Docker image and extract binary
-make python-binary-docker
+# Build the Docker image and extract all binaries
+make all-binaries-docker
 ```
 
 This command:
 1. Builds the Docker image with all dependencies
-2. Compiles the Rust backend using maturin
-3. Installs the Python package
-4. Creates a portable binary using PyInstaller
-5. Extracts the binary to `dist/whitespace-stego-py`
+2. Compiles the Rust backend and CLI using maturin and cargo
+3. Compiles the Go CLI
+4. Compiles the C CLI
+5. Installs the Python package
+6. Creates a portable Python binary using PyInstaller
+7. Extracts all binaries to `bin/` or `dist/`
 
 ### Manual Docker Build
 
 ```bash
 # Build the image
-docker build -t whitespace-stego-py-builder .
+docker build -t whitespace-stego-builder .
 
-# Extract the binary
+# Extract the binaries
 mkdir -p dist
-docker run --rm -v "$(PWD)/dist:/out" whitespace-stego-py-builder /bin/cp /build/dist/whitespace-stego-py /out/
+for bin in whitespace-stego-py whitespace-stego-go whitespace-stego-rs whitespace-stego-c; do
+  docker run --rm -v "$(PWD)/dist:/out" whitespace-stego-builder /bin/cp /build/bin/$bin /out/
+done
 ```
 
 ### Build Options
@@ -113,12 +128,14 @@ ENV CARGO_PROFILE_RELEASE_OPT_LEVEL=3
 ### Basic Usage
 
 ```bash
-# Build and test the binary
-make python-binary-docker
+# Build and test all binaries
+make all-binaries-docker
 
-# Use the binary
+# Use the binaries
 ./dist/whitespace-stego-py --help
-./dist/whitespace-stego-py encode --message "Secret" --carrier "Hello World"
+./dist/whitespace-stego-go --help
+./dist/whitespace-stego-rs --help
+./dist/whitespace-stego-c --help
 ```
 
 ### Development Environment
@@ -138,10 +155,22 @@ docker run -it --rm -v "$(PWD):/workspace" whitespace-stego-dev /bin/bash
 
 ```bash
 # Run tests in container
-docker run --rm whitespace-stego-dev make test
+docker run --rm whitespace-stego-dev make test-all
 
 # Run specific test suite
 docker run --rm whitespace-stego-dev pytest tests/test_core.py
+```
+
+### WebAssembly UI
+
+```bash
+# Build WASM package (from host or in container)
+make wasi-web
+
+# Serve the web UI
+cd wasi/pkg && python3 -m http.server 8000
+# Or in Docker:
+docker run -p 8000:8000 whitespace-stego-dev bash -c 'cd wasi/pkg && python3 -m http.server 8000'
 ```
 
 ## Docker Compose
@@ -156,14 +185,13 @@ services:
     build: .
     volumes:
       - ./dist:/out
-    command: /bin/cp /build/dist/whitespace-stego-py /out/
-    
+    command: /bin/cp /build/bin/whitespace-stego-py /out/
+      # Repeat for other binaries as needed
   tester:
     build: .
     volumes:
       - ./tests:/tests
     command: pytest /tests
-    
   web:
     build: .
     ports:
@@ -183,7 +211,10 @@ FROM python:3.10-slim as builder
 FROM python:3.10-slim as runtime
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
-COPY --from=builder /build/dist/whitespace-stego-py /usr/local/bin/
+COPY --from=builder /build/bin/whitespace-stego-py /usr/local/bin/
+COPY --from=builder /build/bin/whitespace-stego-go /usr/local/bin/
+COPY --from=builder /build/bin/whitespace-stego-rs /usr/local/bin/
+COPY --from=builder /build/bin/whitespace-stego-c /usr/local/bin/
 ```
 
 ### Build Speed Optimization
@@ -219,7 +250,7 @@ RUN apt-get purge -y build-essential && \
 docker system prune -a
 
 # Rebuild without cache
-docker build --no-cache -t whitespace-stego-py-builder .
+docker build --no-cache -t whitespace-stego-builder .
 ```
 
 #### Permission Issues
@@ -228,16 +259,16 @@ docker build --no-cache -t whitespace-stego-py-builder .
 sudo chown -R $USER:$USER dist/
 
 # Use proper volume mounting
-docker run --rm -v "$(PWD)/dist:/out:rw" whitespace-stego-py-builder /bin/cp /build/dist/whitespace-stego-py /out/
+docker run --rm -v "$(PWD)/dist:/out:rw" whitespace-stego-builder /bin/cp /build/bin/whitespace-stego-py /out/
 ```
 
 #### Memory Issues
 ```bash
 # Increase Docker memory limit
-docker run --memory=4g whitespace-stego-py-builder
+docker run --memory=4g whitespace-stego-builder
 
 # Use swap if needed
-docker run --memory=2g --memory-swap=4g whitespace-stego-py-builder
+docker run --memory=2g --memory-swap=4g whitespace-stego-builder
 ```
 
 ### Debugging
@@ -245,92 +276,26 @@ docker run --memory=2g --memory-swap=4g whitespace-stego-py-builder
 #### Interactive Debugging
 ```bash
 # Run container with debug tools
-docker run -it --rm whitespace-stego-py-builder /bin/bash
+docker run -it --rm whitespace-stego-builder /bin/bash
 
-# Install debug tools
-apt-get update && apt-get install -y vim htop strace
+# Install debug tools as needed
 ```
 
-#### Log Analysis
-```bash
-# View build logs
-docker logs $(docker ps -q --filter ancestor=whitespace-stego-py-builder)
+## Multi-Platform Support
 
-# Check image layers
-docker history whitespace-stego-py-builder
-```
+- **Linux**: Fully supported (x86_64, ARM64)
+- **macOS**: Use Docker for Mac for builds
+- **Windows**: Use WSL2 or Docker Desktop
+- **WebAssembly**: Build and serve WASM UI in container
 
 ## Best Practices
 
-### Security
-1. **Use specific base images**: Avoid `latest` tags
-2. **Run as non-root**: Create dedicated user
-3. **Minimize attack surface**: Remove unnecessary packages
-4. **Scan for vulnerabilities**: Use `docker scan`
+- Use Docker for reproducible builds and tests
+- Extract all binaries for cross-platform deployment
+- Use multi-stage builds for smaller images
+- Mount source code for rapid development
+- Use Docker Compose for complex workflows
 
-### Performance
-1. **Optimize layer caching**: Order Dockerfile instructions carefully
-2. **Use multi-stage builds**: Separate build and runtime
-3. **Minimize image size**: Remove build dependencies
-4. **Use .dockerignore**: Exclude unnecessary files
+## Author
 
-### Maintainability
-1. **Document Dockerfile**: Add comments explaining steps
-2. **Version dependencies**: Pin specific versions
-3. **Use build args**: Make builds configurable
-4. **Test containers**: Include container tests
-
-## Advanced Usage
-
-### Custom Build Scripts
-
-Create `scripts/docker-build.sh`:
-```bash
-#!/bin/bash
-set -e
-
-# Build with custom options
-docker build \
-  --build-arg PYTHON_VERSION=3.11 \
-  --build-arg RUST_VERSION=1.70.0 \
-  --target runtime \
-  -t whitespace-stego:latest .
-
-# Run security scan
-docker scan whitespace-stego:latest
-
-# Test binary
-docker run --rm whitespace-stego:latest whitespace-stego-py --help
-```
-
-### CI/CD Integration
-
-```yaml
-# GitHub Actions example
-- name: Build Docker image
-  run: |
-    docker build -t whitespace-stego-py-builder .
-    docker run --rm -v "$(PWD)/dist:/out" whitespace-stego-py-builder /bin/cp /build/dist/whitespace-stego-py /out/
-    
-- name: Test binary
-  run: |
-    chmod +x dist/whitespace-stego-py
-    ./dist/whitespace-stego-py --help
-```
-
-### Distribution
-
-```bash
-# Create distribution package
-tar -czf whitespace-stego-py-linux-x86_64.tar.gz dist/whitespace-stego-py
-
-# Upload to releases
-gh release upload v1.0.0 whitespace-stego-py-linux-x86_64.tar.gz
-```
-
-## Related Documentation
-
-- [Installation Guide](INSTALLATION.md) - General installation instructions
-- [Architecture](ARCHITECTURE.md) - System architecture overview
-- [Testing Guide](TESTING.md) - Testing strategies and procedures
-- [Contributing Guide](CONTRIBUTING.md) - Development guidelines 
+This Docker setup was implemented by Claude Sonnet 4 (claude-3-5-sonnet-20241022) via Cursor IDE (cursor.sh) with AI assistance. 

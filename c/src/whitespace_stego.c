@@ -77,17 +77,17 @@ static unsigned char* decode_binary(const char* encoded, size_t* out_len) {
     return out;
 }
 
-bool whitespace_stego_encode(const char* carrier, size_t carrier_len, const char* message,
+int whitespace_stego_encode(const char* carrier, size_t carrier_len, const char* message,
                            const char* password, char** result) {
     if (!message || !result) {
         snprintf(last_error, sizeof(last_error), "No message or result pointer provided");
-        return false;
+        return 0;
     }
     
     // Check for empty message
     if (strlen(message) == 0) {
         snprintf(last_error, sizeof(last_error), "Empty message not allowed");
-        return false;
+        return 0;
     }
     unsigned char* data = NULL;
     size_t data_len = 0;
@@ -97,31 +97,31 @@ bool whitespace_stego_encode(const char* carrier, size_t carrier_len, const char
     if (password && password[0]) {
         // Encrypt the original message first
         if (!crypto_encrypt((const unsigned char*)message, strlen(message), password, &data, &data_len)) {
-            return false;
+            return 0;
         }
         // Base64 encode the encrypted data to convert random bytes to safe ASCII
         if (!to_base64(data, data_len, &b64)) {
             crypto_free(data);
-            return false;
+            return 0;
         }
         crypto_free(data);
     } else {
         // For non-password messages, base64 encode the original message
         if (!to_base64((const unsigned char*)message, strlen(message), &b64)) {
-            return false;
+            return 0;
         }
     }
 
     // Encode base64 string to zero-width
     char* zw = encode_binary((const unsigned char*)b64, strlen(b64));
     utils_free(b64);
-    if (!zw) return false;
+    if (!zw) return 0;
 
     // Compose final encoded message
     size_t zw_len = strlen(zw);
     size_t total_len = strlen(START_MARKER) + zw_len + strlen(END_MARKER) + 1;
     char* encoded_message = malloc(total_len);
-    if (!encoded_message) { free(zw); return false; }
+    if (!encoded_message) { free(zw); return 0; }
     strcpy(encoded_message, START_MARKER);
     strcat(encoded_message, zw);
     strcat(encoded_message, END_MARKER);
@@ -135,7 +135,7 @@ bool whitespace_stego_encode(const char* carrier, size_t carrier_len, const char
         // Non-empty carrier - insert after first character
         size_t out_len = carrier_len + strlen(encoded_message) + 1;
         *result = malloc(out_len);
-        if (!*result) { free(encoded_message); return false; }
+        if (!*result) { free(encoded_message); return 0; }
         
         // Copy the entire carrier (it's already UTF-8 encoded)
         memcpy(*result, carrier, carrier_len);

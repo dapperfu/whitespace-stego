@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+
+	"whitespace-stego-go/src/stego"
 )
 
 func main() {
@@ -66,7 +68,7 @@ func encodeCommand() {
 	}
 
 	// Encode the message
-	encoded, err := Encode(message, carrier, password)
+	encoded, err := stego.Encode(message, carrier, password)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error encoding message: %v\n", err)
 		os.Exit(1)
@@ -116,7 +118,7 @@ func decodeCommand() {
 	carrier := string(carrierBytes)
 
 	// Decode the message
-	messages, err := Decode(carrier, password)
+	messages, err := stego.Decode(carrier, password)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error decoding message: %v\n", err)
 		os.Exit(1)

@@ -1,4 +1,4 @@
-package main
+package stego
 
 // Zero-width Unicode characters (match Python/Rust/C implementations)
 const (

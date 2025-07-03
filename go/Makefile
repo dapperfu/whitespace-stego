@@ -6,10 +6,6 @@
 BINARY_NAME = whitespace-stego-go
 BINARY_PATH = bin/$(BINARY_NAME)
 
-# Source files
-SRC_DIR = src
-SRC_FILES = $(wildcard $(SRC_DIR)/*.go)
-
 # Build flags
 LDFLAGS = -ldflags "-s -w"
 
@@ -17,10 +13,10 @@ all: build
 
 build: $(BINARY_PATH)
 
-$(BINARY_PATH): $(SRC_FILES)
+$(BINARY_PATH): src/main.go src/stego/*.go
 	@echo "Building $(BINARY_NAME)..."
 	@mkdir -p bin
-	go build $(LDFLAGS) -o $(BINARY_PATH) ./$(SRC_DIR)
+	go build $(LDFLAGS) -o $(BINARY_PATH) ./src/main.go
 
 clean:
 	@echo "Cleaning..."
@@ -29,7 +25,7 @@ clean:
 
 test:
 	@echo "Running tests..."
-	@go test ./...
+	@go test ./src/stego
 
 install: build
 	@echo "Installing $(BINARY_NAME)..."

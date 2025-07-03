@@ -1,7 +1,12 @@
+/*
+ * MISRA C Compliance: crypto.h
+ * This file has been refactored for MISRA C:2012 compliance.
+ * - No <stdbool.h>; use int for boolean (0/1)
+ * - All functions and logic blocks documented
+ */
 #ifndef CRYPTO_H
 #define CRYPTO_H
 
-#include <stdbool.h>
 #include <stddef.h>
 
 /**
@@ -12,9 +17,9 @@
  * @param password Password to use for encryption
  * @param result Pointer to store encrypted data
  * @param result_len Pointer to store length of encrypted data
- * @return true if encryption was successful, false otherwise
+ * @return 1 if encryption was successful, 0 otherwise
  */
-bool crypto_encrypt(const unsigned char* data, size_t data_len,
+int crypto_encrypt(const unsigned char* data, size_t data_len,
                    const char* password, unsigned char** result,
                    size_t* result_len);
 
@@ -26,9 +31,9 @@ bool crypto_encrypt(const unsigned char* data, size_t data_len,
  * @param password Password to use for decryption
  * @param result Pointer to store decrypted data
  * @param result_len Pointer to store length of decrypted data
- * @return true if decryption was successful, false otherwise
+ * @return 1 if decryption was successful, 0 otherwise
  */
-bool crypto_decrypt(const unsigned char* data, size_t data_len,
+int crypto_decrypt(const unsigned char* data, size_t data_len,
                    const char* password, unsigned char** result,
                    size_t* result_len);
 
