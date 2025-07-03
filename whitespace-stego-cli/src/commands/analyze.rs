@@ -10,7 +10,6 @@ use whitespace_stego_core::{
 };
 
 use crate::io::read_file_or_stdin;
-use crate::utils::display;
 
 #[derive(Serialize)]
 struct AnalysisResult {
@@ -54,7 +53,7 @@ pub fn analyze_command(text: Option<String>, file: Option<PathBuf>, format: Stri
     Ok(())
 }
 
-fn output_text_format(result: &AnalysisResult, text: &str) -> Result<()> {
+fn output_text_format(result: &AnalysisResult, _text: &str) -> Result<()> {
     println!("Text Analysis Results:");
     println!("=====================");
     println!("Text length: {} characters", result.text_length);

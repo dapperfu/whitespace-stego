@@ -60,6 +60,7 @@ pub fn write_file_or_stdout(content: &str, path: Option<&PathBuf>) -> Result<()>
 ///
 /// # Returns
 /// `true` if the file exists and is readable
+#[allow(dead_code)]
 pub fn file_exists_and_readable(path: &PathBuf) -> bool {
     path.exists() && path.is_file() && fs::metadata(path).is_ok()
 }
@@ -71,6 +72,7 @@ pub fn file_exists_and_readable(path: &PathBuf) -> bool {
 ///
 /// # Returns
 /// The file size in bytes, or None if the file doesn't exist
+#[allow(dead_code)]
 pub fn get_file_size(path: &PathBuf) -> Option<u64> {
     fs::metadata(path).ok().map(|metadata| metadata.len())
 }

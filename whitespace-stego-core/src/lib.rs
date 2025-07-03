@@ -82,17 +82,27 @@ pub use encode::{encode, encode_binary, get_encoded_message_size, has_encoded_me
 pub use crypto::{decrypt_data, encrypt_data, is_encrypted};
 
 // Test data for comprehensive permutation testing
+#[allow(dead_code)]
 const EMPTY_MESSAGE: &str = "";
+#[allow(dead_code)]
 const SHORT_MESSAGE: &str = "Hi";
+#[allow(dead_code)]
 const LONG_MESSAGE: &str = "This is a very long message that contains many characters and should test the encoding and decoding capabilities thoroughly. It includes various types of content like numbers 123, symbols !@#, emojis 😀🎉, and unicode characters 你好世界. This message is designed to be long enough to test edge cases in the binary encoding and decoding process.";
 
+#[allow(dead_code)]
 const EMPTY_CARRIER: &str = "";
+#[allow(dead_code)]
 const SHORT_CARRIER: &str = "A";
+#[allow(dead_code)]
 const LONG_CARRIER: &str = "This is a very long carrier text that will be used to test the embedding of encoded messages. It contains various characters and should be long enough to test different insertion points and edge cases in the encoding process. The carrier text should remain unchanged after extraction of the encoded message.";
 
+#[allow(dead_code)]
 const EMPTY_PASSWORD: Option<&str> = Some("");
+#[allow(dead_code)]
 const SHORT_PASSWORD: Option<&str> = Some("pass");
+#[allow(dead_code)]
 const LONG_PASSWORD: Option<&str> = Some("this_is_a_very_long_password_for_testing");
+#[allow(dead_code)]
 const NO_PASSWORD: Option<&str> = None;
 
 #[cfg(test)]

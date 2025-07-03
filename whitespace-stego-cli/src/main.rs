@@ -11,7 +11,6 @@ mod io;
 mod utils;
 
 use commands::{decode, encode};
-use io::{read_file_or_stdin, write_file_or_stdout};
 use utils::display;
 
 /// Whitespace Steganography CLI.

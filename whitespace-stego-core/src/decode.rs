@@ -309,7 +309,7 @@ pub fn extract_encoded(carrier: &str) -> Result<(String, String), StegoError> {
     let mut found_start = false;
     let mut found_end = false;
 
-    for (char_pos, (byte_pos, ch)) in carrier.char_indices().enumerate() {
+    for (char_pos, (byte_pos, _ch)) in carrier.char_indices().enumerate() {
         if byte_pos == start && !found_start {
             start_char_pos = char_pos;
             found_start = true;

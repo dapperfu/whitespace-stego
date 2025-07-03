@@ -10,5 +10,3 @@
 
 pub mod display;
 
-/// Re-export display utility functions.
-pub use display::{error, info, verbose, warn};

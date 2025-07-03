@@ -36,6 +36,7 @@ pub fn is_quiet() -> bool {
 }
 
 /// Check if progress mode is enabled
+#[allow(dead_code)]
 pub fn is_progress() -> bool {
     PROGRESS.load(Ordering::Relaxed)
 }
@@ -55,6 +56,7 @@ pub fn info(message: &str) {
 }
 
 /// Display a warning message
+#[allow(dead_code)]
 pub fn warn(message: &str) {
     if !is_quiet() {
         eprintln!("⚠️  Warning: {}", message);
@@ -69,6 +71,7 @@ pub fn verbose(message: &str) {
 }
 
 /// Display a success message
+#[allow(dead_code)]
 pub fn success(message: &str) {
     if !is_quiet() {
         println!("✅ {}", message);
@@ -76,6 +79,7 @@ pub fn success(message: &str) {
 }
 
 /// Display a progress message
+#[allow(dead_code)]
 pub fn progress(message: &str) {
     if is_progress() && !is_quiet() {
         eprint!("\r🔄 {}", message);
@@ -84,6 +88,7 @@ pub fn progress(message: &str) {
 }
 
 /// Clear the current line (useful for progress messages)
+#[allow(dead_code)]
 pub fn clear_line() {
     if is_progress() && !is_quiet() {
         eprint!("\r\x1B[K");

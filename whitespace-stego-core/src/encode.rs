@@ -7,7 +7,7 @@ use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
 use regex::Regex;
 
 use crate::constants::{END_MARKER, ONE_BIT, START_MARKER, ZERO_BIT};
-use crate::crypto::{encrypt_data, is_encrypted};
+use crate::crypto::encrypt_data;
 use crate::error::StegoError;
 
 /// Convert bytes to a string of zero-width characters.
@@ -114,11 +114,10 @@ fn insert_message_at_position(carrier: &str, encoded_message: &str, position: us
     let cleaned_carrier = pattern.replace_all(carrier, "").to_string();
 
     // Insert the encoded message at the correct position in the cleaned carrier
-    let mut new_carrier = String::new();
-    if position == 0 {
-        new_carrier = encoded_message.to_string() + &cleaned_carrier;
+    let new_carrier = if position == 0 {
+        encoded_message.to_string() + &cleaned_carrier
     } else if position >= cleaned_carrier.chars().count() {
-        new_carrier = cleaned_carrier + encoded_message;
+        cleaned_carrier + encoded_message
     } else {
         // Convert to char indices for proper insertion
         let chars: Vec<char> = cleaned_carrier.chars().collect();
@@ -129,8 +128,8 @@ fn insert_message_at_position(carrier: &str, encoded_message: &str, position: us
             }
             result.push(ch);
         }
-        new_carrier = result;
-    }
+        result
+    };
 
     // Now, re-insert all previously encoded messages at their original positions
     let mut result = new_carrier;
@@ -266,7 +265,7 @@ pub fn get_encoded_message_size(text: &str) -> Option<usize> {
     let mut found_start = false;
     let mut found_end = false;
 
-    for (char_pos, (byte_pos, ch)) in text.char_indices().enumerate() {
+    for (char_pos, (byte_pos, _ch)) in text.char_indices().enumerate() {
         if byte_pos == start && !found_start {
             start_char_pos = char_pos;
             found_start = true;

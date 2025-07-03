@@ -16,6 +16,7 @@ use std::io::{self, BufRead, BufReader};
 ///
 /// # Returns
 /// The processed results
+#[allow(dead_code)]
 pub fn stream_processor<F, T>(
     input: Box<dyn io::Read>,
     processor: F,
@@ -68,6 +69,7 @@ where
 ///
 /// # Returns
 /// The processed results
+#[allow(dead_code)]
 pub fn process_file<F, T>(file_path: &str, processor: F, show_progress: bool) -> Result<Vec<T>>
 where
     F: Fn(&str) -> Result<T>,
