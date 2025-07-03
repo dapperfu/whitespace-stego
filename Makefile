@@ -85,7 +85,7 @@ go:
 python-binary: venv install maturin-develop rust c
 	@echo "Building Python CLI binary with PyInstaller..."
 	${VENV}/bin/pip install pyinstaller
-	${VENV}/bin/pyinstaller --clean ${MAKEFILE_DIR}/whitespace_stego.spec
+	${VENV}/bin/pyinstaller --clean ${MAKEFILE_DIR}/../whitespace_stego.spec
 	mkdir -p ${BIN_DIR}
 	cp ${MAKEFILE_DIR}/dist/whitespace-stego-py ${BIN_DIR}/
 

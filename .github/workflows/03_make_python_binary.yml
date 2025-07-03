@@ -32,6 +32,8 @@ jobs:
       - name: Activate venv and run make python-binary
         run: |
           source .venv/bin/activate
+          pwd
+          ls -lah
           make python-binary
         working-directory: ${{ github.workspace }}
 
