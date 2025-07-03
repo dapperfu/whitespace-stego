@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -O2 -I./include -fPIC
-COVERAGE_CFLAGS = -Wall -Wextra -O0 -g -I./include -fPIC --coverage -fprofile-arcs -ftest-coverage
+COVERAGE_CFLAGS = -Wall -Wextra -O0 -g -I./include -fPIC --coverage -fprofile-arcs -ftest-coverage -std=c99
 LDFLAGS = -lcrypto
 COVERAGE_LDFLAGS = -lcrypto --coverage -fprofile-arcs -ftest-coverage
 SHARED_LDFLAGS = -shared -lcrypto
@@ -21,7 +21,7 @@ TEST_C_TARGET = $(BIN_DIR)/test-c
 TEST_UNITY_TARGET = $(BIN_DIR)/test-unity
 TEST_COVERAGE_TARGET = $(BIN_DIR)/test-coverage
 
-.PHONY: all clean test test-c test-unity test-coverage coverage-report shared
+.PHONY: all clean test test-c test-unity test-coverage coverage-report shared cmake-build cmake-test cmake-clean
 
 all: $(TARGET) $(SHARED_LIB)
 
@@ -80,7 +80,7 @@ test-coverage: $(TEST_COVERAGE_TARGET)
 coverage-report: test-coverage
 	@echo "Generating coverage report..."
 	@mkdir -p $(COVERAGE_DIR)
-	@gcov -r $(SRCS) -o $(OBJ_DIR)
+	@gcov -r obj/crypto_coverage.gcda obj/utils_coverage.gcda obj/whitespace_stego_coverage.gcda
 	@lcov --capture --directory . --output-file $(COVERAGE_DIR)/coverage.info
 	@genhtml $(COVERAGE_DIR)/coverage.info --output-directory $(COVERAGE_DIR)/html
 	@echo "Coverage report generated in $(COVERAGE_DIR)/html/index.html"
@@ -88,6 +88,20 @@ coverage-report: test-coverage
 # Run all tests
 test-all: test test-c test-unity test-coverage
 	@echo "All tests completed!"
+
+# CMake integration targets
+cmake-build:
+	@echo "Building with CMake..."
+	@mkdir -p test/build
+	@cd test/build && cmake .. && make
+
+cmake-test: cmake-build
+	@echo "Running CMake tests..."
+	@cd test/build && ctest --verbose
+
+cmake-clean:
+	@echo "Cleaning CMake build..."
+	@rm -rf test/build
 
 # Install Unity framework (if not already installed)
 install-unity:

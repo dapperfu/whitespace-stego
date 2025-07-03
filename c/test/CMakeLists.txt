@@ -18,8 +18,6 @@ include_directories(../include)
 set(SOURCES
     ../src/whitespace_stego.c
     ../src/crypto.c
-    ../src/encode.c
-    ../src/decode.c
     ../src/utils.c
 )
 

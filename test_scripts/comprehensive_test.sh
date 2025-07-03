@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Comprehensive N-way comparison test for whitespace steganography implementations
-# Tests: Python, Rust, C, Go implementations with various scenarios
+# Tests: Python (all backends), Rust, C, Go, Pure Python CLI, Compiled Binary
 
 set -e
 
@@ -10,13 +10,24 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # Test directory
 TEST_DIR="/tmp/whitespace_stego_test"
 mkdir -p "$TEST_DIR"
 
-echo -e "${BLUE}=== Whitespace Steganography N-Way Comparison Test ===${NC}"
+echo -e "${BLUE}=== Whitespace Steganography Comprehensive N-Way Comparison Test ===${NC}"
+echo -e "${CYAN}Testing all implementations and backends:${NC}"
+echo -e "  • Python CLI with Python backend"
+echo -e "  • Python CLI with Rust backend" 
+echo -e "  • Python CLI with C backend"
+echo -e "  • Rust CLI binary"
+echo -e "  • C binary"
+echo -e "  • Go binary"
+echo -e "  • Pure Python CLI"
+echo -e "  • Compiled PyInstaller binary (all backends)"
 
 # Function to run test and check result
 run_test() {
@@ -72,33 +83,33 @@ create_test_files() {
 # Function to test single implementation encode/decode
 test_implementation() {
     local impl="$1"
-    local test_name="$2"
-    local message_file="$3"
-    local carrier_file="$4"
-    local password="$5"
-    local output_file="$6"
+    local backend="$2"
+    local test_name="$3"
+    local message_file="$4"
+    local carrier_file="$5"
+    local password="$6"
+    local output_file="$7"
     
-    echo -e "${BLUE}Testing $impl: $test_name${NC}"
+    echo -e "${BLUE}Testing $impl${backend:+ with $backend backend}: $test_name${NC}"
     
     # Encode
     case $impl in
         "python")
             PYTHONPATH=src:. python3 -m whitespace_stego.cli encode \
+                --backend "$backend" \
                 --message-file "$message_file" \
                 --carrier-file "$carrier_file" \
                 --output "$output_file" \
                 ${password:+--password "$password"}
             ;;
         "rust")
-            # Assuming Rust CLI is available
-            cargo run --bin whitespace-stego-cli encode \
+            ./bin/whitespace-stego encode \
                 --message-file "$message_file" \
                 --carrier-file "$carrier_file" \
                 --output "$output_file" \
                 ${password:+--password "$password"}
             ;;
         "c")
-            # Assuming C binary is available
             ./bin/whitespace-stego-c encode \
                 --message-file "$message_file" \
                 --carrier-file "$carrier_file" \
@@ -107,6 +118,22 @@ test_implementation() {
             ;;
         "go")
             ./bin/whitespace-stego-go encode \
+                --message-file "$message_file" \
+                --carrier-file "$carrier_file" \
+                --output "$output_file" \
+                ${password:+--password "$password"}
+            ;;
+        "pure-python")
+            .venv/bin/whitespace-stego encode \
+                --backend "$backend" \
+                --message-file "$message_file" \
+                --carrier-file "$carrier_file" \
+                --output "$output_file" \
+                ${password:+--password "$password"}
+            ;;
+        "compiled")
+            ./bin/whitespace-stego-py encode \
+                --backend "$backend" \
                 --message-file "$message_file" \
                 --carrier-file "$carrier_file" \
                 --output "$output_file" \
@@ -119,21 +146,39 @@ test_implementation() {
     case $impl in
         "python")
             decoded_output=$(PYTHONPATH=src:. python3 -m whitespace_stego.cli decode \
+                --backend "$backend" \
                 --carrier-file "$output_file" \
                 ${password:+--password "$password"})
             ;;
         "rust")
-            decoded_output=$(cargo run --bin whitespace-stego-cli decode \
+            decoded_output=$(./bin/whitespace-stego decode \
                 --carrier-file "$output_file" \
                 ${password:+--password "$password"})
             ;;
         "c")
-            decoded_output=$(./bin/whitespace-stego-c decode \
+            # C binary requires output file, so we use a temp file
+            local temp_decode_file="$TEST_DIR/temp_decode_$$.txt"
+            ./bin/whitespace-stego-c decode \
                 --carrier-file "$output_file" \
-                ${password:+--password "$password"})
+                --output "$temp_decode_file" \
+                ${password:+--password "$password"}
+            decoded_output=$(cat "$temp_decode_file")
+            rm -f "$temp_decode_file"
             ;;
         "go")
             decoded_output=$(./bin/whitespace-stego-go decode \
+                --carrier-file "$output_file" \
+                ${password:+--password "$password"})
+            ;;
+        "pure-python")
+            decoded_output=$(.venv/bin/whitespace-stego decode \
+                --backend "$backend" \
+                --carrier-file "$output_file" \
+                ${password:+--password "$password"})
+            ;;
+        "compiled")
+            decoded_output=$(./bin/whitespace-stego-py decode \
+                --backend "$backend" \
                 --carrier-file "$output_file" \
                 ${password:+--password "$password"})
             ;;
@@ -144,10 +189,10 @@ test_implementation() {
     original_message=$(cat "$message_file")
     
     if [[ "$decoded_output" == *"$original_message"* ]]; then
-        echo -e "${GREEN}✓ $impl: $test_name PASSED${NC}"
+        echo -e "${GREEN}✓ $impl${backend:+ with $backend backend}: $test_name PASSED${NC}"
         return 0
     else
-        echo -e "${RED}✗ $impl: $test_name FAILED${NC}"
+        echo -e "${RED}✗ $impl${backend:+ with $backend backend}: $test_name FAILED${NC}"
         echo "Expected: $original_message"
         echo "Got: $decoded_output"
         return 1
@@ -157,26 +202,29 @@ test_implementation() {
 # Function to test cross-implementation compatibility
 test_cross_compatibility() {
     local source_impl="$1"
-    local target_impl="$2"
-    local test_name="$3"
-    local message_file="$4"
-    local carrier_file="$5"
-    local password="$6"
-    local temp_file="$7"
+    local source_backend="$2"
+    local target_impl="$3"
+    local target_backend="$4"
+    local test_name="$5"
+    local message_file="$6"
+    local carrier_file="$7"
+    local password="$8"
+    local temp_file="$9"
     
-    echo -e "${BLUE}Testing $source_impl -> $target_impl: $test_name${NC}"
+    echo -e "${BLUE}Testing $source_impl${source_backend:+ with $source_backend backend} -> $target_impl${target_backend:+ with $target_backend backend}: $test_name${NC}"
     
     # Encode with source implementation
     case $source_impl in
         "python")
             PYTHONPATH=src:. python3 -m whitespace_stego.cli encode \
+                --backend "$source_backend" \
                 --message-file "$message_file" \
                 --carrier-file "$carrier_file" \
                 --output "$temp_file" \
                 ${password:+--password "$password"}
             ;;
         "rust")
-            cargo run --bin whitespace-stego-cli encode \
+            ./bin/whitespace-stego encode \
                 --message-file "$message_file" \
                 --carrier-file "$carrier_file" \
                 --output "$temp_file" \
@@ -196,6 +244,22 @@ test_cross_compatibility() {
                 --output "$temp_file" \
                 ${password:+--password "$password"}
             ;;
+        "pure-python")
+            .venv/bin/whitespace-stego encode \
+                --backend "$source_backend" \
+                --message-file "$message_file" \
+                --carrier-file "$carrier_file" \
+                --output "$temp_file" \
+                ${password:+--password "$password"}
+            ;;
+        "compiled")
+            ./bin/whitespace-stego-py encode \
+                --backend "$source_backend" \
+                --message-file "$message_file" \
+                --carrier-file "$carrier_file" \
+                --output "$temp_file" \
+                ${password:+--password "$password"}
+            ;;
     esac
     
     # Decode with target implementation
@@ -203,21 +267,39 @@ test_cross_compatibility() {
     case $target_impl in
         "python")
             decoded_output=$(PYTHONPATH=src:. python3 -m whitespace_stego.cli decode \
+                --backend "$target_backend" \
                 --carrier-file "$temp_file" \
                 ${password:+--password "$password"})
             ;;
         "rust")
-            decoded_output=$(cargo run --bin whitespace-stego-cli decode \
+            decoded_output=$(./bin/whitespace-stego decode \
                 --carrier-file "$temp_file" \
                 ${password:+--password "$password"})
             ;;
         "c")
-            decoded_output=$(./bin/whitespace-stego-c decode \
+            # C binary requires output file, so we use a temp file
+            local temp_decode_file="$TEST_DIR/temp_decode_$$.txt"
+            ./bin/whitespace-stego-c decode \
                 --carrier-file "$temp_file" \
-                ${password:+--password "$password"})
+                --output "$temp_decode_file" \
+                ${password:+--password "$password"}
+            decoded_output=$(cat "$temp_decode_file")
+            rm -f "$temp_decode_file"
             ;;
         "go")
             decoded_output=$(./bin/whitespace-stego-go decode \
+                --carrier-file "$temp_file" \
+                ${password:+--password "$password"})
+            ;;
+        "pure-python")
+            decoded_output=$(.venv/bin/whitespace-stego decode \
+                --backend "$target_backend" \
+                --carrier-file "$temp_file" \
+                ${password:+--password "$password"})
+            ;;
+        "compiled")
+            decoded_output=$(./bin/whitespace-stego-py decode \
+                --backend "$target_backend" \
                 --carrier-file "$temp_file" \
                 ${password:+--password "$password"})
             ;;
@@ -228,10 +310,10 @@ test_cross_compatibility() {
     original_message=$(cat "$message_file")
     
     if [[ "$decoded_output" == *"$original_message"* ]]; then
-        echo -e "${GREEN}✓ $source_impl -> $target_impl: $test_name PASSED${NC}"
+        echo -e "${GREEN}✓ $source_impl${source_backend:+ with $source_backend backend} -> $target_impl${target_backend:+ with $target_backend backend}: $test_name PASSED${NC}"
         return 0
     else
-        echo -e "${RED}✗ $source_impl -> $target_impl: $test_name FAILED${NC}"
+        echo -e "${RED}✗ $source_impl${source_backend:+ with $source_backend backend} -> $target_impl${target_backend:+ with $target_backend backend}: $test_name FAILED${NC}"
         echo "Expected: $original_message"
         echo "Got: $decoded_output"
         return 1
@@ -244,18 +326,21 @@ test_multiple_messages() {
     
     # Start with first message
     PYTHONPATH=src:. python3 -m whitespace_stego.cli encode \
+        --backend "python" \
         --message-file "$TEST_DIR/multi_msg1.txt" \
         --carrier-file "$TEST_DIR/multi_carrier.txt" \
         --output "$TEST_DIR/multi_encoded1.txt"
     
     # Add second message
     PYTHONPATH=src:. python3 -m whitespace_stego.cli encode \
+        --backend "python" \
         --message-file "$TEST_DIR/multi_msg2.txt" \
         --carrier-file "$TEST_DIR/multi_encoded1.txt" \
         --output "$TEST_DIR/multi_encoded2.txt"
     
     # Add third message
     PYTHONPATH=src:. python3 -m whitespace_stego.cli encode \
+        --backend "python" \
         --message-file "$TEST_DIR/multi_msg3.txt" \
         --carrier-file "$TEST_DIR/multi_encoded2.txt" \
         --output "$TEST_DIR/multi_encoded3.txt"
@@ -263,6 +348,7 @@ test_multiple_messages() {
     # Decode all messages
     local decoded_output
     decoded_output=$(PYTHONPATH=src:. python3 -m whitespace_stego.cli decode \
+        --backend "python" \
         --carrier-file "$TEST_DIR/multi_encoded3.txt")
     
     # Check if all messages are present
@@ -286,6 +372,7 @@ test_multi_recipient() {
     
     # Encode message for Alice
     PYTHONPATH=src:. python3 -m whitespace_stego.cli encode \
+        --backend "python" \
         --message-file "$TEST_DIR/alice_msg.txt" \
         --carrier-file "$TEST_DIR/multi_carrier.txt" \
         --output "$TEST_DIR/alice_encoded.txt" \
@@ -293,6 +380,7 @@ test_multi_recipient() {
     
     # Encode message for Bob in the same carrier
     PYTHONPATH=src:. python3 -m whitespace_stego.cli encode \
+        --backend "python" \
         --message-file "$TEST_DIR/bob_msg.txt" \
         --carrier-file "$TEST_DIR/alice_encoded.txt" \
         --output "$TEST_DIR/both_encoded.txt" \
@@ -300,6 +388,7 @@ test_multi_recipient() {
     
     # Encode message for Charlie in the same carrier
     PYTHONPATH=src:. python3 -m whitespace_stego.cli encode \
+        --backend "python" \
         --message-file "$TEST_DIR/charlie_msg.txt" \
         --carrier-file "$TEST_DIR/both_encoded.txt" \
         --output "$TEST_DIR/all_encoded.txt" \
@@ -308,16 +397,19 @@ test_multi_recipient() {
     # Test that each recipient can only decode their own message
     local alice_output
     alice_output=$(PYTHONPATH=src:. python3 -m whitespace_stego.cli decode \
+        --backend "python" \
         --carrier-file "$TEST_DIR/all_encoded.txt" \
         --password "alice_password")
     
     local bob_output
     bob_output=$(PYTHONPATH=src:. python3 -m whitespace_stego.cli decode \
+        --backend "python" \
         --carrier-file "$TEST_DIR/all_encoded.txt" \
         --password "bob_password")
     
     local charlie_output
     charlie_output=$(PYTHONPATH=src:. python3 -m whitespace_stego.cli decode \
+        --backend "python" \
         --carrier-file "$TEST_DIR/all_encoded.txt" \
         --password "charlie_password")
     
@@ -352,6 +444,7 @@ test_multi_recipient() {
     # Test that wrong passwords don't work
     local wrong_output
     wrong_output=$(PYTHONPATH=src:. python3 -m whitespace_stego.cli decode \
+        --backend "python" \
         --carrier-file "$TEST_DIR/all_encoded.txt" \
         --password "wrong_password" 2>&1 || true)
     
@@ -381,185 +474,220 @@ main() {
     
     echo -e "\n${BLUE}=== Basic Functionality Tests ===${NC}"
     
-    # Test 1: Python ASCII message without password
-    total_tests=$((total_tests + 1))
-    if test_implementation "python" "ASCII no password" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "" "$TEST_DIR/test1_encoded.txt"; then
-        passed_tests=$((passed_tests + 1))
-    fi
+    # Test Python CLI with all backends
+    for backend in "python" "rust" "c"; do
+        # Test 1-3: Python ASCII message without password (all backends)
+        total_tests=$((total_tests + 1))
+        if test_implementation "python" "$backend" "ASCII no password" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "" "$TEST_DIR/test1_${backend}_encoded.txt"; then
+            passed_tests=$((passed_tests + 1))
+        fi
+        
+        # Test 4-6: Python ASCII message with password (all backends)
+        total_tests=$((total_tests + 1))
+        if test_implementation "python" "$backend" "ASCII with password" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "testpass123" "$TEST_DIR/test2_${backend}_encoded.txt"; then
+            passed_tests=$((passed_tests + 1))
+        fi
+    done
     
-    # Test 2: Python ASCII message with password
-    total_tests=$((total_tests + 1))
-    if test_implementation "python" "ASCII with password" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "testpass123" "$TEST_DIR/test2_encoded.txt"; then
-        passed_tests=$((passed_tests + 1))
-    fi
+    # Test 7-9: Rust, C, Go implementations
+    for impl in "rust" "c" "go"; do
+        total_tests=$((total_tests + 1))
+        if test_implementation "$impl" "" "ASCII no password" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "" "$TEST_DIR/test3_${impl}_encoded.txt"; then
+            passed_tests=$((passed_tests + 1))
+        fi
+        
+        total_tests=$((total_tests + 1))
+        if test_implementation "$impl" "" "ASCII with password" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "testpass123" "$TEST_DIR/test4_${impl}_encoded.txt"; then
+            passed_tests=$((passed_tests + 1))
+        fi
+    done
     
-    # Test 3: Go ASCII message without password
-    total_tests=$((total_tests + 1))
-    if test_implementation "go" "ASCII no password" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "" "$TEST_DIR/test3_encoded.txt"; then
-        passed_tests=$((passed_tests + 1))
-    fi
+    # Test 10-15: Pure Python CLI with all backends
+    for backend in "python" "rust" "c"; do
+        total_tests=$((total_tests + 1))
+        if test_implementation "pure-python" "$backend" "ASCII no password" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "" "$TEST_DIR/test5_${backend}_encoded.txt"; then
+            passed_tests=$((passed_tests + 1))
+        fi
+        
+        total_tests=$((total_tests + 1))
+        if test_implementation "pure-python" "$backend" "ASCII with password" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "testpass123" "$TEST_DIR/test6_${backend}_encoded.txt"; then
+            passed_tests=$((passed_tests + 1))
+        fi
+    done
     
-    # Test 4: Go ASCII message with password
-    total_tests=$((total_tests + 1))
-    if test_implementation "go" "ASCII with password" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "testpass123" "$TEST_DIR/test4_encoded.txt"; then
-        passed_tests=$((passed_tests + 1))
-    fi
+    # Test 16-21: Compiled binary with all backends
+    for backend in "python" "rust" "c"; do
+        total_tests=$((total_tests + 1))
+        if test_implementation "compiled" "$backend" "ASCII no password" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "" "$TEST_DIR/test7_${backend}_encoded.txt"; then
+            passed_tests=$((passed_tests + 1))
+        fi
+        
+        total_tests=$((total_tests + 1))
+        if test_implementation "compiled" "$backend" "ASCII with password" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "testpass123" "$TEST_DIR/test8_${backend}_encoded.txt"; then
+            passed_tests=$((passed_tests + 1))
+        fi
+    done
     
     echo -e "\n${BLUE}=== Cross-Implementation Tests ===${NC}"
     
-    # Test 5: Python -> Go
-    total_tests=$((total_tests + 1))
-    if test_cross_compatibility "python" "go" "Python->Go ASCII" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "" "$TEST_DIR/cross1.txt"; then
-        passed_tests=$((passed_tests + 1))
-    fi
+    # Test Python backends cross-compatibility
+    for source_backend in "python" "rust" "c"; do
+        for target_backend in "python" "rust" "c"; do
+            if [[ "$source_backend" != "$target_backend" ]]; then
+                total_tests=$((total_tests + 1))
+                if test_cross_compatibility "python" "$source_backend" "python" "$target_backend" "Python ${source_backend}->${target_backend} ASCII" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "" "$TEST_DIR/cross_python_${source_backend}_${target_backend}.txt"; then
+                    passed_tests=$((passed_tests + 1))
+                fi
+                
+                total_tests=$((total_tests + 1))
+                if test_cross_compatibility "python" "$source_backend" "python" "$target_backend" "Python ${source_backend}->${target_backend} password" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "testpass123" "$TEST_DIR/cross_python_${source_backend}_${target_backend}_pw.txt"; then
+                    passed_tests=$((passed_tests + 1))
+                fi
+            fi
+        done
+    done
     
-    # Test 6: Go -> Python
-    total_tests=$((total_tests + 1))
-    if test_cross_compatibility "go" "python" "Go->Python ASCII" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "" "$TEST_DIR/cross2.txt"; then
-        passed_tests=$((passed_tests + 1))
-    fi
+    # Test Pure Python CLI cross-compatibility
+    for source_backend in "python" "rust" "c"; do
+        for target_backend in "python" "rust" "c"; do
+            if [[ "$source_backend" != "$target_backend" ]]; then
+                total_tests=$((total_tests + 1))
+                if test_cross_compatibility "pure-python" "$source_backend" "pure-python" "$target_backend" "Pure Python ${source_backend}->${target_backend} ASCII" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "" "$TEST_DIR/cross_pure_${source_backend}_${target_backend}.txt"; then
+                    passed_tests=$((passed_tests + 1))
+                fi
+                
+                total_tests=$((total_tests + 1))
+                if test_cross_compatibility "pure-python" "$source_backend" "pure-python" "$target_backend" "Pure Python ${source_backend}->${target_backend} password" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "testpass123" "$TEST_DIR/cross_pure_${source_backend}_${target_backend}_pw.txt"; then
+                    passed_tests=$((passed_tests + 1))
+                fi
+            fi
+        done
+    done
     
-    # Test 7: Python -> Go (password)
-    total_tests=$((total_tests + 1))
-    if test_cross_compatibility "python" "go" "Python->Go password" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "testpass123" "$TEST_DIR/cross3.txt"; then
-        passed_tests=$((passed_tests + 1))
-    fi
+    # Test Compiled binary cross-compatibility
+    for source_backend in "python" "rust" "c"; do
+        for target_backend in "python" "rust" "c"; do
+            if [[ "$source_backend" != "$target_backend" ]]; then
+                total_tests=$((total_tests + 1))
+                if test_cross_compatibility "compiled" "$source_backend" "compiled" "$target_backend" "Compiled ${source_backend}->${target_backend} ASCII" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "" "$TEST_DIR/cross_compiled_${source_backend}_${target_backend}.txt"; then
+                    passed_tests=$((passed_tests + 1))
+                fi
+                
+                total_tests=$((total_tests + 1))
+                if test_cross_compatibility "compiled" "$source_backend" "compiled" "$target_backend" "Compiled ${source_backend}->${target_backend} password" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "testpass123" "$TEST_DIR/cross_compiled_${source_backend}_${target_backend}_pw.txt"; then
+                    passed_tests=$((passed_tests + 1))
+                fi
+            fi
+        done
+    done
     
-    # Test 8: Go -> Python (password)
-    total_tests=$((total_tests + 1))
-    if test_cross_compatibility "go" "python" "Go->Python password" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "testpass123" "$TEST_DIR/cross4.txt"; then
-        passed_tests=$((passed_tests + 1))
-    fi
+    # Test cross-implementation compatibility (Python backends <-> Native binaries)
+    for python_backend in "python" "rust" "c"; do
+        for native_impl in "rust" "c" "go"; do
+            # Python -> Native
+            total_tests=$((total_tests + 1))
+            if test_cross_compatibility "python" "$python_backend" "$native_impl" "" "Python ${python_backend}->${native_impl} ASCII" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "" "$TEST_DIR/cross_python_${python_backend}_${native_impl}.txt"; then
+                passed_tests=$((passed_tests + 1))
+            fi
+            
+            total_tests=$((total_tests + 1))
+            if test_cross_compatibility "python" "$python_backend" "$native_impl" "" "Python ${python_backend}->${native_impl} password" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "testpass123" "$TEST_DIR/cross_python_${python_backend}_${native_impl}_pw.txt"; then
+                passed_tests=$((passed_tests + 1))
+            fi
+            
+            # Native -> Python
+            total_tests=$((total_tests + 1))
+            if test_cross_compatibility "$native_impl" "" "python" "$python_backend" "${native_impl}->Python ${python_backend} ASCII" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "" "$TEST_DIR/cross_${native_impl}_python_${python_backend}.txt"; then
+                passed_tests=$((passed_tests + 1))
+            fi
+            
+            total_tests=$((total_tests + 1))
+            if test_cross_compatibility "$native_impl" "" "python" "$python_backend" "${native_impl}->Python ${python_backend} password" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "testpass123" "$TEST_DIR/cross_${native_impl}_python_${python_backend}_pw.txt"; then
+                passed_tests=$((passed_tests + 1))
+            fi
+        done
+    done
     
-    # Test 9: Python -> Rust
-    total_tests=$((total_tests + 1))
-    if test_cross_compatibility "python" "rust" "Python->Rust ASCII" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "" "$TEST_DIR/cross5.txt"; then
-        passed_tests=$((passed_tests + 1))
-    fi
+    # Test Pure Python CLI <-> Native binaries
+    for python_backend in "python" "rust" "c"; do
+        for native_impl in "rust" "c" "go"; do
+            # Pure Python -> Native
+            total_tests=$((total_tests + 1))
+            if test_cross_compatibility "pure-python" "$python_backend" "$native_impl" "" "Pure Python ${python_backend}->${native_impl} ASCII" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "" "$TEST_DIR/cross_pure_${python_backend}_${native_impl}.txt"; then
+                passed_tests=$((passed_tests + 1))
+            fi
+            
+            total_tests=$((total_tests + 1))
+            if test_cross_compatibility "pure-python" "$python_backend" "$native_impl" "" "Pure Python ${python_backend}->${native_impl} password" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "testpass123" "$TEST_DIR/cross_pure_${python_backend}_${native_impl}_pw.txt"; then
+                passed_tests=$((passed_tests + 1))
+            fi
+            
+            # Native -> Pure Python
+            total_tests=$((total_tests + 1))
+            if test_cross_compatibility "$native_impl" "" "pure-python" "$python_backend" "${native_impl}->Pure Python ${python_backend} ASCII" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "" "$TEST_DIR/cross_${native_impl}_pure_${python_backend}.txt"; then
+                passed_tests=$((passed_tests + 1))
+            fi
+            
+            total_tests=$((total_tests + 1))
+            if test_cross_compatibility "$native_impl" "" "pure-python" "$python_backend" "${native_impl}->Pure Python ${python_backend} password" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "testpass123" "$TEST_DIR/cross_${native_impl}_pure_${python_backend}_pw.txt"; then
+                passed_tests=$((passed_tests + 1))
+            fi
+        done
+    done
     
-    # Test 10: Rust -> Python
-    total_tests=$((total_tests + 1))
-    if test_cross_compatibility "rust" "python" "Rust->Python ASCII" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "" "$TEST_DIR/cross6.txt"; then
-        passed_tests=$((passed_tests + 1))
-    fi
+    # Test Compiled binary <-> Native binaries
+    for compiled_backend in "python" "rust" "c"; do
+        for native_impl in "rust" "c" "go"; do
+            # Compiled -> Native
+            total_tests=$((total_tests + 1))
+            if test_cross_compatibility "compiled" "$compiled_backend" "$native_impl" "" "Compiled ${compiled_backend}->${native_impl} ASCII" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "" "$TEST_DIR/cross_compiled_${compiled_backend}_${native_impl}.txt"; then
+                passed_tests=$((passed_tests + 1))
+            fi
+            
+            total_tests=$((total_tests + 1))
+            if test_cross_compatibility "compiled" "$compiled_backend" "$native_impl" "" "Compiled ${compiled_backend}->${native_impl} password" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "testpass123" "$TEST_DIR/cross_compiled_${compiled_backend}_${native_impl}_pw.txt"; then
+                passed_tests=$((passed_tests + 1))
+            fi
+            
+            # Native -> Compiled
+            total_tests=$((total_tests + 1))
+            if test_cross_compatibility "$native_impl" "" "compiled" "$compiled_backend" "${native_impl}->Compiled ${compiled_backend} ASCII" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "" "$TEST_DIR/cross_${native_impl}_compiled_${compiled_backend}.txt"; then
+                passed_tests=$((passed_tests + 1))
+            fi
+            
+            total_tests=$((total_tests + 1))
+            if test_cross_compatibility "$native_impl" "" "compiled" "$compiled_backend" "${native_impl}->Compiled ${compiled_backend} password" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "testpass123" "$TEST_DIR/cross_${native_impl}_compiled_${compiled_backend}_pw.txt"; then
+                passed_tests=$((passed_tests + 1))
+            fi
+        done
+    done
     
-    # Test 11: Python -> Rust (password)
-    total_tests=$((total_tests + 1))
-    if test_cross_compatibility "python" "rust" "Python->Rust password" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "testpass123" "$TEST_DIR/cross7.txt"; then
-        passed_tests=$((passed_tests + 1))
-    fi
-    
-    # Test 12: Rust -> Python (password)
-    total_tests=$((total_tests + 1))
-    if test_cross_compatibility "rust" "python" "Rust->Python password" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "testpass123" "$TEST_DIR/cross8.txt"; then
-        passed_tests=$((passed_tests + 1))
-    fi
-    
-    # Test 13: Go -> Rust
-    total_tests=$((total_tests + 1))
-    if test_cross_compatibility "go" "rust" "Go->Rust ASCII" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "" "$TEST_DIR/cross9.txt"; then
-        passed_tests=$((passed_tests + 1))
-    fi
-    
-    # Test 14: Rust -> Go
-    total_tests=$((total_tests + 1))
-    if test_cross_compatibility "rust" "go" "Rust->Go ASCII" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "" "$TEST_DIR/cross10.txt"; then
-        passed_tests=$((passed_tests + 1))
-    fi
-    
-    # Test 15: Go -> Rust (password)
-    total_tests=$((total_tests + 1))
-    if test_cross_compatibility "go" "rust" "Go->Rust password" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "testpass123" "$TEST_DIR/cross11.txt"; then
-        passed_tests=$((passed_tests + 1))
-    fi
-    
-    # Test 16: Rust -> Go (password)
-    total_tests=$((total_tests + 1))
-    if test_cross_compatibility "rust" "go" "Rust->Go password" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "testpass123" "$TEST_DIR/cross12.txt"; then
-        passed_tests=$((passed_tests + 1))
-    fi
-    
-    # Test 17: Python -> C
-    total_tests=$((total_tests + 1))
-    if test_cross_compatibility "python" "c" "Python->C ASCII" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "" "$TEST_DIR/cross13.txt"; then
-        passed_tests=$((passed_tests + 1))
-    fi
-    
-    # Test 18: C -> Python
-    total_tests=$((total_tests + 1))
-    if test_cross_compatibility "c" "python" "C->Python ASCII" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "" "$TEST_DIR/cross14.txt"; then
-        passed_tests=$((passed_tests + 1))
-    fi
-    
-    # Test 19: Python -> C (password)
-    total_tests=$((total_tests + 1))
-    if test_cross_compatibility "python" "c" "Python->C password" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "testpass123" "$TEST_DIR/cross15.txt"; then
-        passed_tests=$((passed_tests + 1))
-    fi
-    
-    # Test 20: C -> Python (password)
-    total_tests=$((total_tests + 1))
-    if test_cross_compatibility "c" "python" "C->Python password" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "testpass123" "$TEST_DIR/cross16.txt"; then
-        passed_tests=$((passed_tests + 1))
-    fi
-    
-    # Test 21: Go -> C
-    total_tests=$((total_tests + 1))
-    if test_cross_compatibility "go" "c" "Go->C ASCII" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "" "$TEST_DIR/cross17.txt"; then
-        passed_tests=$((passed_tests + 1))
-    fi
-    
-    # Test 22: C -> Go
-    total_tests=$((total_tests + 1))
-    if test_cross_compatibility "c" "go" "C->Go ASCII" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "" "$TEST_DIR/cross18.txt"; then
-        passed_tests=$((passed_tests + 1))
-    fi
-    
-    # Test 23: Go -> C (password)
-    total_tests=$((total_tests + 1))
-    if test_cross_compatibility "go" "c" "Go->C password" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "testpass123" "$TEST_DIR/cross19.txt"; then
-        passed_tests=$((passed_tests + 1))
-    fi
-    
-    # Test 24: C -> Go (password)
-    total_tests=$((total_tests + 1))
-    if test_cross_compatibility "c" "go" "C->Go password" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "testpass123" "$TEST_DIR/cross20.txt"; then
-        passed_tests=$((passed_tests + 1))
-    fi
-    
-    # Test 25: Rust -> C
-    total_tests=$((total_tests + 1))
-    if test_cross_compatibility "rust" "c" "Rust->C ASCII" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "" "$TEST_DIR/cross21.txt"; then
-        passed_tests=$((passed_tests + 1))
-    fi
-    
-    # Test 26: C -> Rust
-    total_tests=$((total_tests + 1))
-    if test_cross_compatibility "c" "rust" "C->Rust ASCII" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "" "$TEST_DIR/cross22.txt"; then
-        passed_tests=$((passed_tests + 1))
-    fi
-    
-    # Test 27: Rust -> C (password)
-    total_tests=$((total_tests + 1))
-    if test_cross_compatibility "rust" "c" "Rust->C password" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "testpass123" "$TEST_DIR/cross23.txt"; then
-        passed_tests=$((passed_tests + 1))
-    fi
-    
-    # Test 28: C -> Rust (password)
-    total_tests=$((total_tests + 1))
-    if test_cross_compatibility "c" "rust" "C->Rust password" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "testpass123" "$TEST_DIR/cross24.txt"; then
-        passed_tests=$((passed_tests + 1))
-    fi
+    # Test Native binary cross-compatibility
+    for source_impl in "rust" "c" "go"; do
+        for target_impl in "rust" "c" "go"; do
+            if [[ "$source_impl" != "$target_impl" ]]; then
+                total_tests=$((total_tests + 1))
+                if test_cross_compatibility "$source_impl" "" "$target_impl" "" "${source_impl}->${target_impl} ASCII" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "" "$TEST_DIR/cross_${source_impl}_${target_impl}.txt"; then
+                    passed_tests=$((passed_tests + 1))
+                fi
+                
+                total_tests=$((total_tests + 1))
+                if test_cross_compatibility "$source_impl" "" "$target_impl" "" "${source_impl}->${target_impl} password" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "testpass123" "$TEST_DIR/cross_${source_impl}_${target_impl}_pw.txt"; then
+                    passed_tests=$((passed_tests + 1))
+                fi
+            fi
+        done
+    done
     
     echo -e "\n${BLUE}=== Advanced Feature Tests ===${NC}"
     
-    # Test 29: Multiple messages in one carrier
+    # Test multiple messages in one carrier
     total_tests=$((total_tests + 1))
     if test_multiple_messages; then
         passed_tests=$((passed_tests + 1))
     fi
     
-    # Test 30: Multi-recipient password-protected messages
+    # Test multi-recipient password-protected messages
     total_tests=$((total_tests + 1))
     if test_multi_recipient; then
         passed_tests=$((passed_tests + 1))
