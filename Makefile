@@ -10,7 +10,7 @@ VENV?=.venv
 BIN_DIR=bin
 MAKEFILE_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))/
 
-.PHONY: help venv test all clean rust c go python-binary python-binary-docker install maturin-develop wasi wasi-web
+.PHONY: help venv test all clean rust c go python-binary python-binary-docker install maturin-develop wasi wasi-web cov-go cov-rust cov-c cov-python coverage
 
 # Default target
 help:
@@ -27,6 +27,11 @@ help:
 	@echo "  python-binary-docker - Build portable Python CLI binary (Docker)"
 	@echo "  wasi            - Build WASM web interface"
 	@echo "  wasi-web        - Build and serve WASM web interface"
+	@echo "  cov-go          - Run Go tests with coverage"
+	@echo "  cov-rust        - Run Rust tests with coverage"
+	@echo "  cov-c           - Run C tests with coverage"
+	@echo "  cov-python      - Run Python tests with coverage"
+	@echo "  coverage        - Run coverage tests for all languages"
 	@echo "  clean           - Remove all build artifacts"
 
 # Create Python virtual environment
@@ -132,5 +137,45 @@ clean:
 	rm -rf ${BIN_DIR}
 	rm -rf wasi/pkg
 	rm -rf wasi/target
+	rm -rf go/coverage.out go/coverage.html go/coverage.txt
+	rm -rf c/coverage
+	rm -rf rust/target/coverage
 	# Keep spec files for builds
-	cargo clean 
+	cargo clean
+
+# Coverage targets
+cov-go:
+	@echo "🧪 Running Go tests with coverage..."
+	cd go && go test -coverprofile=coverage.out -covermode=atomic ./src/stego
+	cd go && go tool cover -func=coverage.out > coverage.txt
+	cd go && go tool cover -html=coverage.out -o coverage.html
+	@echo "📊 Go coverage report generated: go/coverage.html"
+	@echo "📋 Go coverage summary: go/coverage.txt"
+
+cov-rust:
+	@echo "🧪 Running Rust tests with coverage..."
+	cd rust && cargo tarpaulin --out Html --output-dir coverage
+	cd rust && cargo tarpaulin --out Xml --output-dir coverage
+	@echo "📊 Rust coverage report generated: rust/coverage/tarpaulin-report.html"
+
+cov-c:
+	@echo "🧪 Running C tests with coverage..."
+	cd c && make install-unity
+	cd c && make clean
+	cd c && make test-coverage
+	cd c && make coverage-report
+	@echo "📊 C coverage report generated: c/coverage/html/index.html"
+
+cov-python:
+	@echo "🧪 Running Python tests with coverage..."
+	${VENV}/bin/pytest --cov=whitespace_stego --cov=whitespace_stego_rust --cov-report=html:htmlcov --cov-report=term-missing --cov-report=xml:coverage.xml
+	@echo "📊 Python coverage report generated: htmlcov/index.html"
+
+# Run coverage for all languages
+coverage: cov-go cov-rust cov-c cov-python
+	@echo "🎉 All coverage reports generated!"
+	@echo "📊 Reports available:"
+	@echo "  Go: go/coverage.html"
+	@echo "  Rust: rust/coverage/tarpaulin-report.html"
+	@echo "  C: c/coverage/html/index.html"
+	@echo "  Python: htmlcov/index.html" 
