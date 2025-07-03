@@ -305,8 +305,8 @@ def _decode_python_impl(carrier: str, password: Optional[str] = None) -> Union[s
 def _encode_rust(message: str, carrier: str, password: Optional[str] = None) -> str:
     """Encode using Rust backend."""
     try:
-        from .rust_backend import encode as rust_encode
-        return rust_encode(message, carrier, password)
+        import whitespace_stego_rust
+        return whitespace_stego_rust.encode_py(message, carrier, password)
     except ImportError:
         raise ValueError("Rust backend not available")
 
@@ -314,8 +314,8 @@ def _encode_rust(message: str, carrier: str, password: Optional[str] = None) -> 
 def _decode_rust(carrier: str, password: Optional[str] = None) -> Union[str, List[str]]:
     """Decode using Rust backend."""
     try:
-        from .rust_backend import decode as rust_decode
-        return rust_decode(carrier, password)
+        import whitespace_stego_rust
+        return whitespace_stego_rust.decode_py(carrier, password)
     except ImportError:
         raise ValueError("Rust backend not available")
 
@@ -323,8 +323,8 @@ def _decode_rust(carrier: str, password: Optional[str] = None) -> Union[str, Lis
 def _decode_rust_single(carrier: str, password: Optional[str] = None) -> str:
     """Decode single message using Rust backend."""
     try:
-        from .rust_backend import decode as rust_decode
-        result = rust_decode(carrier, password)
+        import whitespace_stego_rust
+        result = whitespace_stego_rust.decode_py(carrier, password)
         if isinstance(result, list):
             return result[0] if result else ""
         return result

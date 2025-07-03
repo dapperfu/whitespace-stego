@@ -1,0 +1,78 @@
+name: 10 Test Standalone Binaries
+
+on:
+  workflow_run:
+    workflows: ["09 Make Python Binary Local", "05 Make Rust", "06 Make C", "07 Make Go"]
+    types:
+      - completed
+  workflow_dispatch:
+
+jobs:
+  test-standalone-binaries:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install make
+        run: sudo apt-get update && sudo apt-get install -y make
+
+      - name: Download Python binary artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: python-binary-local
+          path: bin/
+        continue-on-error: true
+
+      - name: Download Rust binary artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: rust-binary
+          path: bin/
+        continue-on-error: true
+
+      - name: Download C binary artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: c-binary
+          path: bin/
+        continue-on-error: true
+
+      - name: Download Go binary artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: go-binary
+          path: bin/
+        continue-on-error: true
+
+      - name: Make binaries executable
+        run: |
+          chmod +x bin/* || true
+          ls -la bin/
+        working-directory: ${{ github.workspace }}
+
+      - name: Run standalone binary tests
+        run: |
+          echo "🧪 Testing standalone binaries..."
+          bash test_scripts/test_standalone_binaries.sh
+        working-directory: ${{ github.workspace }}
+
+      - name: Run cross-round-trip tests
+        run: |
+          echo "🔄 Testing cross-round-trip compatibility..."
+          bash test_scripts/test_cross_roundtrip.sh
+        working-directory: ${{ github.workspace }}
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: standalone-binary-test-results
+          path: test_results/
+          retention-days: 7
+        if: always() 

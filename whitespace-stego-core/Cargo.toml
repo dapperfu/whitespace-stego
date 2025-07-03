@@ -12,7 +12,7 @@ categories.workspace = true
 [dependencies]
 aes = "0.7"
 block-modes = "0.8"
-getrandom = "0.2"
+getrandom = { version = "0.2", features = ["js"] }
 thiserror.workspace = true
 base64 = "0.21"
 sha2 = "0.10"
