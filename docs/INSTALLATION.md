@@ -147,7 +147,19 @@ make all-binaries-docker
 # These binaries work on most Linux distributions
 ```
 
-### 7. WebAssembly Installation
+### 7. Python Standalone Installation
+
+For self-contained Python executable:
+
+```bash
+# Build Python standalone CLI
+make python-binary
+
+# The executable is now available at bin/whitespace-stego-py
+# No Python installation required on target system
+```
+
+### 8. WebAssembly Installation
 
 For browser-based usage:
 
@@ -167,6 +179,9 @@ After installation, verify everything works:
 ```bash
 # Test Python CLI
 python3 -m whitespace_stego.cli --help
+
+# Test Python Standalone CLI
+./bin/whitespace-stego-py --help
 
 # Test Rust CLI
 ./bin/whitespace-stego-rs --help

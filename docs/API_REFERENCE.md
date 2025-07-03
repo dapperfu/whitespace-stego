@@ -420,6 +420,21 @@ whitespace-stego-c decode --carrier-file encoded.txt --output decoded.txt
 - `--output`: Output file
 - `--password`: Password for encryption/decryption
 
+#### `whitespace-stego-py`
+
+Standalone Python CLI (PyInstaller build).
+
+**Usage:**
+```bash
+whitespace-stego-py encode --message "Secret" --carrier "text" --output encoded.txt
+whitespace-stego-py decode --carrier-file encoded.txt --output decoded.txt
+```
+
+**Options:**
+- Same as Python CLI above
+- **Self-contained:** No Python installation required
+- **All backends:** Python, Rust, and C backends included
+
 ## WebAssembly API
 
 ### JavaScript Interface

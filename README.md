@@ -19,7 +19,7 @@ Whitespace steganography hides secret messages in plain text using **zero-width 
 
 ## ✨ Key Features
 
-- **🔄 Multi-language Support:** Python, Rust, C, Go, and WebAssembly implementations
+- **🔄 Multi-language Support:** Python (with Rust/C backends), Rust, C, Go, and WebAssembly implementations
 - **🖥️ Multiple Interfaces:** Command-line tools and web browser interface
 - **🌍 Unicode & Emoji Friendly:** Works with any text, language, or emoji
 - **🔐 Password Protection:** Optional AES-256 encryption for sensitive messages
@@ -40,6 +40,7 @@ make install  # Python + Rust backend
 make rust     # Rust CLI
 make c        # C CLI
 make go       # Go CLI
+make python-binary  # Python standalone CLI
 make wasi-web # WebAssembly (browser UI)
 ```
 
@@ -179,8 +180,7 @@ make build  # Creates bin/whitespace-stego-go
 ./go/bin/whitespace-stego-go encode -m "secret message" -c "carrier text"
 ./go/bin/whitespace-stego-go decode -c "encoded text"
 
-# Or use the Python CLI with Go backend
-python3 -m whitespace_stego.cli encode --backend go --message "secret" --carrier "text"
+# Note: Go is a standalone CLI, not integrated with Python CLI backend system
 ```
 
 The Go implementation provides:
@@ -188,6 +188,45 @@ The Go implementation provides:
 - **🌍 Cross-platform:** Single binary for Linux, macOS, and Windows
 - **🔧 Simple Deployment:** No external dependencies required
 - **📦 Easy Distribution:** Self-contained executable
+
+## 🔧 Backend Architecture
+
+The project supports multiple implementation approaches:
+
+- **Python CLI with Backends:** The Python CLI can use Python, Rust, or C backends via `--backend` option
+- **Standalone CLIs:** Python (PyInstaller), Rust, C, and Go each have their own standalone CLI tools
+- **WebAssembly:** Browser-based interface for web applications
+
+All implementations are cross-compatible - you can encode in one language and decode in another.
+
+---
+
+## 🐍 Python Standalone CLI (PyInstaller)
+
+A standalone Python executable is available, providing a self-contained version of the Python CLI with all backends included.
+
+### Building the Python Standalone CLI
+
+```bash
+make python-binary  # Creates bin/whitespace-stego-py
+```
+
+### Using the Python Standalone CLI
+
+```bash
+# Direct usage (same as Python CLI but standalone)
+./bin/whitespace-stego-py encode --message "secret" --carrier "text" --backend rust
+./bin/whitespace-stego-py decode --carrier-file encoded.txt --backend c
+
+# All Python CLI features available
+./bin/whitespace-stego-py --help
+```
+
+The Python standalone CLI provides:
+- **📦 Self-contained:** No Python installation required on target system
+- **🔄 All Backends:** Includes Python, Rust, and C backends
+- **🌍 Cross-platform:** Works on Linux, macOS, and Windows
+- **🔧 Same Interface:** Identical to `python -m whitespace_stego.cli`
 
 ---
 

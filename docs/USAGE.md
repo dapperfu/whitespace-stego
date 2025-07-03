@@ -17,6 +17,18 @@ python3 -m whitespace_stego.cli decode --carrier-file encoded.txt
 - `--backend`: Choose backend (python, rust, c)
 - `--verbose`: Verbose logging
 
+### Python Standalone CLI (PyInstaller)
+
+```bash
+./bin/whitespace-stego-py encode --message "Secret" --carrier "Innocent text" --output encoded.txt
+./bin/whitespace-stego-py decode --carrier-file encoded.txt
+```
+
+#### Options
+- Same as Python CLI above
+- **Self-contained:** No Python installation required
+- **All backends included:** Python, Rust, and C backends available
+
 ### Rust CLI
 
 ```bash
