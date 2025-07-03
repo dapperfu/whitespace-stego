@@ -363,8 +363,8 @@ class TestComprehensiveEncodingIdentity:
                     try:
                         result = subprocess.run(decode_cmd, capture_output=True, text=True, check=True)
                         
-                        # For C binary, read from output file; for others, use stdout
-                        if decoder_name == 'c-standalone':
+                        # For C and Go binaries, read from output file; for others, use stdout
+                        if decoder_name in ['c-standalone', 'go-standalone']:
                             with open(decoded_output_path, 'r', encoding='utf-8') as f:
                                 decoded_message = f.read().strip()
                         else:

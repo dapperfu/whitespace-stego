@@ -1,11 +1,29 @@
 use pyo3::exceptions::PyValueError;
 
+/// Converts StegoError to a Python error.
 impl From<StegoError> for PyErr {
     fn from(err: StegoError) -> PyErr {
         PyValueError::new_err(err.0)
     }
 }
 
+//!
+//! Encoding utilities for whitespace steganography.
+//!
+//! Provides the `encode` function for embedding messages in carrier text, optionally encrypted.
+//!
+//! ## Examples
+//! See the `encode` function for usage examples.
+
+/// Encodes a message into the given carrier string, optionally encrypting with a password.
+///
+/// # Errors
+/// Returns a [`PyErr`] if encryption fails or the Fernet key is invalid.
+///
+/// # Examples
+/// ```
+/// let encoded = encode("secret", "cover text", Some("password"))?;
+/// ```
 pub fn encode(message: &str, carrier: &str, password: Option<&str>) -> PyResult<String> {
     let mut data = message.as_bytes().to_vec();
     if let Some(pwd) = password {

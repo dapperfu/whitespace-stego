@@ -1,11 +1,29 @@
 use pyo3::exceptions::PyValueError;
 
+/// Converts StegoError to a Python error.
 impl From<StegoError> for PyErr {
     fn from(err: StegoError) -> PyErr {
         PyValueError::new_err(err.0)
     }
 }
 
+//!
+//! Decoding utilities for whitespace steganography.
+//!
+//! Provides the `decode` function for extracting messages from carrier text, optionally decrypting.
+//!
+//! ## Examples
+//! See the `decode` function for usage examples.
+
+/// Decodes a message from the given carrier string, optionally decrypting with a password.
+///
+/// # Errors
+/// Returns a [`PyErr`] if decoding fails, the message is not found, or decryption fails.
+///
+/// # Examples
+/// ```
+/// let decoded = decode("carrier text with secret", Some("password"))?;
+/// ```
 pub fn decode(carrier: &str, password: Option<&str>) -> PyResult<String> {
     let start = carrier
         .find(START_MARKER)

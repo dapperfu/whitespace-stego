@@ -1,3 +1,14 @@
+//!
+//! Whitespace Stego CLI
+//!
+//! This crate provides a command-line interface for encoding and decoding messages using whitespace steganography.
+//!
+//! ## Getting Started
+//! Run with `--help` to see available commands and options.
+//!
+//! ## License
+//! SPDX-License-Identifier: MIT
+
 use clap::{Parser, Subcommand};
 use std::fs;
 use std::io::{self, Read};
@@ -5,7 +16,9 @@ use std::path::PathBuf;
 use whitespace_stego::{decode, encode};
 
 #[derive(Parser)]
-#[command(author, version, about, long_about = None)]
+/// Command-line interface for whitespace steganography operations.
+///
+/// Use this struct to parse CLI arguments for encoding and decoding messages.
 struct Cli {
     /// Enable verbose output
     #[arg(short, long)]
@@ -16,6 +29,7 @@ struct Cli {
 }
 
 #[derive(Subcommand)]
+/// Available subcommands for the CLI.
 enum Commands {
     /// Encode a message into carrier text
     Encode {
@@ -64,6 +78,13 @@ enum Commands {
     },
 }
 
+/// Reads the contents of a file or stdin if no file is provided.
+///
+/// # Arguments
+/// * `path` - Optional path to the file to read. If None, reads from stdin.
+///
+/// # Errors
+/// Returns an error if the file cannot be read or stdin fails.
 fn read_file_or_stdin(path: Option<&PathBuf>) -> io::Result<String> {
     match path {
         Some(path) => fs::read_to_string(path),
@@ -71,20 +92,34 @@ fn read_file_or_stdin(path: Option<&PathBuf>) -> io::Result<String> {
             let mut buffer = String::new();
             io::stdin().read_to_string(&mut buffer)?;
             Ok(buffer)
-        }
+        },
     }
 }
 
+/// Writes content to a file or stdout if no file is provided.
+///
+/// # Arguments
+/// * `content` - The string content to write.
+/// * `path` - Optional path to the file to write. If None or "-", writes to stdout.
+///
+/// # Errors
+/// Returns an error if the file cannot be written.
 fn write_file_or_stdout(content: &str, path: Option<&PathBuf>) -> io::Result<()> {
     match path {
         Some(path) if path.to_str() != Some("-") => fs::write(path, content),
         _ => {
             print!("{}", content);
             Ok(())
-        }
+        },
     }
 }
 
+/// Main entry point for the CLI application.
+///
+/// Parses arguments and dispatches to encode or decode logic.
+///
+/// # Errors
+/// Returns an error if argument parsing or file operations fail.
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
 
@@ -142,7 +177,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             // Write output
             write_file_or_stdout(&encoded, output.as_ref())?;
-        }
+        },
 
         Commands::Decode {
             carrier,
@@ -182,7 +217,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             // Write output
             write_file_or_stdout(&decoded, output.as_ref())?;
-        }
+        },
     }
 
     Ok(())
