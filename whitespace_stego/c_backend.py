@@ -32,6 +32,8 @@ def _load_library():
     """
     # Try to find the library in common locations
     lib_paths = [
+        # PyInstaller bundle directory (when running from frozen binary)
+        Path(sys._MEIPASS) / "libwhitespace_stego.so" if hasattr(sys, '_MEIPASS') else None,
         # When installed via pip (bundled with package)
         Path(__file__).parent / "libwhitespace_stego.so",
         # Development environment (relative to current file)
@@ -41,6 +43,9 @@ def _load_library():
         # With lib prefix
         "libwhitespace_stego",
     ]
+    
+    # Filter out None values
+    lib_paths = [path for path in lib_paths if path is not None]
     
     for lib_path in lib_paths:
         try:

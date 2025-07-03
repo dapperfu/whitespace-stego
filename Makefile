@@ -48,10 +48,11 @@ test: venv maturin-develop install
 	@echo "Running Python module tests..."
 	${VENV}/bin/pytest -v
 
-# Build Rust CLI binary
+# Build Rust CLI binary and Python extension
 rust: venv
-	@echo "Building Rust CLI binary..."
+	@echo "Building Rust CLI binary and Python extension..."
 	cargo build --release --manifest-path rust/Cargo.toml --target-dir rust/target
+	cargo build --release --manifest-path whitespace-stego-python/Cargo.toml --target-dir whitespace-stego-python/target
 	mkdir -p ${BIN_DIR}
 	cp rust/target/release/whitespace-stego-rs ${BIN_DIR}/
 
@@ -70,10 +71,10 @@ go:
 	cp go/bin/whitespace-stego-go ${BIN_DIR}/
 
 # Build Python CLI binary using PyInstaller (local build)
-python-binary: venv install maturin-develop
+python-binary: venv install maturin-develop rust c
 	@echo "Building Python CLI binary with PyInstaller..."
 	${VENV}/bin/pip install pyinstaller
-	${VENV}/bin/pyinstaller whitespace_stego.spec
+	${VENV}/bin/pyinstaller --clean whitespace_stego.spec
 	mkdir -p ${BIN_DIR}
 	cp dist/whitespace-stego-py ${BIN_DIR}/
 
@@ -82,7 +83,7 @@ python-binary-docker:
 	@echo "Building portable Python CLI binary using Docker..."
 	docker build -t whitespace-stego-py-builder .
 	mkdir -p dist ${BIN_DIR}
-	docker run --rm -v "$(PWD)/dist:/out" whitespace-stego-py-builder cp /build/dist/whitespace-stego-py /out/
+	docker run --rm --entrypoint cp -v "$(PWD)/dist:/out" whitespace-stego-py-builder /build/dist/whitespace-stego-py /out/
 	cp dist/whitespace-stego-py ${BIN_DIR}/
 	@echo "Testing the binary..."
 	${BIN_DIR}/whitespace-stego-py --help
@@ -112,4 +113,5 @@ clean:
 	rm -f encoded*.txt
 	rm -rf results
 	rm -rf ${BIN_DIR}
+	rm -f *.spec
 	cargo clean 

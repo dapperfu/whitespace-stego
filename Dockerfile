@@ -3,7 +3,7 @@ FROM python:3.10-slim
 
 # Install build dependencies for Python, Rust, and maturin
 RUN apt-get update && \
-    apt-get install -y build-essential python3-dev git curl && \
+    apt-get install -y build-essential python3-dev git curl libssl-dev && \
     rm -rf /var/lib/apt/lists/*
 
 # Install Rust using rustup (for up-to-date cargo)
@@ -28,11 +28,15 @@ RUN cd whitespace-stego-python && /opt/venv/bin/maturin develop --release
 # Build C backend
 RUN cd c && make clean && make && cd ..
 
+# Copy the C shared library to a standard location
+RUN cp c/lib/libwhitespace_stego.so /usr/local/lib/ && ldconfig
+ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
+
 # Install your Python package and dependencies in the venv
 RUN /opt/venv/bin/pip install .
 
-# Build the binary with PyInstaller (no spec file needed)
-RUN /opt/venv/bin/pyinstaller --onefile --name whitespace-stego-py whitespace_stego_main.py
+# Build the binary with PyInstaller (bundling the .so file)
+RUN /opt/venv/bin/pyinstaller --onefile --add-data "/usr/local/lib/libwhitespace_stego.so:." --name whitespace-stego-py whitespace_stego_main.py
 
 # The resulting binary will be in /build/dist/whitespace-stego-py
 # Copy it to a standard location
