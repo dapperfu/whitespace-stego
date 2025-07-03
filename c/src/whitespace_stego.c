@@ -166,7 +166,7 @@ int whitespace_stego_encode(const char* carrier, size_t carrier_len, const char*
         // Create new result with encoded message inserted after first character
         size_t new_len = first_char_len + strlen(encoded_message) + (carrier_len - first_char_len) + 1;
         char* new_result = malloc(new_len);
-        if (!new_result) { free(*result); free(encoded_message); return false; }
+        if (!new_result) { free(*result); free(encoded_message); return 0; }
         
         // Copy first character
         memcpy(new_result, carrier, first_char_len);
@@ -183,14 +183,14 @@ int whitespace_stego_encode(const char* carrier, size_t carrier_len, const char*
         free(encoded_message);
         *result = new_result;
     }
-    return true;
+    return 1;
 }
 
-bool whitespace_stego_decode(const char* carrier, size_t carrier_len, const char* password,
+int whitespace_stego_decode(const char* carrier, size_t carrier_len, const char* password,
                            char** result) {
     if (!carrier || !result) {
         snprintf(last_error, sizeof(last_error), "No carrier or result pointer provided");
-        return false;
+        return 0;
     }
     
     // Use the multiple message decoder and return the first message
@@ -198,12 +198,12 @@ bool whitespace_stego_decode(const char* carrier, size_t carrier_len, const char
     size_t result_count = 0;
     
     if (!whitespace_stego_decode_all(carrier, carrier_len, password, &results, &result_count)) {
-        return false;
+        return 0;
     }
     
     if (result_count == 0) {
         snprintf(last_error, sizeof(last_error), "No valid messages found in carrier text");
-        return false;
+        return 0;
     }
     
     // Return the first message
@@ -214,19 +214,19 @@ bool whitespace_stego_decode(const char* carrier, size_t carrier_len, const char
         free(results);
     }
     
-    return true;
+    return 1;
 }
 
-bool whitespace_stego_decode_all(const char* carrier, size_t carrier_len, const char* password,
+int whitespace_stego_decode_all(const char* carrier, size_t carrier_len, const char* password,
                                 char*** results, size_t* result_count) {
     if (!carrier || !results || !result_count) {
         snprintf(last_error, sizeof(last_error), "No carrier or result pointers provided");
-        return false;
+        return 0;
     }
     
     // Create a null-terminated copy for string operations
     char* carrier_copy = malloc(carrier_len + 1);
-    if (!carrier_copy) return false;
+    if (!carrier_copy) return 0;
     memcpy(carrier_copy, carrier, carrier_len);
     carrier_copy[carrier_len] = '\0';
     
@@ -243,7 +243,7 @@ bool whitespace_stego_decode_all(const char* carrier, size_t carrier_len, const 
         free(carrier_copy);
         free(start_positions);
         free(end_positions);
-        return false;
+        return 0;
     }
     
     // Find all start markers
@@ -268,7 +268,7 @@ bool whitespace_stego_decode_all(const char* carrier, size_t carrier_len, const 
         free(carrier_copy);
         free(start_positions);
         free(end_positions);
-        return false;
+        return 0;
     }
     
     size_t message_count = 0;
@@ -327,17 +327,17 @@ bool whitespace_stego_decode_all(const char* carrier, size_t carrier_len, const 
         unsigned char* decoded = NULL;
         size_t decoded_len = 0;
         char* result = NULL;
-        bool decrypt_success = true;
+        int decrypt_success = 1;
         
         if (password && password[0]) {
             // For password-protected messages, the data contains base64-encoded encrypted message
             // Base64 decode the data to get encrypted bytes
             if (!from_base64(b64_str, &encrypted, &encrypted_len)) {
-                decrypt_success = false;
+                decrypt_success = 0;
             } else {
                 // Decrypt the encrypted bytes
                 if (!crypto_decrypt(encrypted, encrypted_len, password, &plain, &plain_len)) {
-                    decrypt_success = false;
+                    decrypt_success = 0;
                     utils_free(encrypted);
                 } else {
                     // The decrypted data is the original message
@@ -353,7 +353,7 @@ bool whitespace_stego_decode_all(const char* carrier, size_t carrier_len, const 
         } else {
             // For non-password messages, base64 decode the data directly
             if (!from_base64(b64_str, &decoded, &decoded_len)) {
-                decrypt_success = false;
+                decrypt_success = 0;
             } else {
                 result = malloc(decoded_len + 1);
                 if (result) {
@@ -402,10 +402,10 @@ bool whitespace_stego_decode_all(const char* carrier, size_t carrier_len, const 
             // This matches Python's behavior where wrong passwords return empty results
             *results = NULL;
             *result_count = 0;
-            return true;
+            return 1;
         } else {
             snprintf(last_error, sizeof(last_error), "No valid messages found in carrier text");
-            return false;
+            return 0;
         }
     }
     
@@ -417,12 +417,12 @@ bool whitespace_stego_decode_all(const char* carrier, size_t carrier_len, const 
             free(messages[i]);
         }
         free(messages);
-        return false;
+        return 0;
     }
     
     *results = final_messages;
     *result_count = message_count;
-    return true;
+    return 1;
 }
 
 void whitespace_stego_free(char* ptr) {
