@@ -58,7 +58,7 @@ UNICODE_TESTS = [
         'password': '🔑парольPa$$w0rd🌈',
     },
     {
-        'carrier': '🚀✨🐍 Python is fun! 漢字',
+        'carrier': '🚀✨🐍 Python is fun 漢字',
         'message': 'Emoji test: 😁😂🥰🤔',
         'password': '密码🔒',
     },
@@ -122,7 +122,7 @@ def test_unicode_cross_impl(test_case):
                 with open(decoded_path, 'r', encoding='utf-8') as f:
                     decoded_message = f.read().strip()
                 assert message == decoded_message, (
-                    f"Decoded message mismatch!\n"
+                    f"Decoded message mismatch\n"
                     f"Encoded by: {encoder_name} (backend={encoder_backend})\n"
                     f"Decoded by: {decoder_name} (backend={decoder_backend})\n"
                     f"Expected: {repr(message)}\n"

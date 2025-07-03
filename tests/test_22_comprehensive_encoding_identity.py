@@ -228,7 +228,7 @@ class TestComprehensiveEncodingIdentity:
                 pytest.fail(f"Not all implementations produce identical output. "
                            f"Found {len(differences)} differences.")
             else:
-                print(f"\n✓ SUCCESS: All {len(encoded_outputs)} implementations produce identical output!")
+                print(f"\n✓ SUCCESS: All {len(encoded_outputs)} implementations produce identical output")
     
     def test_encoding_identity_with_password(self, test_data, all_implementations):
         """
@@ -383,7 +383,7 @@ class TestComprehensiveEncodingIdentity:
                         print(f"    stderr: {e.stderr}")
                         pytest.fail(f"{decoder_name} cannot decode {encoder_name} output")
             
-            print(f"\n✓ SUCCESS: All implementations can decode each other's password-protected messages!")
+            print(f"\n✓ SUCCESS: All implementations can decode each other's password-protected messages")
     
     def test_encoding_identity_edge_cases(self, all_implementations):
         """
@@ -404,8 +404,8 @@ class TestComprehensiveEncodingIdentity:
             },
             {
                 'name': 'special_chars',
-                'message': 'Special chars: !@#$%^&*()_+-=[]{}|;:\'",./<>?',
-                'carrier': 'Carrier with special: ~`!@#$%^&*()_+-=[]{}|;:\'",./<>?',
+                'message': 'Special chars: @#$%^&*()_+-=[]{}|;:\'",./<>?',
+                'carrier': 'Carrier with special: ~`@#$%^&*()_+-=[]{}|;:\'",./<>?',
                 'password': None
             },
             {

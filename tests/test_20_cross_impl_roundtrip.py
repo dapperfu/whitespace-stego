@@ -178,6 +178,6 @@ def test_encoding_compatibility():
                 print(f"{name} hex: {output[:50].encode('utf-8').hex()}")
                 all_match = False
         if all_match:
-            print("SUCCESS: All implementations produce identical encoded output!")
+            print("SUCCESS: All implementations produce identical encoded output")
         assert all_match, "Not all implementations produce identical encoded output" 
         assert all_match, "Not all implementations produce identical encoded output" 

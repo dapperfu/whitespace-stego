@@ -10,7 +10,7 @@ keywords.workspace = true
 categories.workspace = true
 
 [[bin]]
-name = "whitespace-stego"
+name = "whitespace-stego-rs"
 path = "src/main.rs"
 
 [dependencies]

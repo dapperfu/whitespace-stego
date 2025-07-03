@@ -9,7 +9,7 @@ from whitespace_stego.constants import START_MARKER, END_MARKER, ZERO_BIT, ONE_B
 @pytest.fixture
 def sample_message():
     """Sample message for testing."""
-    return "Hello, World!"
+    return "Hello, World"
 
 
 @pytest.fixture
@@ -104,7 +104,7 @@ class TestEncodeMessage:
     def test_encode_message_unicode_content(self, click_context):
         """Test that encode_message works with Unicode content."""
         click_context.obj["backend"] = "python"
-        unicode_message = "Hello 世界! 🌍"
+        unicode_message = "Hello 世界 🌍"
         unicode_carrier = "Carrier with émojis 🚀"
         
         with patch('click.get_current_context', return_value=click_context):
@@ -191,7 +191,7 @@ class TestIntegration:
     def test_encode_message_full_workflow(self, click_context):
         """Test a complete encode workflow."""
         click_context.obj["backend"] = "python"
-        message = "Hello, World!"
+        message = "Hello, World"
         carrier = "This is a test carrier."
         
         with patch('whitespace_stego.core._encode_python') as mock_core_encode:

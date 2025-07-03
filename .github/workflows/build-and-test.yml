@@ -1,0 +1,410 @@
+name: Build and Test All Implementations
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+  schedule:
+    # Run daily to ensure everything still works
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Type of build to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - python
+          - rust
+          - c
+          - go
+          - docker
+          - test-only
+
+env:
+  PYTHON_VERSION: '3.11'
+  RUST_VERSION: '1.75'
+  GO_VERSION: '1.21'
+
+jobs:
+  # Build all implementations
+  build-all:
+    name: Build All Implementations
+    runs-on: ubuntu-latest
+    if: github.event.inputs.build_type == 'all' || github.event.inputs.build_type == '' || github.event.inputs.build_type == 'python' || github.event.inputs.build_type == 'rust' || github.event.inputs.build_type == 'c' || github.event.inputs.build_type == 'go'
+    strategy:
+      matrix:
+        implementation: ['python', 'rust', 'c', 'go']
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        if: matrix.implementation == 'python'
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up Rust
+        if: matrix.implementation == 'rust'
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          override: true
+
+      - name: Set up Go
+        if: matrix.implementation == 'go'
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake pkg-config libssl-dev
+
+      - name: Build Python implementation
+        if: matrix.implementation == 'python'
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+          pip install -e .
+          # Build Rust backend
+          cd whitespace-stego-python
+          pip install maturin
+          maturin build --release
+          cd ..
+          # Build C backend
+          cd c
+          make clean
+          make
+          cd ..
+          # Build Go implementation
+          cd go
+          make clean
+          make
+          cd ..
+          # Build compiled binary
+          pip install pyinstaller
+          pyinstaller --onefile --name whitespace-stego-cli whitespace_stego_main.py
+          cp dist/whitespace-stego-cli bin/
+          chmod +x bin/whitespace-stego-cli
+
+      - name: Build Rust implementation
+        if: matrix.implementation == 'rust'
+        run: |
+          cd whitespace-stego-core
+          cargo build --release
+          cd ..
+          cd whitespace-stego-cli
+          cargo build --release
+          cp target/release/whitespace-stego-cli ../bin/whitespace-stego-rs
+          cd ..
+
+      - name: Build C implementation
+        if: matrix.implementation == 'c'
+        run: |
+          cd c
+          make clean
+          make
+          cp bin/whitespace-stego-c ../bin/
+          cd ..
+
+      - name: Build Go implementation
+        if: matrix.implementation == 'go'
+        run: |
+          cd go
+          make clean
+          make
+          cp bin/whitespace-stego-go ../bin/
+          cd ..
+
+      - name: Verify binaries
+        run: |
+          echo "=== Built Binaries ==="
+          ls -la bin/
+          echo ""
+          echo "=== Binary Permissions ==="
+          for binary in bin/*; do
+            if [[ -f "$binary" ]]; then
+              echo "$binary: $(file "$binary")"
+              if [[ -x "$binary" ]]; then
+                echo "  ✓ Executable"
+              else
+                echo "  ❌ Not executable"
+                chmod +x "$binary"
+              fi
+            fi
+          done
+
+      - name: Upload binaries as artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: binaries-${{ matrix.implementation }}
+          path: bin/
+          retention-days: 7
+
+  # Docker build
+  docker-build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    if: github.event.inputs.build_type == 'all' || github.event.inputs.build_type == 'docker'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        run: |
+          docker build -t whitespace-stego:latest .
+          docker images whitespace-stego:latest
+
+      - name: Test Docker image
+        run: |
+          # Test basic functionality in Docker
+          docker run --rm whitespace-stego:latest python -c "import whitespace_stego; print('Python package imported successfully')"
+          
+          # Test CLI in Docker
+          echo "Hello World" > /tmp/test_message.txt
+          echo "This is a carrier file for testing." > /tmp/test_carrier.txt
+          
+          docker run --rm -v /tmp:/tmp whitespace-stego:latest python -m whitespace_stego.cli encode --message-file /tmp/test_message.txt --carrier-file /tmp/test_carrier.txt --output-file /tmp/test_encoded.txt
+          docker run --rm -v /tmp:/tmp whitespace-stego:latest python -m whitespace_stego.cli decode --carrier-file /tmp/test_encoded.txt --output-file /tmp/test_decoded.txt
+          
+          echo "Original: $(cat /tmp/test_message.txt)"
+          echo "Decoded: $(cat /tmp/test_decoded.txt)"
+          
+          if diff /tmp/test_message.txt /tmp/test_decoded.txt; then
+            echo "✅ Docker test passed"
+          else
+            echo "❌ Docker test failed"
+            exit 1
+          fi
+
+      - name: Upload Docker image
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:${{ github.sha }}
+
+  # Comprehensive cross-implementation tests
+  comprehensive-tests:
+    name: Comprehensive Cross-Implementation Tests
+    runs-on: ubuntu-latest
+    if: github.event.inputs.build_type == 'all' || github.event.inputs.build_type == 'test-only' || github.event.inputs.build_type == ''
+    needs: [build-all]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all binaries
+        uses: actions/download-artifact@v3
+        with:
+          path: bin/
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+          pip install -e .
+
+      - name: Install Rust backend
+        run: |
+          cd whitespace-stego-python
+          pip install maturin
+          maturin build --release
+          cd ..
+
+      - name: Verify all implementations available
+        run: |
+          echo "=== Available Implementations ==="
+          echo "Python CLI: $(which python)"
+          echo "Rust CLI: $(ls -la bin/whitespace-stego-rs 2>/dev/null || echo 'Not found')"
+          echo "C CLI: $(ls -la bin/whitespace-stego-c 2>/dev/null || echo 'Not found')"
+          echo "Go CLI: $(ls -la bin/whitespace-stego-go 2>/dev/null || echo 'Not found')"
+          echo "Compiled CLI: $(ls -la bin/whitespace-stego-cli 2>/dev/null || echo 'Not found')"
+          
+          echo ""
+          echo "=== Python Backends ==="
+          python -c "
+          import whitespace_stego
+          print('Python backend: ✓')
+          try:
+              import whitespace_stego_rust
+              print('Rust backend: ✓')
+          except ImportError:
+              print('Rust backend: ❌')
+          try:
+              import whitespace_stego.c_backend
+              print('C backend: ✓')
+          except ImportError:
+              print('C backend: ❌')
+          "
+
+      - name: Run comprehensive test script
+        run: |
+          chmod +x test_scripts/comprehensive_test.sh
+          ./test_scripts/comprehensive_test.sh
+
+      - name: Run Python test suite
+        run: |
+          pytest tests/ -v --tb=short --maxfail=10
+
+      - name: Run Go tests
+        run: |
+          cd go
+          go test ./... -v
+          cd ..
+
+      - name: Run Rust tests
+        run: |
+          cd whitespace-stego-core
+          cargo test --release
+          cd ..
+
+      - name: Run C tests
+        run: |
+          cd c
+          make test
+          cd ..
+
+      - name: Generate test summary
+        run: |
+          echo "=== Test Summary ==="
+          echo "All implementations built and tested successfully"
+          echo "Cross-implementation compatibility verified"
+          echo "All backends functional"
+
+  # Performance benchmarks
+  performance-benchmarks:
+    name: Performance Benchmarks
+    runs-on: ubuntu-latest
+    if: github.event.inputs.build_type == 'all' || github.event.inputs.build_type == 'test-only'
+    needs: [build-all]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all binaries
+        uses: actions/download-artifact@v3
+        with:
+          path: bin/
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+          pip install -e .
+
+      - name: Run performance benchmarks
+        run: |
+          python benchmark_all_implementations.py
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v3
+        with:
+          name: benchmark-results
+          path: benchmark_results.json
+          retention-days: 30
+
+  # Security and cryptography tests
+  security-tests:
+    name: Security and Cryptography Tests
+    runs-on: ubuntu-latest
+    if: github.event.inputs.build_type == 'all' || github.event.inputs.build_type == 'test-only'
+    needs: [build-all]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+          pip install -e .
+
+      - name: Run security tests
+        run: |
+          pytest tests/test_30_security_and_cryptography.py -v --tb=short
+
+      - name: Run fuzz tests
+        run: |
+          pytest tests/test_40_fuzz_and_property.py -v --tb=short
+
+      - name: Run protocol tests
+        run: |
+          pytest tests/test_41_protocol_and_constants.py -v --tb=short
+
+  # Final summary
+  test-summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [build-all, docker-build, comprehensive-tests, performance-benchmarks, security-tests]
+    steps:
+      - name: Generate comprehensive summary
+        run: |
+          echo "=== Whitespace Steganography Build and Test Summary ==="
+          echo ""
+          echo "Build Results:"
+          echo "  Python Implementation: ${{ needs.build-all.result }}"
+          echo "  Rust Implementation: ${{ needs.build-all.result }}"
+          echo "  C Implementation: ${{ needs.build-all.result }}"
+          echo "  Go Implementation: ${{ needs.build-all.result }}"
+          echo "  Docker Build: ${{ needs.docker-build.result }}"
+          echo ""
+          echo "Test Results:"
+          echo "  Comprehensive Tests: ${{ needs.comprehensive-tests.result }}"
+          echo "  Performance Benchmarks: ${{ needs.performance-benchmarks.result }}"
+          echo "  Security Tests: ${{ needs.security-tests.result }}"
+          echo ""
+          
+          # Count successful and failed jobs
+          SUCCESS_COUNT=0
+          FAILED_COUNT=0
+          
+          for job in "build-all" "docker-build" "comprehensive-tests" "performance-benchmarks" "security-tests"; do
+            if [[ "${{ needs[needs.job].result }}" == "success" ]]; then
+              SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+            elif [[ "${{ needs[needs.job].result }}" == "failure" ]]; then
+              FAILED_COUNT=$((FAILED_COUNT + 1))
+            fi
+          done
+          
+          echo "Summary: $SUCCESS_COUNT successful, $FAILED_COUNT failed"
+          echo ""
+          
+          if [[ $FAILED_COUNT -eq 0 ]]; then
+            echo "🎉 All builds and tests passed successfully!"
+            echo "✅ All implementations are ready for deployment"
+            echo "✅ Cross-implementation compatibility verified"
+            echo "✅ Security and performance validated"
+            exit 0
+          else
+            echo "❌ Some builds or tests failed. Check individual job results for details."
+            exit 1
+          fi 

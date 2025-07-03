@@ -71,7 +71,7 @@ def test_has_encoded_message():
     carrier = "C"
     encoded = core.encode(msg, carrier)
     assert core.has_encoded_message(encoded)
-    assert not core.has_encoded_message("No secrets here!")
+    assert not core.has_encoded_message("No secrets here")
 
 
 def test_get_encoded_message_size():

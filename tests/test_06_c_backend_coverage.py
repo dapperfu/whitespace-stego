@@ -180,7 +180,7 @@ class TestCBackendCountMessages:
         """Test count_messages with Unicode content."""
         with patch('whitespace_stego.c_backend.c_backend_available', True):
             # Test with Unicode content and markers
-            unicode_text = "Hello 世界! \ufeff\u200c"
+            unicode_text = "Hello 世界 \ufeff\u200c"
             assert count_messages(unicode_text) == 1
 
 

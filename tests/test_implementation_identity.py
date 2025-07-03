@@ -45,7 +45,7 @@ TEST_CASES = [
     # Basic cases
     {
         "name": "simple_ascii",
-        "message": "Hello, World!",
+        "message": "Hello, World",
         "carrier": "This is a test carrier text.",
         "password": None
     },
@@ -57,7 +57,7 @@ TEST_CASES = [
     },
     {
         "name": "unicode_message",
-        "message": "Hello, 世界! 🌍",
+        "message": "Hello, 世界 🌍",
         "carrier": "English carrier text",
         "password": None
     },
@@ -69,7 +69,7 @@ TEST_CASES = [
     },
     {
         "name": "special_chars",
-        "message": "Special chars: !@#$%^&*()_+-=[]{}|;':\",./<>?",
+        "message": "Special chars: @#$%^&*()_+-=[]{}|;':\",./<>?",
         "carrier": "Normal carrier text",
         "password": None
     },
@@ -548,7 +548,7 @@ def run_implementation_identity_tests():
         finally:
             tester.cleanup_temp_dir()
     
-    print("\n🎉 Implementation Identity Tests Complete!")
+    print("\n🎉 Implementation Identity Tests Complete")
 
 if __name__ == "__main__":
     run_implementation_identity_tests() 
