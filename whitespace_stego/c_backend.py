@@ -10,8 +10,8 @@ import os
 import sys
 from typing import Optional, Union, List
 from pathlib import Path
-
 from .logger import setup_logger
+from .constants import START_MARKER, END_MARKER, ZERO_BIT, ONE_BIT
 
 # Create logger instance
 logger = setup_logger(__name__)

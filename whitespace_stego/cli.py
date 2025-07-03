@@ -9,8 +9,6 @@ import base64
 import logging
 
 from whitespace_stego.logger import setup_logger
-from .encode import encode_message
-from .decode import decode_message
 from .core import BadPasswordError
 
 # Set up logger to only write to stderr, not stdout

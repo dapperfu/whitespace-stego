@@ -28,7 +28,7 @@ COPY . /build
 # Install your Python package and dependencies in the venv
 RUN /opt/venv/bin/pip install .
 
-# Build the binary with PyInstaller entry point using venv's python
-RUN /opt/venv/bin/pyinstaller --onefile --name whitespace-stego-py whitespace_stego_main.py
+# Build the binary with PyInstaller using the spec file
+RUN /opt/venv/bin/pyinstaller whitespace_stego.spec
 
 # The resulting binary will be in /build/dist/whitespace-stego-py 

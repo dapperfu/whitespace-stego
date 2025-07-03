@@ -1,6 +1,7 @@
 import pytest
 import base64
 from whitespace_stego import core
+from whitespace_stego.constants import START_MARKER, END_MARKER, ZERO_BIT, ONE_BIT
 
 @pytest.mark.parametrize("message,carrier,password", [
     ("Hello", "World", None),
@@ -147,4 +148,5 @@ def test_multi_recipient_partial_decode_behavior():
     # Decoding with correct password for each message returns only that message
     assert core.decode(c3, password=p1) == m1
     assert core.decode(c3, password=p2) == m2
+    assert core.decode(c3, password=p3) == m3 
     assert core.decode(c3, password=p3) == m3 

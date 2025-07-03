@@ -70,10 +70,10 @@ go:
 	cp go/bin/whitespace-stego-go ${BIN_DIR}/
 
 # Build Python CLI binary using PyInstaller (local build)
-python-binary: venv install
+python-binary: venv install maturin-develop
 	@echo "Building Python CLI binary with PyInstaller..."
 	${VENV}/bin/pip install pyinstaller
-	${VENV}/bin/pyinstaller --onefile --name whitespace-stego-py whitespace_stego_main.py
+	${VENV}/bin/pyinstaller whitespace_stego.spec
 	mkdir -p ${BIN_DIR}
 	cp dist/whitespace-stego-py ${BIN_DIR}/
 

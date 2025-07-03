@@ -7,7 +7,7 @@ using zero-width Unicode characters in carrier text.
 import sys
 from typing import List, Optional
 
-from .core import encode, decode, count_messages
+from .core import encode, decode, BadPasswordError
 
 # Try to import Rust backend for better performance
 try:

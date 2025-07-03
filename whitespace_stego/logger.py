@@ -5,51 +5,31 @@ import sys
 from typing import Optional
 
 
-def setup_logger(
-    name: str, level: Optional[int] = None, verbose: bool = False
-) -> logging.Logger:
-    """Set up a logger with the given name and level.
+def setup_logger(name: str, level=logging.INFO, verbose=False):
+    """
+    Set up a logger with the given name and level.
 
     Parameters
     ----------
     name : str
-        The name of the logger.
-    level : Optional[int]
-        The logging level. If None, uses INFO.
-    verbose : bool
-        If True, output debug messages to stderr. If False, output to stdout.
+        Logger name.
+    level : int, optional
+        Logging level (default: logging.INFO).
+    verbose : bool, optional
+        If True, use verbose format (default: False).
 
     Returns
     -------
     logging.Logger
-        The configured logger instance.
+        Configured logger instance.
     """
     logger = logging.getLogger(name)
-
-    if level is None:
-        level = logging.INFO
-
-    logger.setLevel(level)
-
-    # Create console handler if none exists
     if not logger.handlers:
-        # Always use stderr for all log output to avoid interfering with Click's stdout
-        # Click handles user-facing output through click.echo() and click.secho()
-        handler = logging.StreamHandler(sys.stderr)
-        handler.setLevel(level)
-
-        # Create formatter
-        if verbose:
-            # Debug format for verbose mode
-            formatter = logging.Formatter("DEBUG: %(message)s")
-        else:
-            # Normal format for non-verbose mode
-            formatter = logging.Formatter(
-                "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-            )
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s' if verbose else '%(message)s'
+        )
         handler.setFormatter(formatter)
-
-        # Add handler to logger
         logger.addHandler(handler)
-
+    logger.setLevel(level)
     return logger

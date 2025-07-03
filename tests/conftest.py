@@ -1,5 +1,9 @@
 """
-Pytest configuration file that automatically loads the markdown report plugin.
+Pytest configuration file.
 """
 
-pytest_plugins = ["pytest_md_report"] 
+from whitespace_stego.constants import START_MARKER, END_MARKER, ZERO_BIT, ONE_BIT
+
+# No plugins needed for basic testing 
+
+# No plugins needed for basic testing 
