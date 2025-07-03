@@ -95,17 +95,16 @@ test_implementation() {
     # Encode
     case $impl in
         "python")
-            PYTHONPATH=src:. python3 -m whitespace_stego.cli encode \
-                --backend "$backend" \
+            PYTHONPATH=src:. python3 -m whitespace_stego.cli --backend "$backend" encode \
                 --message-file "$message_file" \
                 --carrier-file "$carrier_file" \
                 --output "$output_file" \
                 ${password:+--password "$password"}
             ;;
         "rust")
-            ./bin/whitespace-stego encode \
-                --message-file "$message_file" \
-                --carrier-file "$carrier_file" \
+            ./bin/whitespace-stego-rs encode \
+                --mf "$message_file" \
+                --cf "$carrier_file" \
                 --output "$output_file" \
                 ${password:+--password "$password"}
             ;;
@@ -124,16 +123,14 @@ test_implementation() {
                 ${password:+--password "$password"}
             ;;
         "pure-python")
-            .venv/bin/whitespace-stego encode \
-                --backend "$backend" \
+            .venv/bin/whitespace-stego --backend "$backend" encode \
                 --message-file "$message_file" \
                 --carrier-file "$carrier_file" \
                 --output "$output_file" \
                 ${password:+--password "$password"}
             ;;
         "compiled")
-            ./bin/whitespace-stego-py encode \
-                --backend "$backend" \
+            ./bin/whitespace-stego-py --backend "$backend" encode \
                 --message-file "$message_file" \
                 --carrier-file "$carrier_file" \
                 --output "$output_file" \
@@ -145,14 +142,13 @@ test_implementation() {
     local decoded_output
     case $impl in
         "python")
-            decoded_output=$(PYTHONPATH=src:. python3 -m whitespace_stego.cli decode \
-                --backend "$backend" \
+            decoded_output=$(PYTHONPATH=src:. python3 -m whitespace_stego.cli --backend "$backend" decode \
                 --carrier-file "$output_file" \
                 ${password:+--password "$password"})
             ;;
         "rust")
-            decoded_output=$(./bin/whitespace-stego decode \
-                --carrier-file "$output_file" \
+            decoded_output=$(./bin/whitespace-stego-rs decode \
+                --cf "$output_file" \
                 ${password:+--password "$password"})
             ;;
         "c")
@@ -171,14 +167,12 @@ test_implementation() {
                 ${password:+--password "$password"})
             ;;
         "pure-python")
-            decoded_output=$(.venv/bin/whitespace-stego decode \
-                --backend "$backend" \
+            decoded_output=$(.venv/bin/whitespace-stego --backend "$backend" decode \
                 --carrier-file "$output_file" \
                 ${password:+--password "$password"})
             ;;
         "compiled")
-            decoded_output=$(./bin/whitespace-stego-py decode \
-                --backend "$backend" \
+            decoded_output=$(./bin/whitespace-stego-py --backend "$backend" decode \
                 --carrier-file "$output_file" \
                 ${password:+--password "$password"})
             ;;
@@ -216,17 +210,16 @@ test_cross_compatibility() {
     # Encode with source implementation
     case $source_impl in
         "python")
-            PYTHONPATH=src:. python3 -m whitespace_stego.cli encode \
-                --backend "$source_backend" \
+            PYTHONPATH=src:. python3 -m whitespace_stego.cli --backend "$source_backend" encode \
                 --message-file "$message_file" \
                 --carrier-file "$carrier_file" \
                 --output "$temp_file" \
                 ${password:+--password "$password"}
             ;;
         "rust")
-            ./bin/whitespace-stego encode \
-                --message-file "$message_file" \
-                --carrier-file "$carrier_file" \
+            ./bin/whitespace-stego-rs encode \
+                --mf "$message_file" \
+                --cf "$carrier_file" \
                 --output "$temp_file" \
                 ${password:+--password "$password"}
             ;;
@@ -245,16 +238,14 @@ test_cross_compatibility() {
                 ${password:+--password "$password"}
             ;;
         "pure-python")
-            .venv/bin/whitespace-stego encode \
-                --backend "$source_backend" \
+            .venv/bin/whitespace-stego --backend "$source_backend" encode \
                 --message-file "$message_file" \
                 --carrier-file "$carrier_file" \
                 --output "$temp_file" \
                 ${password:+--password "$password"}
             ;;
         "compiled")
-            ./bin/whitespace-stego-py encode \
-                --backend "$source_backend" \
+            ./bin/whitespace-stego-py --backend "$source_backend" encode \
                 --message-file "$message_file" \
                 --carrier-file "$carrier_file" \
                 --output "$temp_file" \
@@ -266,14 +257,13 @@ test_cross_compatibility() {
     local decoded_output
     case $target_impl in
         "python")
-            decoded_output=$(PYTHONPATH=src:. python3 -m whitespace_stego.cli decode \
-                --backend "$target_backend" \
+            decoded_output=$(PYTHONPATH=src:. python3 -m whitespace_stego.cli --backend "$target_backend" decode \
                 --carrier-file "$temp_file" \
                 ${password:+--password "$password"})
             ;;
         "rust")
-            decoded_output=$(./bin/whitespace-stego decode \
-                --carrier-file "$temp_file" \
+            decoded_output=$(./bin/whitespace-stego-rs decode \
+                --cf "$temp_file" \
                 ${password:+--password "$password"})
             ;;
         "c")
@@ -292,14 +282,12 @@ test_cross_compatibility() {
                 ${password:+--password "$password"})
             ;;
         "pure-python")
-            decoded_output=$(.venv/bin/whitespace-stego decode \
-                --backend "$target_backend" \
+            decoded_output=$(.venv/bin/whitespace-stego --backend "$target_backend" decode \
                 --carrier-file "$temp_file" \
                 ${password:+--password "$password"})
             ;;
         "compiled")
-            decoded_output=$(./bin/whitespace-stego-py decode \
-                --backend "$target_backend" \
+            decoded_output=$(./bin/whitespace-stego-py --backend "$target_backend" decode \
                 --carrier-file "$temp_file" \
                 ${password:+--password "$password"})
             ;;
@@ -325,30 +313,26 @@ test_multiple_messages() {
     echo -e "${BLUE}Testing multiple messages in one carrier${NC}"
     
     # Start with first message
-    PYTHONPATH=src:. python3 -m whitespace_stego.cli encode \
-        --backend "python" \
+    PYTHONPATH=src:. python3 -m whitespace_stego.cli --backend "python" encode \
         --message-file "$TEST_DIR/multi_msg1.txt" \
         --carrier-file "$TEST_DIR/multi_carrier.txt" \
         --output "$TEST_DIR/multi_encoded1.txt"
     
     # Add second message
-    PYTHONPATH=src:. python3 -m whitespace_stego.cli encode \
-        --backend "python" \
+    PYTHONPATH=src:. python3 -m whitespace_stego.cli --backend "python" encode \
         --message-file "$TEST_DIR/multi_msg2.txt" \
         --carrier-file "$TEST_DIR/multi_encoded1.txt" \
         --output "$TEST_DIR/multi_encoded2.txt"
     
     # Add third message
-    PYTHONPATH=src:. python3 -m whitespace_stego.cli encode \
-        --backend "python" \
+    PYTHONPATH=src:. python3 -m whitespace_stego.cli --backend "python" encode \
         --message-file "$TEST_DIR/multi_msg3.txt" \
         --carrier-file "$TEST_DIR/multi_encoded2.txt" \
         --output "$TEST_DIR/multi_encoded3.txt"
     
     # Decode all messages
     local decoded_output
-    decoded_output=$(PYTHONPATH=src:. python3 -m whitespace_stego.cli decode \
-        --backend "python" \
+    decoded_output=$(PYTHONPATH=src:. python3 -m whitespace_stego.cli --backend "python" decode \
         --carrier-file "$TEST_DIR/multi_encoded3.txt")
     
     # Check if all messages are present
@@ -371,24 +355,21 @@ test_multi_recipient() {
     echo -e "${BLUE}Testing multiple password-protected messages for different recipients${NC}"
     
     # Encode message for Alice
-    PYTHONPATH=src:. python3 -m whitespace_stego.cli encode \
-        --backend "python" \
+    PYTHONPATH=src:. python3 -m whitespace_stego.cli --backend "python" encode \
         --message-file "$TEST_DIR/alice_msg.txt" \
         --carrier-file "$TEST_DIR/multi_carrier.txt" \
         --output "$TEST_DIR/alice_encoded.txt" \
         --password "alice_password"
     
     # Encode message for Bob in the same carrier
-    PYTHONPATH=src:. python3 -m whitespace_stego.cli encode \
-        --backend "python" \
+    PYTHONPATH=src:. python3 -m whitespace_stego.cli --backend "python" encode \
         --message-file "$TEST_DIR/bob_msg.txt" \
         --carrier-file "$TEST_DIR/alice_encoded.txt" \
         --output "$TEST_DIR/both_encoded.txt" \
         --password "bob_password"
     
     # Encode message for Charlie in the same carrier
-    PYTHONPATH=src:. python3 -m whitespace_stego.cli encode \
-        --backend "python" \
+    PYTHONPATH=src:. python3 -m whitespace_stego.cli --backend "python" encode \
         --message-file "$TEST_DIR/charlie_msg.txt" \
         --carrier-file "$TEST_DIR/both_encoded.txt" \
         --output "$TEST_DIR/all_encoded.txt" \
@@ -396,20 +377,17 @@ test_multi_recipient() {
     
     # Test that each recipient can only decode their own message
     local alice_output
-    alice_output=$(PYTHONPATH=src:. python3 -m whitespace_stego.cli decode \
-        --backend "python" \
+    alice_output=$(PYTHONPATH=src:. python3 -m whitespace_stego.cli --backend "python" decode \
         --carrier-file "$TEST_DIR/all_encoded.txt" \
         --password "alice_password")
     
     local bob_output
-    bob_output=$(PYTHONPATH=src:. python3 -m whitespace_stego.cli decode \
-        --backend "python" \
+    bob_output=$(PYTHONPATH=src:. python3 -m whitespace_stego.cli --backend "python" decode \
         --carrier-file "$TEST_DIR/all_encoded.txt" \
         --password "bob_password")
     
     local charlie_output
-    charlie_output=$(PYTHONPATH=src:. python3 -m whitespace_stego.cli decode \
-        --backend "python" \
+    charlie_output=$(PYTHONPATH=src:. python3 -m whitespace_stego.cli --backend "python" decode \
         --carrier-file "$TEST_DIR/all_encoded.txt" \
         --password "charlie_password")
     
@@ -443,8 +421,7 @@ test_multi_recipient() {
     
     # Test that wrong passwords don't work
     local wrong_output
-    wrong_output=$(PYTHONPATH=src:. python3 -m whitespace_stego.cli decode \
-        --backend "python" \
+    wrong_output=$(PYTHONPATH=src:. python3 -m whitespace_stego.cli --backend "python" decode \
         --carrier-file "$TEST_DIR/all_encoded.txt" \
         --password "wrong_password" 2>&1 || true)
     
