@@ -469,7 +469,7 @@ console.log(message);
 
 ### Core Functions
 
-#### `whitespace_stego.Encode(message, carrier, password)`
+#### `stego.Encode(message, carrier, password)`
 
 Encodes a message into carrier text.
 
@@ -486,10 +486,13 @@ Encodes a message into carrier text.
 ```go
 package main
 
-import "github.com/your-repo/whitespace-stego"
+import (
+    "fmt"
+    "whitespace-stego-go/src/stego"
+)
 
 func main() {
-    encoded, err := whitespace_stego.Encode("Secret message", "Hello world!", "password")
+    encoded, err := stego.Encode("Secret message", "Hello world!", "password")
     if err != nil {
         panic(err)
     }
@@ -497,7 +500,7 @@ func main() {
 }
 ```
 
-#### `whitespace_stego.Decode(carrier, password)`
+#### `stego.Decode(carrier, password)`
 
 Decodes a hidden message from carrier text.
 
@@ -513,14 +516,20 @@ Decodes a hidden message from carrier text.
 ```go
 package main
 
-import "github.com/your-repo/whitespace-stego"
+import (
+    "fmt"
+    "whitespace-stego-go/src/stego"
+)
 
 func main() {
-    message, err := whitespace_stego.Decode(encoded_text, "password")
+    messages, err := stego.Decode(encoded_text, "password")
     if err != nil {
         panic(err)
     }
-    fmt.Println(message)
+    // Go returns a slice of strings (multiple messages)
+    for _, message := range messages {
+        fmt.Println(message)
+    }
 }
 ```
 
@@ -537,10 +546,11 @@ whitespace-stego-go decode -cf encoded.txt -o decoded.txt
 ```
 
 **Options:**
-- `-m`: Message to encode
-- `-cf`: Carrier file
-- `-o`: Output file
-- `-p`: Password for encryption/decryption
+- `-m, -message`: Message to encode (mutually exclusive with -mf/-message-file)
+- `-mf, -message-file`: Message file path (mutually exclusive with -m/-message)
+- `-cf, -carrier-file`: Carrier file path
+- `-o, -output`: Output file path (default: stdout)
+- `-p, -password`: Password for encryption/decryption
 
 ## Cross-Language Compatibility
 
