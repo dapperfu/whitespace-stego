@@ -102,4 +102,4 @@ mod tests {
 
         assert_eq!(results, vec!["LINE1", "LINE2", "LINE3"]);
     }
-} 
+}

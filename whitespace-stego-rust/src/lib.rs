@@ -1,7 +1,7 @@
-use pyo3::prelude::*;
 use pyo3::exceptions::PyValueError;
-use whitespace_stego_core::{encode, decode, decode_all, count_messages, StegoError};
+use pyo3::prelude::*;
 use whitespace_stego_core::decode::decode_debug_log_only;
+use whitespace_stego_core::{count_messages, decode, decode_all, encode, StegoError};
 
 /// A Python module implemented in Rust.
 #[pymodule]
@@ -63,21 +63,21 @@ mod tests {
         let message1 = "First message";
         let message2 = "Second message";
         let carrier = "Carrier text";
-        
+
         // Encode first message
         let encoded1 = encode_py(message1, carrier, None).unwrap();
-        
+
         // Encode second message
         let encoded2 = encode_py(message2, &encoded1, None).unwrap();
-        
+
         // Decode all messages
         let decoded_all = decode_all_py(&encoded2, None).unwrap();
         assert_eq!(decoded_all.len(), 2);
         assert_eq!(decoded_all[0], message1);
         assert_eq!(decoded_all[1], message2);
-        
+
         // Decode as single string (should be joined with newlines)
         let decoded_single = decode_py(&encoded2, None).unwrap();
         assert_eq!(decoded_single, format!("{}\n{}", message1, message2));
     }
-} 
+}

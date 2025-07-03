@@ -158,7 +158,14 @@ fn main() {
             if interactive {
                 encode::interactive_encode()
             } else {
-                encode::encode_command(message, message_file, carrier, carrier_file, password, output)
+                encode::encode_command(
+                    message,
+                    message_file,
+                    carrier,
+                    carrier_file,
+                    password,
+                    output,
+                )
             }
         }
 
@@ -184,13 +191,11 @@ fn main() {
             carrier,
             carrier_file,
             output_dir,
-        } => {
-            commands::extract::extract_command(carrier, carrier_file, output_dir)
-        }
+        } => commands::extract::extract_command(carrier, carrier_file, output_dir),
     };
 
     if let Err(e) = result {
         display::error(&format!("Error: {}", e));
         process::exit(1);
     }
-} 
+}

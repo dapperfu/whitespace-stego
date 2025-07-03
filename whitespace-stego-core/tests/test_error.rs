@@ -4,4 +4,4 @@ use whitespace_stego_core::error::*;
 mod tests {
     use super::*;
     // ... (copy all tests from src/error.rs #[cfg(test)] mod)
-} 
+}

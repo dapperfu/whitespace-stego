@@ -6,7 +6,7 @@
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
 use regex::Regex;
 
-use crate::constants::{START_MARKER, END_MARKER, ZERO_BIT, ONE_BIT};
+use crate::constants::{END_MARKER, ONE_BIT, START_MARKER, ZERO_BIT};
 use crate::crypto::{encrypt_data, is_encrypted};
 use crate::error::StegoError;
 
@@ -68,15 +68,19 @@ fn find_next_slot(carrier: &str) -> usize {
     let end_escaped = regex::escape(&END_MARKER.to_string());
     let pattern = Regex::new(&format!("{}.*?{}", start_escaped, end_escaped)).unwrap();
     let cleaned_carrier = pattern.replace_all(carrier, "").to_string();
-    
+
     // Count how many messages are already encoded
     let existing_messages = count_message_pairs(carrier);
-    
+
     // If no existing messages, place after first character
     if existing_messages == 0 {
-        return if cleaned_carrier.chars().count() > 1 { 1 } else { 0 };
+        return if cleaned_carrier.chars().count() > 1 {
+            1
+        } else {
+            0
+        };
     }
-    
+
     // For subsequent messages, place in slots between characters
     // until we reach the last character, then place before the last character
     let char_count = cleaned_carrier.chars().count();
@@ -103,7 +107,7 @@ fn insert_message_at_position(carrier: &str, encoded_message: &str, position: us
     let end_escaped = regex::escape(&END_MARKER.to_string());
     let pattern = Regex::new(&format!("{}.*?{}", start_escaped, end_escaped)).unwrap();
     let cleaned_carrier = pattern.replace_all(carrier, "").to_string();
-    
+
     // Insert the encoded message at the correct position in the cleaned carrier
     let mut new_carrier = String::new();
     if position == 0 {
@@ -122,18 +126,18 @@ fn insert_message_at_position(carrier: &str, encoded_message: &str, position: us
         }
         new_carrier = result;
     }
-    
+
     // Now, re-insert all previously encoded messages at their original positions
     let mut result = new_carrier;
     let matches: Vec<_> = pattern.find_iter(carrier).collect();
     let mut offset = 0;
-    
+
     for mat in matches {
         // Find the position in the cleaned carrier where this encoded message was originally
         let pre = &carrier[..mat.start()];
         let cleaned_pre = pattern.replace_all(pre, "").to_string();
         let insert_pos = cleaned_pre.chars().count() + offset;
-        
+
         // Insert at the correct character position
         let chars: Vec<char> = result.chars().collect();
         let mut new_result = String::new();
@@ -149,7 +153,7 @@ fn insert_message_at_position(carrier: &str, encoded_message: &str, position: us
         result = new_result;
         offset += mat.as_str().chars().count();
     }
-    
+
     result
 }
 
@@ -179,15 +183,17 @@ pub fn encode(message: &str, carrier: &str, password: Option<&str>) -> Result<St
             "🤔 There's no point in encoding nothing! Even a blank canvas needs paint, and you're trying to hide invisible ink in invisible ink. Try again with an actual message!"
         ));
     }
-    
-    // Base64 encode the message
-    let encoded = BASE64.encode(message.as_bytes());
-    let mut data = encoded.as_bytes().to_vec();
 
-    // Encrypt if password provided
-    if let Some(pwd) = password {
-        data = encrypt_data(&data, pwd)?;
-    }
+    // Encrypt if password provided, then base64 encode
+    let data = if let Some(pwd) = password {
+        // Encrypt the original message first
+        let encrypted = encrypt_data(message.as_bytes(), pwd)?;
+        // Base64 encode the encrypted data to convert random bytes to safe ASCII
+        BASE64.encode(&encrypted).into_bytes()
+    } else {
+        // For non-password messages, base64 encode the original message
+        BASE64.encode(message.as_bytes()).into_bytes()
+    };
 
     // Convert to zero-width characters
     let zero_width = encode_binary(&data);
@@ -200,10 +206,10 @@ pub fn encode(message: &str, carrier: &str, password: Option<&str>) -> Result<St
 
     // Find the next available slot for this message
     let slot_position = find_next_slot(carrier);
-    
+
     // Insert the message at the appropriate position
     let result = insert_message_at_position(carrier, &encoded_message, slot_position);
-    
+
     Ok(result)
 }
 
@@ -228,11 +234,38 @@ pub fn has_encoded_message(text: &str) -> bool {
 pub fn get_encoded_message_size(text: &str) -> Option<usize> {
     let start = text.find(START_MARKER)?;
     let end = text.find(END_MARKER)?;
-    
+
     if end <= start {
         return None;
     }
-    
-    let encoded = &text[start + START_MARKER.len()..end];
+
+    // Use char_indices to find the correct UTF-8 boundaries
+    let mut start_char_pos = 0;
+    let mut end_char_pos = 0;
+    let mut found_start = false;
+    let mut found_end = false;
+
+    for (char_pos, (byte_pos, ch)) in text.char_indices().enumerate() {
+        if byte_pos == start && !found_start {
+            start_char_pos = char_pos;
+            found_start = true;
+        }
+        if byte_pos == end && !found_end {
+            end_char_pos = char_pos;
+            found_end = true;
+            break;
+        }
+    }
+
+    if !found_start || !found_end {
+        return None;
+    }
+
+    // Extract the encoded part using char positions
+    let encoded: String = text
+        .chars()
+        .skip(start_char_pos + 1)
+        .take(end_char_pos - start_char_pos - 1)
+        .collect();
     Some(encoded.len() / 8) // Each byte is encoded as 8 zero-width characters
-} 
+}

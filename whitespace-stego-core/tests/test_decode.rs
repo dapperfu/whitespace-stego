@@ -4,4 +4,4 @@ use whitespace_stego_core::*;
 mod tests {
     use super::*;
     // ... (copy all tests from src/decode.rs #[cfg(test)] mod)
-} 
+}

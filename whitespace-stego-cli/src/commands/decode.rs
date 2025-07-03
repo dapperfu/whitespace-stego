@@ -24,8 +24,15 @@ pub fn decode_command(
     // Read carrier
     if let Some(ref carrier) = carrier {
         eprintln!("[DEBUG] Rust CLI decode carrier repr: {:?}", carrier);
-        let codepoints: Vec<String> = carrier.chars().take(40).map(|c| format!("0x{:x}", c as u32)).collect();
-        eprintln!("[DEBUG] Rust CLI decode carrier codepoints: {:?}", codepoints);
+        let codepoints: Vec<String> = carrier
+            .chars()
+            .take(40)
+            .map(|c| format!("0x{:x}", c as u32))
+            .collect();
+        eprintln!(
+            "[DEBUG] Rust CLI decode carrier codepoints: {:?}",
+            codepoints
+        );
     }
     let carrier_content = carrier
         .or_else(|| {
@@ -38,8 +45,14 @@ pub fn decode_command(
     // Get password
     let password_content = password.as_deref();
 
-    display::verbose(&format!("Decoding carrier ({} chars)", carrier_content.len()));
-    display::verbose(&format!("Using password: {}", password_content.unwrap_or("None")));
+    display::verbose(&format!(
+        "Decoding carrier ({} chars)",
+        carrier_content.len()
+    ));
+    display::verbose(&format!(
+        "Using password: {}",
+        password_content.unwrap_or("None")
+    ));
 
     // Decode message
     let decoded = decode(&carrier_content, password_content)
@@ -60,7 +73,7 @@ pub fn interactive_decode() -> Result<()> {
 
     print!("Enter carrier text: ");
     io::stdout().flush()?;
-    
+
     let mut carrier = String::new();
     io::stdin().read_line(&mut carrier)?;
     let carrier = carrier.trim();
@@ -71,19 +84,22 @@ pub fn interactive_decode() -> Result<()> {
 
     print!("Enter password (optional): ");
     io::stdout().flush()?;
-    
+
     let mut password = String::new();
     io::stdin().read_line(&mut password)?;
     let password = password.trim();
 
-    let password = if password.is_empty() { None } else { Some(password) };
+    let password = if password.is_empty() {
+        None
+    } else {
+        Some(password)
+    };
 
     display::verbose(&format!("Decoding carrier ({} chars)", carrier.len()));
     display::verbose(&format!("Using password: {}", password.unwrap_or("None")));
 
     // Decode message
-    let decoded = decode(carrier, password)
-        .map_err(|e| anyhow!("Decoding failed: {}", e))?;
+    let decoded = decode(carrier, password).map_err(|e| anyhow!("Decoding failed: {}", e))?;
 
     display::verbose("Message successfully decoded");
 
@@ -93,4 +109,4 @@ pub fn interactive_decode() -> Result<()> {
 
     display::info("Message decoded successfully");
     Ok(())
-} 
+}

@@ -1,9 +1,9 @@
-use clap::{Command, Arg};
-use std::error::Error;
-use log::{info, LevelFilter};
+use clap::{Arg, Command};
 use env_logger;
+use log::{info, LevelFilter};
+use std::error::Error;
 use std::fs;
-use whitespace_stego_core::{encode as core_encode, decode as core_decode};
+use whitespace_stego_core::{decode as core_decode, encode as core_encode};
 
 fn main() -> Result<(), Box<dyn Error>> {
     env_logger::builder().filter_level(LevelFilter::Info).init();
@@ -14,57 +14,77 @@ fn main() -> Result<(), Box<dyn Error>> {
         .subcommand(
             Command::new("encode")
                 .about("Encode a message into a carrier")
-                .arg(Arg::new("message")
-                    .short('m')
-                    .long("message")
-                    .num_args(1)
-                    .help("Message to encode"))
-                .arg(Arg::new("message_file")
-                    .long("mf")
-                    .num_args(1)
-                    .help("File containing the message to encode"))
-                .arg(Arg::new("carrier")
-                    .short('c')
-                    .long("carrier")
-                    .num_args(1)
-                    .help("Carrier text"))
-                .arg(Arg::new("carrier_file")
-                    .long("cf")
-                    .num_args(1)
-                    .help("File containing the carrier text"))
-                .arg(Arg::new("password")
-                    .short('p')
-                    .long("password")
-                    .num_args(1)
-                    .help("Password for encryption"))
-                .arg(Arg::new("output")
-                    .short('o')
-                    .long("output")
-                    .num_args(1)
-                    .help("Output file (default: stdout)")),
+                .arg(
+                    Arg::new("message")
+                        .short('m')
+                        .long("message")
+                        .num_args(1)
+                        .help("Message to encode"),
+                )
+                .arg(
+                    Arg::new("message_file")
+                        .long("mf")
+                        .num_args(1)
+                        .help("File containing the message to encode"),
+                )
+                .arg(
+                    Arg::new("carrier")
+                        .short('c')
+                        .long("carrier")
+                        .num_args(1)
+                        .help("Carrier text"),
+                )
+                .arg(
+                    Arg::new("carrier_file")
+                        .long("cf")
+                        .num_args(1)
+                        .help("File containing the carrier text"),
+                )
+                .arg(
+                    Arg::new("password")
+                        .short('p')
+                        .long("password")
+                        .num_args(1)
+                        .help("Password for encryption"),
+                )
+                .arg(
+                    Arg::new("output")
+                        .short('o')
+                        .long("output")
+                        .num_args(1)
+                        .help("Output file (default: stdout)"),
+                ),
         )
         .subcommand(
             Command::new("decode")
                 .about("Decode a message from a carrier")
-                .arg(Arg::new("carrier")
-                    .short('c')
-                    .long("carrier")
-                    .num_args(1)
-                    .help("Carrier text"))
-                .arg(Arg::new("carrier_file")
-                    .long("cf")
-                    .num_args(1)
-                    .help("File containing the carrier text"))
-                .arg(Arg::new("password")
-                    .short('p')
-                    .long("password")
-                    .num_args(1)
-                    .help("Password for decryption"))
-                .arg(Arg::new("output")
-                    .short('o')
-                    .long("output")
-                    .num_args(1)
-                    .help("Output file (default: stdout)")),
+                .arg(
+                    Arg::new("carrier")
+                        .short('c')
+                        .long("carrier")
+                        .num_args(1)
+                        .help("Carrier text"),
+                )
+                .arg(
+                    Arg::new("carrier_file")
+                        .long("cf")
+                        .num_args(1)
+                        .help("File containing the carrier text"),
+                )
+                .arg(
+                    Arg::new("password")
+                        .short('p')
+                        .long("password")
+                        .num_args(1)
+                        .help("Password for decryption"),
+                )
+                .arg(
+                    Arg::new("output")
+                        .short('o')
+                        .long("output")
+                        .num_args(1)
+                        .help("Output file (default: stdout)"),
+                ),
         )
         .get_matches();
 
@@ -104,8 +124,8 @@ fn main() -> Result<(), Box<dyn Error>> {
             };
             let password = sub_m.get_one::<String>("password").map(|s| s.as_str());
             let output = sub_m.get_one::<String>("output").map(|s| s.as_str());
-            let decoded = core_decode(&carrier, password)
-                .map_err(|e| format!("Decoding failed: {}", e))?;
+            let decoded =
+                core_decode(&carrier, password).map_err(|e| format!("Decoding failed: {}", e))?;
             if let Some(out) = output {
                 fs::write(out, &decoded)?;
             } else {
@@ -178,4 +198,4 @@ mod tests {
         let result = core_decode(&encoded, Some(wrong_password));
         assert!(result.is_err());
     }
-} 
+}

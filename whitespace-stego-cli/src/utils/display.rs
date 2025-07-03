@@ -3,8 +3,8 @@
 //! This module provides utilities for displaying messages to the user
 //! with different levels of verbosity and formatting.
 
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::io::Write;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 static VERBOSE: AtomicBool = AtomicBool::new(false);
 static QUIET: AtomicBool = AtomicBool::new(false);
@@ -99,7 +99,7 @@ mod tests {
     fn test_verbose_mode() {
         set_verbose(false);
         assert!(!is_verbose());
-        
+
         set_verbose(true);
         assert!(is_verbose());
     }
@@ -108,7 +108,7 @@ mod tests {
     fn test_quiet_mode() {
         set_quiet(false);
         assert!(!is_quiet());
-        
+
         set_quiet(true);
         assert!(is_quiet());
     }
@@ -117,8 +117,8 @@ mod tests {
     fn test_progress_mode() {
         set_progress(false);
         assert!(!is_progress());
-        
+
         set_progress(true);
         assert!(is_progress());
     }
-} 
+}

@@ -11,4 +11,4 @@ pub mod extract;
 pub use analyze::analyze_command;
 pub use decode::{decode_command, interactive_decode};
 pub use encode::{encode_command, interactive_encode};
-pub use extract::extract_command; 
+pub use extract::extract_command;

@@ -1,6 +1,6 @@
+use crate::{decode, encode, extract_encoded};
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
-use crate::{decode, encode, extract_encoded};
 
 /// Python error type for steganography operations
 #[pyclass]
@@ -51,4 +51,4 @@ pub fn add_python_bindings(m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(py_extract_encoded, m)?)?;
     m.add_class::<PyStegoError>()?;
     Ok(())
-} 
+}

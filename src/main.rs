@@ -10,7 +10,7 @@ struct Cli {
     /// Enable verbose output
     #[arg(short, long)]
     verbose: bool,
-    
+
     #[command(subcommand)]
     command: Commands,
 }
@@ -126,7 +126,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             if cli.verbose {
                 eprintln!("DEBUG: Encoding message");
-                eprintln!("DEBUG: Using password: {}", password_content.unwrap_or("None"));
+                eprintln!(
+                    "DEBUG: Using password: {}",
+                    password_content.unwrap_or("None")
+                );
             }
 
             // Encode message
@@ -164,7 +167,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             if cli.verbose {
                 eprintln!("DEBUG: Decoding carrier");
-                eprintln!("DEBUG: Using password: {}", password_content.unwrap_or("None"));
+                eprintln!(
+                    "DEBUG: Using password: {}",
+                    password_content.unwrap_or("None")
+                );
             }
 
             // Decode message

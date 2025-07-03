@@ -114,17 +114,16 @@ def encode(message: str, carrier: str = "", password: Optional[str] = None) -> s
     if not message:
         raise ValueError("Message must not be empty.")
     
-    # Base64 encode the message first (same as Rust/C implementations)
-    import base64
-    encoded = base64.b64encode(message.encode('utf-8'))
-    
     if password:
-        # Encrypt the base64-encoded message
-        encrypted = encrypt_data(encoded, password)
-        payload = encrypted
+        # Encrypt the original message first
+        encrypted = encrypt_data(message.encode('utf-8'), password)
+        # Base64 encode the encrypted data to convert random bytes to safe ASCII
+        import base64
+        payload = base64.b64encode(encrypted)
     else:
-        # Use the base64-encoded message directly
-        payload = encoded
+        # For non-password messages, base64 encode the original message
+        import base64
+        payload = base64.b64encode(message.encode('utf-8'))
     
     zw = _encode_binary(payload)
     encoded_message = START_MARKER + zw + END_MARKER
@@ -152,10 +151,10 @@ def decode(carrier: str, password: Optional[str] = None) -> Union[str, List[str]
             if password:
                 import base64
                 try:
-                    # Decrypt the data
-                    decrypted = decrypt_data(data, password)
-                    # Base64 decode the decrypted data
-                    decoded = base64.b64decode(decrypted)
+                    # Base64 decode the data to get encrypted bytes
+                    encrypted = base64.b64decode(data)
+                    # Decrypt the encrypted bytes
+                    decoded = decrypt_data(encrypted, password)
                 except Exception:
                     password_errors += 1
                     continue

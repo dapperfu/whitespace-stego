@@ -202,19 +202,20 @@ func insertMessageAtPosition(carrier string, encodedMessage string, position int
 
 // Encode encodes a message into a carrier using zero-width characters
 func Encode(message string, carrier string, password string) (string, error) {
-	// Base64 encode the message
-	encodedBytes := base64.StdEncoding.EncodeToString([]byte(message))
-
-	// Encrypt if password provided
+	// Encrypt if password provided, then base64 encode
 	var finalData []byte
 	var err error
 	if password != "" {
-		finalData, err = encryptData([]byte(encodedBytes), password)
+		// Encrypt the original message first
+		finalData, err = encryptData([]byte(message), password)
 		if err != nil {
 			return "", fmt.Errorf("failed to encrypt data: %w", err)
 		}
+		// Base64 encode the encrypted data to convert random bytes to safe ASCII
+		finalData = []byte(base64.StdEncoding.EncodeToString(finalData))
 	} else {
-		finalData = []byte(encodedBytes)
+		// For non-password messages, base64 encode the original message
+		finalData = []byte(base64.StdEncoding.EncodeToString([]byte(message)))
 	}
 
 	// Encode to binary
@@ -270,23 +271,29 @@ func Decode(carrier string, password string) ([]string, error) {
 		// Decrypt if password provided
 		var finalData []byte
 		if password != "" {
-			finalData, err = decryptData(decodedBytes, password)
+			// Base64 decode the data to get encrypted bytes
+			encryptedBytes, err := base64.StdEncoding.DecodeString(string(decodedBytes))
 			if err != nil {
-				// Try without password
-				finalData = decodedBytes
+				pos = end + len(string(END_MARKER))
+				continue // Skip invalid messages
 			}
+			// Decrypt the encrypted bytes
+			finalData, err = decryptData(encryptedBytes, password)
+			if err != nil {
+				pos = end + len(string(END_MARKER))
+				continue // Skip invalid messages
+			}
+			// The decrypted data is the original message
 		} else {
-			finalData = decodedBytes
+			// For non-password messages, base64 decode the data directly
+			finalData, err = base64.StdEncoding.DecodeString(string(decodedBytes))
+			if err != nil {
+				pos = end + len(string(END_MARKER))
+				continue // Skip invalid messages
+			}
 		}
 
-		// Base64 decode
-		decodedBytes, err = base64.StdEncoding.DecodeString(string(finalData))
-		if err != nil {
-			pos = end + len(string(END_MARKER))
-			continue // Skip invalid messages
-		}
-
-		messages = append(messages, string(decodedBytes))
+		messages = append(messages, string(finalData))
 		pos = end + len(string(END_MARKER))
 	}
 

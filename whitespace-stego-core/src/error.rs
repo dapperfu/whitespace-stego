@@ -150,4 +150,4 @@ mod tests {
         let stego_error: StegoError = base64_error.into();
         assert!(matches!(stego_error, StegoError::Base64Error { .. }));
     }
-} 
+}

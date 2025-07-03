@@ -84,26 +84,23 @@ bool whitespace_stego_encode(const char* carrier, size_t carrier_len, const char
     size_t data_len = 0;
     char* b64 = NULL;
 
-    // Base64 encode the message first (same as Python/Rust implementations)
-    if (!to_base64((const unsigned char*)message, strlen(message), &b64)) {
-        return false;
-    }
-
     // Encrypt if password
     if (password && password[0]) {
-        // Encrypt the base64-encoded message
-        if (!crypto_encrypt((const unsigned char*)b64, strlen(b64), password, &data, &data_len)) {
-            utils_free(b64);
+        // Encrypt the original message first
+        if (!crypto_encrypt((const unsigned char*)message, strlen(message), password, &data, &data_len)) {
             return false;
         }
-        utils_free(b64);
-        // Use the encrypted data as payload
-        b64 = NULL;  // Don't use b64 anymore, use data directly
+        // Base64 encode the encrypted data to convert random bytes to safe ASCII
+        if (!to_base64(data, data_len, &b64)) {
+            crypto_free(data);
+            return false;
+        }
+        crypto_free(data);
     } else {
-        // Use the base64-encoded message directly
-        data = (unsigned char*)b64;
-        data_len = strlen(b64);
-        b64 = NULL;  // Don't free b64, it's now data
+        // For non-password messages, base64 encode the original message
+        if (!to_base64((const unsigned char*)message, strlen(message), &b64)) {
+            return false;
+        }
     }
 
     // Encode base64 string to zero-width
@@ -316,37 +313,60 @@ bool whitespace_stego_decode_all(const char* carrier, size_t carrier_len, const 
         // Decrypt if password
         unsigned char* plain = NULL;
         size_t plain_len = 0;
+        unsigned char* encrypted = NULL;
+        size_t encrypted_len = 0;
+        unsigned char* decoded = NULL;
+        size_t decoded_len = 0;
+        char* result = NULL;
         bool decrypt_success = true;
         
         if (password && password[0]) {
-            // For password-protected messages, the data contains encrypted base64-encoded message
-            // Decrypt the data first
-            if (!crypto_decrypt(b64_bytes, b64_len, password, &plain, &plain_len)) {
+            // For password-protected messages, the data contains base64-encoded encrypted message
+            // Base64 decode the data to get encrypted bytes
+            if (!from_base64(b64_str, &encrypted, &encrypted_len)) {
                 decrypt_success = false;
             } else {
-                // The decrypted data is base64-encoded, decode it
-                unsigned char* decoded = NULL;
-                size_t decoded_len = 0;
-                if (!from_base64((char*)plain, &decoded, &decoded_len)) {
+                // Decrypt the encrypted bytes
+                if (!crypto_decrypt(encrypted, encrypted_len, password, &plain, &plain_len)) {
                     decrypt_success = false;
-                    crypto_free(plain);
+                    utils_free(encrypted);
                 } else {
+                    // The decrypted data is the original message
+                    result = malloc(plain_len + 1);
+                    if (result) {
+                        memcpy(result, plain, plain_len);
+                        result[plain_len] = '\0';
+                    }
                     crypto_free(plain);
-                    plain = decoded;
-                    plain_len = decoded_len;
+                    utils_free(encrypted);
                 }
             }
-            // Free b64_bytes after using it
-            free(b64_bytes);
         } else {
-            // For non-password messages, the data is base64-encoded message
-            if (!from_base64(b64_str, &plain, &plain_len)) {
+            // For non-password messages, base64 decode the data directly
+            if (!from_base64(b64_str, &decoded, &decoded_len)) {
                 decrypt_success = false;
+            } else {
+                result = malloc(decoded_len + 1);
+                if (result) {
+                    memcpy(result, decoded, decoded_len);
+                    result[decoded_len] = '\0';
+                }
+                utils_free(decoded);
             }
-            // Free b64_bytes after using it
-            free(b64_bytes);
         }
         
+        if (result) {
+            // Copy to result as null-terminated UTF-8 string
+            char* message = malloc(strlen(result) + 1);
+            if (message) {
+                strcpy(message, result);
+                messages[message_count++] = message;
+            }
+            free(result);
+        }
+        
+        // Free allocated memory
+        free(b64_bytes);
         free(b64_str);
         
         if (!decrypt_success) {
@@ -354,17 +374,6 @@ bool whitespace_stego_decode_all(const char* carrier, size_t carrier_len, const 
             start_idx++;
             end_idx++;
             continue;
-        }
-        
-        if (plain) {
-            // Copy to result as null-terminated UTF-8 string
-            char* message = malloc(plain_len + 1);
-            if (message) {
-                memcpy(message, plain, plain_len);
-                message[plain_len] = '\0';
-                messages[message_count++] = message;
-            }
-            crypto_free(plain);
         }
         
         // Move to next pair

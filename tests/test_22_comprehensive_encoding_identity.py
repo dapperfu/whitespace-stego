@@ -331,17 +331,23 @@ class TestComprehensiveEncodingIdentity:
                             '-p', password
                         ]
                     elif decoder_name == 'c-standalone':
+                        # C binary requires output file
+                        decoded_output_path = os.path.join(tmpdir, f'decoded_{encoder_name}_by_{decoder_name}.txt')
                         decode_cmd = [
                             'bin/whitespace-stego-c', 
                             'decode', 
                             '--carrier-file', test_input_path, 
+                            '--output', decoded_output_path,
                             '--password', password
                         ]
                     elif decoder_name == 'go-standalone':
+                        # Go binary outputs to file to avoid binary data issues
+                        decoded_output_path = os.path.join(tmpdir, f'decoded_{encoder_name}_by_{decoder_name}.txt')
                         decode_cmd = [
                             'bin/whitespace-stego-go', 
                             'decode', 
                             '-cf', test_input_path, 
+                            '-o', decoded_output_path,
                             '-p', password
                         ]
                     elif decoder_name == 'rs-standalone':
@@ -356,7 +362,13 @@ class TestComprehensiveEncodingIdentity:
                     
                     try:
                         result = subprocess.run(decode_cmd, capture_output=True, text=True, check=True)
-                        decoded_message = result.stdout.strip()
+                        
+                        # For C binary, read from output file; for others, use stdout
+                        if decoder_name == 'c-standalone':
+                            with open(decoded_output_path, 'r', encoding='utf-8') as f:
+                                decoded_message = f.read().strip()
+                        else:
+                            decoded_message = result.stdout.strip()
                         
                         if message in decoded_message:
                             print(f"  ✓ {decoder_name} can decode {encoder_name} output")

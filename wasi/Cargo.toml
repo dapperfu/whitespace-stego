@@ -1,23 +1,19 @@
 [package]
 name = "whitespace-stego-wasi"
-version = "0.1.0"
-edition = "2021"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
 description = "Whitespace steganography WASI implementation"
-license = "MIT"
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
 
 [dependencies]
-aes = "0.7"
-block-modes = "0.8"
-getrandom = "0.2"
-base64 = "0.21"
-hmac = "0.12"
-sha2 = "0.10"
-thiserror = "1.0"
+whitespace-stego-core = { path = "../whitespace-stego-core" }
 wasm-bindgen = "0.2"
 js-sys = "0.3"
 web-sys = { version = "0.3", features = ["console"] }
-block-padding = "0.2"
-cipher = "0.3"
 
 [lib]
 crate-type = ["cdylib"]

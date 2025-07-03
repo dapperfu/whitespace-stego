@@ -31,11 +31,14 @@ pub fn extract_command(
         })
         .ok_or_else(|| anyhow!("No carrier provided. Use --carrier or --carrier-file"))?;
 
-    display::verbose(&format!("Extracting from carrier ({} chars)", carrier_content.len()));
+    display::verbose(&format!(
+        "Extracting from carrier ({} chars)",
+        carrier_content.len()
+    ));
 
     // Extract encoded message and remaining carrier
-    let (encoded_message, remaining_carrier) = extract_encoded(&carrier_content)
-        .map_err(|e| anyhow!("Extraction failed: {}", e))?;
+    let (encoded_message, remaining_carrier) =
+        extract_encoded(&carrier_content).map_err(|e| anyhow!("Extraction failed: {}", e))?;
 
     display::verbose("Successfully extracted encoded message and remaining carrier");
 
@@ -43,15 +46,21 @@ pub fn extract_command(
     if let Some(output_dir) = output_dir {
         // Write to files in output directory
         fs::create_dir_all(&output_dir)?;
-        
+
         let encoded_file = output_dir.join("encoded_message.txt");
         let carrier_file = output_dir.join("remaining_carrier.txt");
-        
+
         fs::write(&encoded_file, &encoded_message)?;
         fs::write(&carrier_file, &remaining_carrier)?;
-        
-        display::info(&format!("Encoded message written to: {}", encoded_file.display()));
-        display::info(&format!("Remaining carrier written to: {}", carrier_file.display()));
+
+        display::info(&format!(
+            "Encoded message written to: {}",
+            encoded_file.display()
+        ));
+        display::info(&format!(
+            "Remaining carrier written to: {}",
+            carrier_file.display()
+        ));
     } else {
         // Output to stdout
         println!("=== ENCODED MESSAGE ===");
@@ -63,4 +72,4 @@ pub fn extract_command(
 
     display::info("Extraction completed successfully");
     Ok(())
-} 
+}

@@ -4,4 +4,4 @@ use whitespace_stego_core::constants::*;
 mod tests {
     use super::*;
     // ... (copy all tests from src/constants.rs #[cfg(test)] mod)
-} 
+}

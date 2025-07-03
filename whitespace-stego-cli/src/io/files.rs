@@ -20,10 +20,8 @@ use std::path::PathBuf;
 /// Returns an error if the file cannot be read or if stdin reading fails
 pub fn read_file_or_stdin(path: Option<&PathBuf>) -> Result<String> {
     match path {
-        Some(path) => {
-            fs::read_to_string(path)
-                .map_err(|e| anyhow!("Failed to read file '{}': {}", path.display(), e))
-        }
+        Some(path) => fs::read_to_string(path)
+            .map_err(|e| anyhow!("Failed to read file '{}': {}", path.display(), e)),
         None => {
             let mut buffer = String::new();
             io::stdin()
@@ -44,10 +42,8 @@ pub fn read_file_or_stdin(path: Option<&PathBuf>) -> Result<String> {
 /// Returns an error if the file cannot be written or if stdout writing fails
 pub fn write_file_or_stdout(content: &str, path: Option<&PathBuf>) -> Result<()> {
     match path {
-        Some(path) if path.to_str() != Some("-") => {
-            fs::write(path, content)
-                .map_err(|e| anyhow!("Failed to write file '{}': {}", path.display(), e))
-        }
+        Some(path) if path.to_str() != Some("-") => fs::write(path, content)
+            .map_err(|e| anyhow!("Failed to write file '{}': {}", path.display(), e)),
         _ => {
             print!("{}", content);
             io::stdout()
@@ -123,4 +119,4 @@ mod tests {
         let size = get_file_size(&temp_file.path().to_path_buf()).unwrap();
         assert_eq!(size, content.len() as u64);
     }
-} 
+}

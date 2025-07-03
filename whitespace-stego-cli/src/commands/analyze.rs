@@ -21,11 +21,7 @@ struct AnalysisResult {
 }
 
 /// Analyze text for encoded messages
-pub fn analyze_command(
-    text: Option<String>,
-    file: Option<PathBuf>,
-    format: String,
-) -> Result<()> {
+pub fn analyze_command(text: Option<String>, file: Option<PathBuf>, format: String) -> Result<()> {
     // Validate input parameters
     if text.is_some() && file.is_some() {
         return Err(anyhow!("Cannot specify both --text and --file"));
@@ -33,10 +29,7 @@ pub fn analyze_command(
 
     // Read text
     let text_content = text
-        .or_else(|| {
-            file.as_ref()
-                .and_then(|f| read_file_or_stdin(Some(f)).ok())
-        })
+        .or_else(|| file.as_ref().and_then(|f| read_file_or_stdin(Some(f)).ok()))
         .ok_or_else(|| anyhow!("No text provided. Use --text or --file"))?;
 
     // Analyze text
@@ -86,4 +79,4 @@ fn output_json_format(result: &AnalysisResult) -> Result<()> {
         .map_err(|e| anyhow!("Failed to serialize result: {}", e))?;
     println!("{}", json);
     Ok(())
-} 
+}

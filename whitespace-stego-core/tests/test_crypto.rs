@@ -5,4 +5,4 @@ use whitespace_stego_core::error::StegoError;
 mod tests {
     use super::*;
     // ... (copy all tests from src/crypto.rs #[cfg(test)] mod)
-} 
+}

@@ -2,9 +2,9 @@
 //!
 //! This is a stub for the Python module. Full implementation coming soon.
 
-use pyo3::prelude::*;
 use pyo3::exceptions::PyException;
-use whitespace_stego_core::{encode, decode, extract_encoded, has_encoded_message, StegoError};
+use pyo3::prelude::*;
+use whitespace_stego_core::{decode, encode, extract_encoded, has_encoded_message, StegoError};
 
 /// Python exception for whitespace steganography errors
 #[pyclass(extends=PyException)]
@@ -88,4 +88,4 @@ fn whitespace_stego_python(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(has_encoded_message_py, m)?)?;
     m.add("StegoPyError", _py.get_type::<PyException>())?;
     Ok(())
-} 
+}

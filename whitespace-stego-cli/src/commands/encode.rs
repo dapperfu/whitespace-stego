@@ -50,9 +50,15 @@ pub fn encode_command(
     // Get password
     let password_content = password.as_deref();
 
-    display::verbose(&format!("Encoding message ({} chars)", message_content.len()));
+    display::verbose(&format!(
+        "Encoding message ({} chars)",
+        message_content.len()
+    ));
     display::verbose(&format!("Using carrier ({} chars)", carrier_content.len()));
-    display::verbose(&format!("Using password: {}", password_content.unwrap_or("None")));
+    display::verbose(&format!(
+        "Using password: {}",
+        password_content.unwrap_or("None")
+    ));
 
     // Encode message
     let encoded = encode(&message_content, &carrier_content, password_content)
@@ -73,7 +79,7 @@ pub fn interactive_encode() -> Result<()> {
 
     print!("Enter message to encode: ");
     io::stdout().flush()?;
-    
+
     let mut message = String::new();
     io::stdin().read_line(&mut message)?;
     let message = message.trim();
@@ -84,27 +90,31 @@ pub fn interactive_encode() -> Result<()> {
 
     print!("Enter carrier text (optional): ");
     io::stdout().flush()?;
-    
+
     let mut carrier = String::new();
     io::stdin().read_line(&mut carrier)?;
     let carrier = carrier.trim();
 
     print!("Enter password (optional): ");
     io::stdout().flush()?;
-    
+
     let mut password = String::new();
     io::stdin().read_line(&mut password)?;
     let password = password.trim();
 
-    let password = if password.is_empty() { None } else { Some(password) };
+    let password = if password.is_empty() {
+        None
+    } else {
+        Some(password)
+    };
 
     display::verbose(&format!("Encoding message ({} chars)", message.len()));
     display::verbose(&format!("Using carrier ({} chars)", carrier.len()));
     display::verbose(&format!("Using password: {}", password.unwrap_or("None")));
 
     // Encode message
-    let encoded = encode(message, carrier, password)
-        .map_err(|e| anyhow!("Encoding failed: {}", e))?;
+    let encoded =
+        encode(message, carrier, password).map_err(|e| anyhow!("Encoding failed: {}", e))?;
 
     display::verbose("Message successfully encoded");
 
@@ -114,4 +124,4 @@ pub fn interactive_encode() -> Result<()> {
 
     display::info("Message encoded successfully");
     Ok(())
-} 
+}

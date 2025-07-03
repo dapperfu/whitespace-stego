@@ -5,4 +5,4 @@
 
 pub mod display;
 
-pub use display::{error, info, verbose, warn}; 
+pub use display::{error, info, verbose, warn};
