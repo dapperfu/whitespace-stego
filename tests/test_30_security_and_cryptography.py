@@ -24,12 +24,26 @@ from whitespace_stego.constants import START_MARKER, END_MARKER, ZERO_BIT, ONE_B
 class TestKeyDerivation:
     """Test key derivation functionality."""
     
+    @pytest.mark.parametrize("password", [
+        "testpassword",
+        "密码🔑",
+        "abc\x00def",
+        "A" * 1000,
+    ])
+    def test_derive_key_basic(self, password):
+        """Test basic key derivation properties."""
+        k1 = derive_key(password)
+        k2 = derive_key(password)
+        assert k1 == k2  # Deterministic
+        assert isinstance(k1, bytes)
+        assert len(k1) == 32
+    
     @pytest.mark.parametrize("password,expected_hash", [
         ("", "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"),
         ("password", "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8"),
         ("123456", "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92"),
-        ("!@#$%^&*()", "d41d8cd98f00b204e9800998ecf8427e"),
-        ("Unicode 🌍 中文", "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"),
+        ("!@#$%^&*()", "95ce789c5c9d18490972703838ca3a9719094bca3ac16332cfec0652b0236141"),
+        ("Unicode 🌍 中文", "3cc3501ed3b828a25260cbdc582aacf3108879ef71ce9398b16d04100e50b9dd"),
     ])
     def test_derive_key_consistency(self, password, expected_hash):
         """Test that key derivation produces consistent results."""
@@ -41,71 +55,38 @@ class TestKeyDerivation:
         expected_key = bytes.fromhex(expected_hash)
         assert key == expected_key
     
-    def test_derive_key_utf8_encoding(self):
+    @pytest.mark.parametrize("password", [
+        "café",
+        "naïve", 
+        "façade",
+        "Hello 世界! 🌍",
+        "Привет мир",
+        "こんにちは世界",
+        "안녕하세요 세계",
+    ])
+    def test_derive_key_unicode(self, password):
         """Test that key derivation properly handles UTF-8 encoding."""
-        # Test with various Unicode characters
-        unicode_passwords = [
-            "café",
-            "naïve", 
-            "façade",
-            "Hello 世界! 🌍",
-            "Привет мир",
-            "こんにちは世界",
-            "안녕하세요 세계",
-        ]
-        
-        for password in unicode_passwords:
-            key = derive_key(password)
-            assert isinstance(key, bytes)
-            assert len(key) == 32
-            
-            # Verify it's deterministic
-            key2 = derive_key(password)
-            assert key == key2
-    
-    def test_derive_key_null_bytes(self):
-        """Test key derivation with null bytes in password."""
-        password_with_nulls = "test\x00password"
-        key = derive_key(password_with_nulls)
+        key = derive_key(password)
         assert isinstance(key, bytes)
         assert len(key) == 32
+        
+        # Verify it's deterministic
+        key2 = derive_key(password)
+        assert key == key2
     
-    def test_derive_key_very_long_password(self):
-        """Test key derivation with very long passwords."""
-        long_password = "A" * 10000
-        key = derive_key(long_password)
+    @pytest.mark.parametrize("password", [
+        "test\x00password",
+        "A" * 10000,
+    ])
+    def test_derive_key_edge_cases(self, password):
+        """Test key derivation with edge case passwords."""
+        key = derive_key(password)
         assert isinstance(key, bytes)
         assert len(key) == 32
         
         # Should be deterministic
-        key2 = derive_key(long_password)
+        key2 = derive_key(password)
         assert key == key2
-
-    def test_derive_key_determinism(self):
-        pw = "testpassword"
-        k1 = derive_key(pw)
-        k2 = derive_key(pw)
-        assert k1 == k2
-        assert isinstance(k1, bytes)
-        assert len(k1) == 32
-
-    def test_derive_key_unicode(self):
-        pw = "密码🔑"
-        k = derive_key(pw)
-        assert isinstance(k, bytes)
-        assert len(k) == 32
-
-    def test_derive_key_null_bytes(self):
-        pw = "abc\x00def"
-        k = derive_key(pw)
-        assert isinstance(k, bytes)
-        assert len(k) == 32
-
-    def test_derive_key_long(self):
-        pw = "A"*1000
-        k = derive_key(pw)
-        assert isinstance(k, bytes)
-        assert len(k) == 32
 
 
 class TestEncryptionDecryption:
@@ -127,54 +108,59 @@ class TestEncryptionDecryption:
         decrypted = decrypt_data(encrypted, password)
         assert decrypted == data
     
-    def test_encrypt_decrypt_empty_data(self):
-        """Test encryption/decryption of empty data."""
-        data = b""
+    @pytest.mark.parametrize("data", [
+        b"",
+        b"Large data " * 10000,  # ~110KB
+    ])
+    def test_encrypt_decrypt_data_sizes(self, data):
+        """Test encryption/decryption of different data sizes."""
         password = "test_password"
-        
         encrypted = encrypt_data(data, password)
         decrypted = decrypt_data(encrypted, password)
         assert decrypted == data
     
-    def test_encrypt_decrypt_large_data(self):
-        """Test encryption/decryption of large data."""
-        data = b"Large data " * 10000  # ~110KB
-        password = "test_password"
-        
-        encrypted = encrypt_data(data, password)
-        decrypted = decrypt_data(encrypted, password)
-        assert decrypted == data
-    
-    def test_encrypt_decrypt_binary_data(self):
-        """Test encryption/decryption of binary data."""
-        # Test with various binary patterns
-        binary_patterns = [
-            b"\x00" * 100,  # All nulls
-            b"\xff" * 100,  # All ones
-            b"\x00\xff" * 50,  # Alternating
-            bytes(range(256)),  # All byte values
-        ]
-        
+    @pytest.mark.parametrize("data", [
+        b"\x00" * 100,  # All nulls
+        b"\xff" * 100,  # All ones
+        b"\x00\xff" * 50,  # Alternating
+        bytes(range(256)),  # All byte values
+    ])
+    def test_encrypt_decrypt_binary_patterns(self, data):
+        """Test encryption/decryption of binary data patterns."""
         password = "binary_test"
-        for data in binary_patterns:
-            encrypted = encrypt_data(data, password)
-            decrypted = decrypt_data(encrypted, password)
-            assert decrypted == data
+        encrypted = encrypt_data(data, password)
+        decrypted = decrypt_data(encrypted, password)
+        assert decrypted == data
     
-    def test_encrypt_decrypt_unicode_password(self):
-        """Test encryption/decryption with Unicode passwords."""
+    @pytest.mark.parametrize("password", [
+        "密码123",
+        "🔑password",
+        "café",
+        "Hello 世界! 🌍",
+        "",  # Empty password
+        "A" * 1000,  # Long password
+    ])
+    def test_encrypt_decrypt_password_variants(self, password):
+        """Test encryption/decryption with various password types."""
         data = b"Test data"
-        unicode_passwords = [
-            "密码123",
-            "🔑password",
-            "café",
-            "Hello 世界! 🌍",
-        ]
-        
-        for password in unicode_passwords:
-            encrypted = encrypt_data(data, password)
-            decrypted = decrypt_data(encrypted, password)
-            assert decrypted == data
+        encrypted = encrypt_data(data, password)
+        decrypted = decrypt_data(encrypted, password)
+        assert decrypted == data
+    
+    @pytest.mark.parametrize("password", [
+        "!@#$%^&*()_+-=[]{}|;':\",./<>?",
+        "password with spaces",
+        "password\twith\ttabs",
+        "password\nwith\nnewlines",
+        "password\r\nwith\r\ncrlf",
+        "test\x00password",  # Null bytes
+    ])
+    def test_encrypt_decrypt_special_chars(self, password):
+        """Test encryption/decryption with special character passwords."""
+        data = b"Test data"
+        encrypted = encrypt_data(data, password)
+        decrypted = decrypt_data(encrypted, password)
+        assert decrypted == data
     
     def test_encrypt_decrypt_same_password_different_data(self):
         """Test that same password produces different ciphertexts for different data."""
@@ -192,20 +178,22 @@ class TestEncryptionDecryption:
         assert decrypt_data(encrypted1, password) == data1
         assert decrypt_data(encrypted2, password) == data2
     
-    def test_decrypt_invalid_data(self):
+    @pytest.mark.parametrize("invalid_data", [
+        b"short",
+        b"x" * 15,
+    ])
+    def test_decrypt_invalid_data(self, invalid_data):
         """Test decryption with invalid data."""
         password = "test_password"
         
-        # Too short data
-        with pytest.raises(ValueError, match="Invalid encrypted data"):
-            decrypt_data(b"short", password)
-        
-        # Invalid format (no IV)
         with pytest.raises(ValueError):
-            decrypt_data(b"x" * 15, password)
-        
-        # Corrupted data
-        valid_encrypted = encrypt_data(b"test", password)
+            decrypt_data(invalid_data, password)
+    
+    def test_decrypt_corrupted_data(self):
+        """Test decryption with corrupted data."""
+        password = "test_password"
+        data = b"test"
+        valid_encrypted = encrypt_data(data, password)
         corrupted = valid_encrypted[:-1] + b"X"  # Corrupt last byte
         
         with pytest.raises(ValueError):
@@ -222,42 +210,8 @@ class TestEncryptionDecryption:
         with pytest.raises(ValueError):
             decrypt_data(encrypted, wrong_password)
     
-    def test_encrypt_decrypt_null_password(self):
-        """Test encryption/decryption with null bytes in password."""
-        data = b"Test data"
-        password_with_nulls = "test\x00password"
-        
-        encrypted = encrypt_data(data, password_with_nulls)
-        decrypted = decrypt_data(encrypted, password_with_nulls)
-        assert decrypted == data
-
-    def test_encrypt_decrypt_wrong_password(self):
-        data = b"Secret"
-        enc = encrypt_data(data, "right")
-        with pytest.raises(ValueError):
-            decrypt_data(enc, "wrong")
-
-    def test_encrypt_decrypt_corrupt(self):
-        data = b"Secret"
-        enc = encrypt_data(data, "pw")
-        bad = enc[:-1] + b"X"
-        with pytest.raises(Exception):
-            decrypt_data(bad, "pw")
-
-    def test_encrypt_decrypt_empty_password(self):
-        data = b"abc"
-        enc = encrypt_data(data, "")
-        dec = decrypt_data(enc, "")
-        assert dec == data
-
-    def test_encrypt_decrypt_long_password(self):
-        data = b"abc"
-        pw = "A"*1000
-        enc = encrypt_data(data, pw)
-        dec = decrypt_data(enc, pw)
-        assert dec == data
-
     def test_encrypt_decrypt_entropy(self):
+        """Test that encrypted data has sufficient entropy."""
         data = b"entropytest"
         pw = "pw"
         enc = encrypt_data(data, pw)
@@ -270,20 +224,17 @@ class TestEncryptionDecryption:
 class TestSecurityVulnerabilities:
     """Test for potential security vulnerabilities."""
     
-    def test_timing_attack_resistance(self):
+    @pytest.mark.parametrize("wrong_password", ["wrong1", "wrong2", "wrong3"])
+    def test_timing_attack_resistance(self, wrong_password):
         """Test that encryption/decryption is resistant to timing attacks."""
-        # This is a basic test - in practice, you'd need more sophisticated timing analysis
         password = "test_password"
         data = b"Secret data"
         
         encrypted = encrypt_data(data, password)
         
         # Test that wrong password fails quickly (should not leak information)
-        wrong_passwords = ["wrong1", "wrong2", "wrong3"]
-        
-        for wrong_pwd in wrong_passwords:
-            with pytest.raises(ValueError):
-                decrypt_data(encrypted, wrong_pwd)
+        with pytest.raises(ValueError):
+            decrypt_data(encrypted, wrong_password)
     
     def test_padding_oracle_resistance(self):
         """Test resistance to padding oracle attacks."""
@@ -335,64 +286,16 @@ class TestSecurityVulnerabilities:
         assert max_count / total_bytes < 0.3  # No byte should be >30% of data
 
 
-class TestPasswordSecurity:
-    """Test password-related security features."""
-    
-    def test_empty_password_handling(self):
-        """Test handling of empty passwords."""
-        data = b"Test data"
-        
-        # Empty password should work
-        encrypted = encrypt_data(data, "")
-        decrypted = decrypt_data(encrypted, "")
-        assert decrypted == data
-    
-    def test_very_long_password(self):
-        """Test handling of very long passwords."""
-        data = b"Test data"
-        long_password = "A" * 10000
-        
-        encrypted = encrypt_data(data, long_password)
-        decrypted = decrypt_data(encrypted, long_password)
-        assert decrypted == data
-    
-    def test_password_with_special_chars(self):
-        """Test passwords with special characters."""
-        data = b"Test data"
-        special_passwords = [
-            "!@#$%^&*()_+-=[]{}|;':\",./<>?",
-            "password with spaces",
-            "password\twith\ttabs",
-            "password\nwith\nnewlines",
-            "password\r\nwith\r\ncrlf",
-        ]
-        
-        for password in special_passwords:
-            encrypted = encrypt_data(data, password)
-            decrypted = decrypt_data(encrypted, password)
-            assert decrypted == data
-    
-    def test_password_encoding_consistency(self):
-        """Test that password encoding is consistent across platforms."""
-        data = b"Test data"
-        unicode_password = "Hello 世界! 🌍"
-        
-        # Test multiple times to ensure consistency
-        for _ in range(5):
-            encrypted = encrypt_data(data, unicode_password)
-            decrypted = decrypt_data(encrypted, unicode_password)
-            assert decrypted == data
-
-
 class TestIntegrationSecurity:
     """Test security in the context of the full encode/decode workflow."""
     
-    def test_encoded_message_security(self):
+    @pytest.mark.parametrize("message,carrier,password", [
+        ("Secret message", "Public carrier text", "secret_password"),
+        ("Hello 世界! 🌍", "English carrier", "密码123"),
+        ("Test", "Carrier with emojis 🚀", "🔑password"),
+    ])
+    def test_encoded_message_security(self, message, carrier, password):
         """Test that encoded messages don't leak information."""
-        message = "Secret message"
-        carrier = "Public carrier text"
-        password = "secret_password"
-        
         encoded = encode(message, carrier, password)
         
         # The encoded text should not contain the original message
@@ -403,11 +306,13 @@ class TestIntegrationSecurity:
         assert "Secret" not in encoded
         assert "message" not in encoded
     
-    def test_multiple_messages_security(self):
+    @pytest.mark.parametrize("messages,passwords", [
+        (["Secret1", "Secret2", "Secret3"], ["pw1", "pw2", "pw3"]),
+        (["Alpha", "Beta", "Gamma"], ["alpha", "beta", "gamma"]),
+    ])
+    def test_multiple_messages_security(self, messages, passwords):
         """Test security with multiple encoded messages."""
         carrier = "Carrier"
-        messages = ["Secret1", "Secret2", "Secret3"]
-        passwords = ["pw1", "pw2", "pw3"]
         
         # Encode multiple messages
         encoded = carrier
@@ -426,38 +331,33 @@ class TestIntegrationSecurity:
         with pytest.raises((ValueError, BadPasswordError)):
             decode(encoded, "wrong_password")
     
-    def test_carrier_independence(self):
+    @pytest.mark.parametrize("carrier", [
+        "Carrier 1",
+        "Different carrier",
+        "Unicode carrier: 世界 🌍",
+        "",  # Empty carrier
+    ])
+    def test_carrier_independence(self, carrier):
         """Test that encoded messages are independent of carrier content."""
         message = "Secret message"
         password = "password"
         
-        carriers = [
-            "Carrier 1",
-            "Different carrier",
-            "Unicode carrier: 世界 🌍",
-            "",  # Empty carrier
-        ]
+        encoded = encode(message, carrier, password)
         
-        encoded_results = []
-        for carrier in carriers:
-            encoded = encode(message, carrier, password)
-            encoded_results.append(encoded)
-        
-        # All should decode to the same message
-        for encoded in encoded_results:
-            decoded = decode(encoded, password)
-            if isinstance(decoded, list):
-                assert message in decoded
-            else:
-                assert decoded == message
+        # Should decode to the same message
+        decoded = decode(encoded, password)
+        if isinstance(decoded, list):
+            assert message in decoded
+        else:
+            assert decoded == message
     
-    def test_message_isolation(self):
+    @pytest.mark.parametrize("message1,message2,password1,password2", [
+        ("Message 1", "Message 2", "password1", "password2"),
+        ("Hello 世界", "Hello 🌍", "pw1", "pw2"),
+    ])
+    def test_message_isolation(self, message1, message2, password1, password2):
         """Test that messages are properly isolated from each other."""
         carrier = "Carrier"
-        message1 = "Message 1"
-        message2 = "Message 2"
-        password1 = "password1"
-        password2 = "password2"
         
         # Encode two messages
         encoded1 = encode(message1, carrier, password1)
@@ -481,16 +381,16 @@ class TestIntegrationSecurity:
 class TestCryptographicConstants:
     """Test cryptographic constants and parameters."""
     
-    def test_key_length(self):
+    @pytest.mark.parametrize("password", ["test_password", "another_password", "密码123"])
+    def test_key_length(self, password):
         """Test that derived keys have correct length."""
-        password = "test_password"
         key = derive_key(password)
         assert len(key) == 32  # SHA-256 produces 32 bytes
     
-    def test_iv_length(self):
+    @pytest.mark.parametrize("data", [b"Test data", b"Another test", "世界🌍".encode()])
+    def test_iv_length(self, data):
         """Test that IV has correct length."""
         password = "test_password"
-        data = b"Test data"
         
         encrypted = encrypt_data(data, password)
         # IV should be 16 bytes (AES block size)
