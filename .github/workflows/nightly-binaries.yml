@@ -97,7 +97,7 @@ jobs:
           cd ..
           cd whitespace-stego-cli
           cargo build --release
-          cp target/release/whitespace-stego-cli ../bin/whitespace-stego-rs-${{ matrix.platform }}
+          cp target/release/whitespace-stego-rs ../bin/whitespace-stego-rs-${{ matrix.platform }}
           cd ..
 
       - name: Build C implementation
