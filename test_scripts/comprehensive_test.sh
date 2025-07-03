@@ -175,6 +175,20 @@ test_cross_compatibility() {
                 --output "$temp_file" \
                 ${password:+--password "$password"}
             ;;
+        "rust")
+            cargo run --bin whitespace-stego-cli encode \
+                --message-file "$message_file" \
+                --carrier-file "$carrier_file" \
+                --output "$temp_file" \
+                ${password:+--password "$password"}
+            ;;
+        "c")
+            ./bin/whitespace-stego-c encode \
+                --message-file "$message_file" \
+                --carrier-file "$carrier_file" \
+                --output "$temp_file" \
+                ${password:+--password "$password"}
+            ;;
         "go")
             ./bin/whitespace-stego-go encode \
                 --message-file "$message_file" \
@@ -189,6 +203,16 @@ test_cross_compatibility() {
     case $target_impl in
         "python")
             decoded_output=$(PYTHONPATH=src:. python3 -m whitespace_stego.cli decode \
+                --carrier-file "$temp_file" \
+                ${password:+--password "$password"})
+            ;;
+        "rust")
+            decoded_output=$(cargo run --bin whitespace-stego-cli decode \
+                --carrier-file "$temp_file" \
+                ${password:+--password "$password"})
+            ;;
+        "c")
+            decoded_output=$(./bin/whitespace-stego-c decode \
                 --carrier-file "$temp_file" \
                 ${password:+--password "$password"})
             ;;
@@ -357,53 +381,185 @@ main() {
     
     echo -e "\n${BLUE}=== Basic Functionality Tests ===${NC}"
     
-    # Test 1: ASCII message without password
+    # Test 1: Python ASCII message without password
     total_tests=$((total_tests + 1))
     if test_implementation "python" "ASCII no password" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "" "$TEST_DIR/test1_encoded.txt"; then
         passed_tests=$((passed_tests + 1))
     fi
     
-    # Test 2: ASCII message with password
+    # Test 2: Python ASCII message with password
     total_tests=$((total_tests + 1))
     if test_implementation "python" "ASCII with password" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "testpass123" "$TEST_DIR/test2_encoded.txt"; then
         passed_tests=$((passed_tests + 1))
     fi
     
+    # Test 3: Go ASCII message without password
+    total_tests=$((total_tests + 1))
+    if test_implementation "go" "ASCII no password" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "" "$TEST_DIR/test3_encoded.txt"; then
+        passed_tests=$((passed_tests + 1))
+    fi
+    
+    # Test 4: Go ASCII message with password
+    total_tests=$((total_tests + 1))
+    if test_implementation "go" "ASCII with password" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "testpass123" "$TEST_DIR/test4_encoded.txt"; then
+        passed_tests=$((passed_tests + 1))
+    fi
+    
     echo -e "\n${BLUE}=== Cross-Implementation Tests ===${NC}"
     
-    # Test 3: Python -> Go
+    # Test 5: Python -> Go
     total_tests=$((total_tests + 1))
     if test_cross_compatibility "python" "go" "Python->Go ASCII" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "" "$TEST_DIR/cross1.txt"; then
         passed_tests=$((passed_tests + 1))
     fi
     
-    # Test 4: Go -> Python
+    # Test 6: Go -> Python
     total_tests=$((total_tests + 1))
     if test_cross_compatibility "go" "python" "Go->Python ASCII" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "" "$TEST_DIR/cross2.txt"; then
         passed_tests=$((passed_tests + 1))
     fi
     
-    # Test 5: Python -> Go (password)
+    # Test 7: Python -> Go (password)
     total_tests=$((total_tests + 1))
     if test_cross_compatibility "python" "go" "Python->Go password" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "testpass123" "$TEST_DIR/cross3.txt"; then
         passed_tests=$((passed_tests + 1))
     fi
     
-    # Test 6: Go -> Python (password)
+    # Test 8: Go -> Python (password)
     total_tests=$((total_tests + 1))
     if test_cross_compatibility "go" "python" "Go->Python password" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "testpass123" "$TEST_DIR/cross4.txt"; then
         passed_tests=$((passed_tests + 1))
     fi
     
+    # Test 9: Python -> Rust
+    total_tests=$((total_tests + 1))
+    if test_cross_compatibility "python" "rust" "Python->Rust ASCII" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "" "$TEST_DIR/cross5.txt"; then
+        passed_tests=$((passed_tests + 1))
+    fi
+    
+    # Test 10: Rust -> Python
+    total_tests=$((total_tests + 1))
+    if test_cross_compatibility "rust" "python" "Rust->Python ASCII" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "" "$TEST_DIR/cross6.txt"; then
+        passed_tests=$((passed_tests + 1))
+    fi
+    
+    # Test 11: Python -> Rust (password)
+    total_tests=$((total_tests + 1))
+    if test_cross_compatibility "python" "rust" "Python->Rust password" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "testpass123" "$TEST_DIR/cross7.txt"; then
+        passed_tests=$((passed_tests + 1))
+    fi
+    
+    # Test 12: Rust -> Python (password)
+    total_tests=$((total_tests + 1))
+    if test_cross_compatibility "rust" "python" "Rust->Python password" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "testpass123" "$TEST_DIR/cross8.txt"; then
+        passed_tests=$((passed_tests + 1))
+    fi
+    
+    # Test 13: Go -> Rust
+    total_tests=$((total_tests + 1))
+    if test_cross_compatibility "go" "rust" "Go->Rust ASCII" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "" "$TEST_DIR/cross9.txt"; then
+        passed_tests=$((passed_tests + 1))
+    fi
+    
+    # Test 14: Rust -> Go
+    total_tests=$((total_tests + 1))
+    if test_cross_compatibility "rust" "go" "Rust->Go ASCII" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "" "$TEST_DIR/cross10.txt"; then
+        passed_tests=$((passed_tests + 1))
+    fi
+    
+    # Test 15: Go -> Rust (password)
+    total_tests=$((total_tests + 1))
+    if test_cross_compatibility "go" "rust" "Go->Rust password" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "testpass123" "$TEST_DIR/cross11.txt"; then
+        passed_tests=$((passed_tests + 1))
+    fi
+    
+    # Test 16: Rust -> Go (password)
+    total_tests=$((total_tests + 1))
+    if test_cross_compatibility "rust" "go" "Rust->Go password" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "testpass123" "$TEST_DIR/cross12.txt"; then
+        passed_tests=$((passed_tests + 1))
+    fi
+    
+    # Test 17: Python -> C
+    total_tests=$((total_tests + 1))
+    if test_cross_compatibility "python" "c" "Python->C ASCII" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "" "$TEST_DIR/cross13.txt"; then
+        passed_tests=$((passed_tests + 1))
+    fi
+    
+    # Test 18: C -> Python
+    total_tests=$((total_tests + 1))
+    if test_cross_compatibility "c" "python" "C->Python ASCII" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "" "$TEST_DIR/cross14.txt"; then
+        passed_tests=$((passed_tests + 1))
+    fi
+    
+    # Test 19: Python -> C (password)
+    total_tests=$((total_tests + 1))
+    if test_cross_compatibility "python" "c" "Python->C password" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "testpass123" "$TEST_DIR/cross15.txt"; then
+        passed_tests=$((passed_tests + 1))
+    fi
+    
+    # Test 20: C -> Python (password)
+    total_tests=$((total_tests + 1))
+    if test_cross_compatibility "c" "python" "C->Python password" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "testpass123" "$TEST_DIR/cross16.txt"; then
+        passed_tests=$((passed_tests + 1))
+    fi
+    
+    # Test 21: Go -> C
+    total_tests=$((total_tests + 1))
+    if test_cross_compatibility "go" "c" "Go->C ASCII" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "" "$TEST_DIR/cross17.txt"; then
+        passed_tests=$((passed_tests + 1))
+    fi
+    
+    # Test 22: C -> Go
+    total_tests=$((total_tests + 1))
+    if test_cross_compatibility "c" "go" "C->Go ASCII" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "" "$TEST_DIR/cross18.txt"; then
+        passed_tests=$((passed_tests + 1))
+    fi
+    
+    # Test 23: Go -> C (password)
+    total_tests=$((total_tests + 1))
+    if test_cross_compatibility "go" "c" "Go->C password" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "testpass123" "$TEST_DIR/cross19.txt"; then
+        passed_tests=$((passed_tests + 1))
+    fi
+    
+    # Test 24: C -> Go (password)
+    total_tests=$((total_tests + 1))
+    if test_cross_compatibility "c" "go" "C->Go password" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "testpass123" "$TEST_DIR/cross20.txt"; then
+        passed_tests=$((passed_tests + 1))
+    fi
+    
+    # Test 25: Rust -> C
+    total_tests=$((total_tests + 1))
+    if test_cross_compatibility "rust" "c" "Rust->C ASCII" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "" "$TEST_DIR/cross21.txt"; then
+        passed_tests=$((passed_tests + 1))
+    fi
+    
+    # Test 26: C -> Rust
+    total_tests=$((total_tests + 1))
+    if test_cross_compatibility "c" "rust" "C->Rust ASCII" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "" "$TEST_DIR/cross22.txt"; then
+        passed_tests=$((passed_tests + 1))
+    fi
+    
+    # Test 27: Rust -> C (password)
+    total_tests=$((total_tests + 1))
+    if test_cross_compatibility "rust" "c" "Rust->C password" "$TEST_DIR/message1.txt" "$TEST_DIR/carrier1.txt" "testpass123" "$TEST_DIR/cross23.txt"; then
+        passed_tests=$((passed_tests + 1))
+    fi
+    
+    # Test 28: C -> Rust (password)
+    total_tests=$((total_tests + 1))
+    if test_cross_compatibility "c" "rust" "C->Rust password" "$TEST_DIR/message2.txt" "$TEST_DIR/carrier2.txt" "testpass123" "$TEST_DIR/cross24.txt"; then
+        passed_tests=$((passed_tests + 1))
+    fi
+    
     echo -e "\n${BLUE}=== Advanced Feature Tests ===${NC}"
     
-    # Test 7: Multiple messages in one carrier
+    # Test 29: Multiple messages in one carrier
     total_tests=$((total_tests + 1))
     if test_multiple_messages; then
         passed_tests=$((passed_tests + 1))
     fi
     
-    # Test 8: Multi-recipient password-protected messages
+    # Test 30: Multi-recipient password-protected messages
     total_tests=$((total_tests + 1))
     if test_multi_recipient; then
         passed_tests=$((passed_tests + 1))
