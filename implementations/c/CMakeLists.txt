@@ -46,6 +46,12 @@ target_compile_options(test-coverage PRIVATE --coverage -fprofile-arcs -ftest-co
 target_link_libraries(test-coverage OpenSSL::SSL OpenSSL::Crypto)
 target_link_options(test-coverage PRIVATE --coverage -fprofile-arcs -ftest-coverage)
 
+# 100% Coverage test executable
+add_executable(test-100-coverage test/test_100_coverage.c ${LIB_SOURCES})
+target_compile_options(test-100-coverage PRIVATE --coverage -fprofile-arcs -ftest-coverage)
+target_link_libraries(test-100-coverage OpenSSL::SSL OpenSSL::Crypto)
+target_link_options(test-100-coverage PRIVATE --coverage -fprofile-arcs -ftest-coverage)
+
 # Unity test executable (if Unity is available)
 if(EXISTS "test/unity.h")
     add_executable(test-unity test/test_unity.c test/unity.c ${LIB_SOURCES})
@@ -58,6 +64,7 @@ enable_testing()
 # Add tests
 add_test(NAME whitespace_stego_c_tests COMMAND test-c)
 add_test(NAME whitespace_stego_coverage_tests COMMAND test-coverage)
+add_test(NAME whitespace_stego_100_coverage_tests COMMAND test-100-coverage)
 
 if(EXISTS "test/unity.h")
     add_test(NAME whitespace_stego_unity_tests COMMAND test-unity)
@@ -70,6 +77,11 @@ set_tests_properties(whitespace_stego_c_tests PROPERTIES
 )
 
 set_tests_properties(whitespace_stego_coverage_tests PROPERTIES
+    TIMEOUT 300
+    ENVIRONMENT "LC_ALL=C.UTF-8"
+)
+
+set_tests_properties(whitespace_stego_100_coverage_tests PROPERTIES
     TIMEOUT 300
     ENVIRONMENT "LC_ALL=C.UTF-8"
 )

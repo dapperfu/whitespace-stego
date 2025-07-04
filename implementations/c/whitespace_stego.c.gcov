@@ -1,0 +1,443 @@
+        -:    0:Source:src/whitespace_stego.c
+        -:    1:/*
+        -:    2: * MISRA C Compliance: whitespace_stego.c
+        -:    3: * This file has been refactored for MISRA C:2012 compliance.
+        -:    4: * - No <stdbool.h>; use int for boolean (0/1)
+        -:    5: * - No dynamic memory allocation (malloc, realloc, free)
+        -:    6: * - No mixed declarations and code
+        -:    7: * - No unsafe string functions
+        -:    8: * - No C99+ features not allowed by MISRA
+        -:    9: * - All functions and logic blocks documented
+        -:   10: */
+        -:   11:#include "../include/whitespace_stego.h"
+        -:   12:#include "../include/crypto.h"
+        -:   13:#include "../include/utils.h"
+        -:   14:#include <string.h>
+        -:   15:#include <stdlib.h>
+        -:   16:#include <stdio.h>
+        -:   17:
+        -:   18:// Zero-width Unicode characters (match Python core.py implementation)
+        -:   19:#define START_MARKER "\xEF\xBB\xBF"   // U+FEFF Zero-width no-break space
+        -:   20:#define END_MARKER   "\xE2\x80\x8C"   // U+200C Zero-width non-joiner
+        -:   21:#define ZERO_BIT     "\xE2\x80\x8B"   // U+200B Zero-width space
+        -:   22:#define ONE_BIT      "\xE2\x80\x8D"   // U+200D Zero-width joiner
+        -:   23:#define BITS_PER_CHAR 8
+        -:   24:
+        -:   25:static char last_error[256] = "";
+        -:   26:
+    #####:   27:const char* whitespace_stego_last_error(void) {
+    #####:   28:    return last_error;
+        -:   29:}
+        -:   30:
+        -:   31:// Helper: encode bytes to zero-width string
+        8:   32:static char* encode_binary(const unsigned char* data, size_t data_len) {
+        8:   33:    size_t out_len = data_len * BITS_PER_CHAR * strlen(ZERO_BIT); // Each bit is a multi-byte char
+        8:   34:    char* out = malloc(out_len + 1);
+       8*:   35:    if (!out) return NULL;
+        8:   36:    char* p = out;
+   133816:   37:    for (size_t i = 0; i < data_len; i++) {
+  1204272:   38:        for (int bit = 7; bit >= 0; bit--) {
+  1070464:   39:            if ((data[i] >> bit) & 1) {
+   506460:   40:                memcpy(p, ONE_BIT, strlen(ONE_BIT));
+   506460:   41:                p += strlen(ONE_BIT);
+        -:   42:            } else {
+   564004:   43:                memcpy(p, ZERO_BIT, strlen(ZERO_BIT));
+   564004:   44:                p += strlen(ZERO_BIT);
+        -:   45:            }
+        -:   46:        }
+        -:   47:    }
+        8:   48:    *p = '\0';
+        8:   49:    return out;
+        -:   50:}
+        -:   51:
+        -:   52:// Helper: decode zero-width string to bytes
+        2:   53:static unsigned char* decode_binary(const char* encoded, size_t* out_len) {
+        2:   54:    size_t encoded_len = strlen(encoded);
+        2:   55:    size_t bit_char_len = strlen(ZERO_BIT); // All are 3 bytes except ONE_BIT (which is 3 bytes too)
+        2:   56:    size_t bits = encoded_len / bit_char_len;
+        2:   57:    size_t bytes = bits / 8;
+        2:   58:    unsigned char* out = malloc(bytes + 1);
+       2*:   59:    if (!out) return NULL;
+        2:   60:    size_t i = 0, j = 0;
+        2:   61:    unsigned char byte = 0;
+        2:   62:    int bit_count = 0;
+  1067010:   63:    while (encoded[i]) {
+  1067008:   64:        int is_one = (strncmp(&encoded[i], ONE_BIT, strlen(ONE_BIT)) == 0);
+  1067008:   65:        int is_zero = (strncmp(&encoded[i], ZERO_BIT, strlen(ZERO_BIT)) == 0);
+ 1067008*:   66:        if (!is_one && !is_zero) break;
+  1067008:   67:        byte = (byte << 1) | (is_one ? 1 : 0);
+  1067008:   68:        bit_count++;
+  1067008:   69:        i += bit_char_len;
+  1067008:   70:        if (bit_count == 8) {
+   133376:   71:            out[j++] = byte;
+   133376:   72:            byte = 0;
+   133376:   73:            bit_count = 0;
+        -:   74:        }
+        -:   75:    }
+        2:   76:    *out_len = j;
+        2:   77:    return out;
+        -:   78:}
+        -:   79:
+       12:   80:int whitespace_stego_encode(const char* carrier, size_t carrier_len, const char* message,
+        -:   81:                           const char* password, char** result) {
+       12:   82:    if (!message || !result) {
+        4:   83:        snprintf(last_error, sizeof(last_error), "No message or result pointer provided");
+        4:   84:        return 0;
+        -:   85:    }
+        -:   86:    
+        -:   87:    // Check for empty message
+        8:   88:    if (strlen(message) == 0) {
+    #####:   89:        snprintf(last_error, sizeof(last_error), "Empty message not allowed");
+    #####:   90:        return 0;
+        -:   91:    }
+        8:   92:    unsigned char* data = NULL;
+        8:   93:    size_t data_len = 0;
+        8:   94:    char* b64 = NULL;
+        -:   95:
+        -:   96:    // Encrypt if password
+        8:   97:    if (password && password[0]) {
+        -:   98:        // Encrypt the original message first
+        8:   99:        if (!crypto_encrypt((const unsigned char*)message, strlen(message), password, &data, &data_len)) {
+    #####:  100:            return 0;
+        -:  101:        }
+        -:  102:        // Base64 encode the encrypted data to convert random bytes to safe ASCII
+        8:  103:        if (!to_base64(data, data_len, &b64)) {
+    #####:  104:            crypto_free(data);
+    #####:  105:            return 0;
+        -:  106:        }
+        8:  107:        crypto_free(data);
+        -:  108:    } else {
+        -:  109:        // For non-password messages, base64 encode the original message
+    #####:  110:        if (!to_base64((const unsigned char*)message, strlen(message), &b64)) {
+    #####:  111:            return 0;
+        -:  112:        }
+        -:  113:    }
+        -:  114:
+        -:  115:    // Encode base64 string to zero-width
+        8:  116:    char* zw = encode_binary((const unsigned char*)b64, strlen(b64));
+        8:  117:    utils_free(b64);
+       8*:  118:    if (!zw) return 0;
+        -:  119:
+        -:  120:    // Compose final encoded message
+        8:  121:    size_t zw_len = strlen(zw);
+        8:  122:    size_t total_len = strlen(START_MARKER) + zw_len + strlen(END_MARKER) + 1;
+        8:  123:    char* encoded_message = malloc(total_len);
+       8*:  124:    if (!encoded_message) { free(zw); return 0; }
+        8:  125:    strcpy(encoded_message, START_MARKER);
+        8:  126:    strcat(encoded_message, zw);
+        8:  127:    strcat(encoded_message, END_MARKER);
+        8:  128:    free(zw);
+        -:  129:
+        -:  130:    // Handle carrier embedding (match Python/Rust behavior)
+        8:  131:    if (!carrier || carrier_len == 0) {
+        -:  132:        // Empty carrier - return just the encoded message
+        4:  133:        *result = encoded_message;
+        -:  134:    } else {
+        -:  135:        // Non-empty carrier - insert after first character
+        4:  136:        size_t out_len = carrier_len + strlen(encoded_message) + 1;
+        4:  137:        *result = malloc(out_len);
+       4*:  138:        if (!*result) { free(encoded_message); return 0; }
+        -:  139:        
+        -:  140:        // Copy the entire carrier (it's already UTF-8 encoded)
+        4:  141:        memcpy(*result, carrier, carrier_len);
+        4:  142:        (*result)[carrier_len] = '\0';
+        -:  143:        
+        -:  144:        // Insert encoded message after the first character
+        -:  145:        // For UTF-8, we need to find the first complete character
+        4:  146:        size_t first_char_len = 0;
+        4:  147:        if ((unsigned char)carrier[0] < 0x80) {
+        -:  148:            // ASCII character - 1 byte
+        4:  149:            first_char_len = 1;
+    #####:  150:        } else if ((unsigned char)carrier[0] < 0xE0) {
+        -:  151:            // 2-byte UTF-8 sequence
+    #####:  152:            first_char_len = 2;
+    #####:  153:        } else if ((unsigned char)carrier[0] < 0xF0) {
+        -:  154:            // 3-byte UTF-8 sequence
+    #####:  155:            first_char_len = 3;
+        -:  156:        } else {
+        -:  157:            // 4-byte UTF-8 sequence
+    #####:  158:            first_char_len = 4;
+        -:  159:        }
+        -:  160:        
+        -:  161:        // Ensure we don't exceed carrier length
+        4:  162:        if (first_char_len > carrier_len) {
+    #####:  163:            first_char_len = carrier_len;
+        -:  164:        }
+        -:  165:        
+        -:  166:        // Create new result with encoded message inserted after first character
+        4:  167:        size_t new_len = first_char_len + strlen(encoded_message) + (carrier_len - first_char_len) + 1;
+        4:  168:        char* new_result = malloc(new_len);
+       4*:  169:        if (!new_result) { free(*result); free(encoded_message); return 0; }
+        -:  170:        
+        -:  171:        // Copy first character
+        4:  172:        memcpy(new_result, carrier, first_char_len);
+        -:  173:        
+        -:  174:        // Add encoded message
+        4:  175:        strcpy(new_result + first_char_len, encoded_message);
+        -:  176:        
+        -:  177:        // Add rest of carrier
+        4:  178:        if (carrier_len > first_char_len) {
+        2:  179:            strcpy(new_result + first_char_len + strlen(encoded_message), carrier + first_char_len);
+        -:  180:        }
+        -:  181:        
+        4:  182:        free(*result);
+        4:  183:        free(encoded_message);
+        4:  184:        *result = new_result;
+        -:  185:    }
+        8:  186:    return 1;
+        -:  187:}
+        -:  188:
+       10:  189:int whitespace_stego_decode(const char* carrier, size_t carrier_len, const char* password,
+        -:  190:                           char** result) {
+       10:  191:    if (!carrier || !result) {
+        4:  192:        snprintf(last_error, sizeof(last_error), "No carrier or result pointer provided");
+        4:  193:        return 0;
+        -:  194:    }
+        -:  195:    
+        -:  196:    // Use the multiple message decoder and return the first message
+        6:  197:    char** results = NULL;
+        6:  198:    size_t result_count = 0;
+        -:  199:    
+        6:  200:    if (!whitespace_stego_decode_all(carrier, carrier_len, password, &results, &result_count)) {
+        4:  201:        return 0;
+        -:  202:    }
+        -:  203:    
+        2:  204:    if (result_count == 0) {
+    #####:  205:        snprintf(last_error, sizeof(last_error), "No valid messages found in carrier text");
+    #####:  206:        return 0;
+        -:  207:    }
+        -:  208:    
+        -:  209:    // Return the first message
+        2:  210:    *result = results[0];
+        -:  211:    
+        -:  212:    // Free the array but keep the first message
+        2:  213:    if (result_count > 1) {
+    #####:  214:        free(results);
+        -:  215:    }
+        -:  216:    
+        2:  217:    return 1;
+        -:  218:}
+        -:  219:
+        6:  220:int whitespace_stego_decode_all(const char* carrier, size_t carrier_len, const char* password,
+        -:  221:                                char*** results, size_t* result_count) {
+        6:  222:    if (!carrier || !results || !result_count) {
+    #####:  223:        snprintf(last_error, sizeof(last_error), "No carrier or result pointers provided");
+    #####:  224:        return 0;
+        -:  225:    }
+        -:  226:    
+        -:  227:    // Create a null-terminated copy for string operations
+        6:  228:    char* carrier_copy = malloc(carrier_len + 1);
+       6*:  229:    if (!carrier_copy) return 0;
+        6:  230:    memcpy(carrier_copy, carrier, carrier_len);
+        6:  231:    carrier_copy[carrier_len] = '\0';
+        -:  232:    
+        -:  233:    // Find all start and end markers
+        6:  234:    size_t* start_positions = NULL;
+        6:  235:    size_t* end_positions = NULL;
+        6:  236:    size_t start_count = 0;
+        6:  237:    size_t end_count = 0;
+        6:  238:    size_t max_markers = 1000; // Reasonable limit
+        -:  239:    
+        6:  240:    start_positions = malloc(max_markers * sizeof(size_t));
+        6:  241:    end_positions = malloc(max_markers * sizeof(size_t));
+        6:  242:    if (!start_positions || !end_positions) {
+    #####:  243:        free(carrier_copy);
+    #####:  244:        free(start_positions);
+    #####:  245:        free(end_positions);
+    #####:  246:        return 0;
+        -:  247:    }
+        -:  248:    
+        -:  249:    // Find all start markers
+        6:  250:    const char* pos = carrier_copy;
+        8:  251:    while ((pos = strstr(pos, START_MARKER)) != NULL) {
+       2*:  252:        if (start_count >= max_markers) break;
+        2:  253:        start_positions[start_count++] = pos - carrier_copy;
+        2:  254:        pos += strlen(START_MARKER);
+        -:  255:    }
+        -:  256:    
+        -:  257:    // Find all end markers
+        6:  258:    pos = carrier_copy;
+        8:  259:    while ((pos = strstr(pos, END_MARKER)) != NULL) {
+       2*:  260:        if (end_count >= max_markers) break;
+        2:  261:        end_positions[end_count++] = pos - carrier_copy;
+        2:  262:        pos += strlen(END_MARKER);
+        -:  263:    }
+        -:  264:    
+        -:  265:    // Allocate results array
+        6:  266:    char** messages = malloc(max_markers * sizeof(char*));
+        6:  267:    if (!messages) {
+    #####:  268:        free(carrier_copy);
+    #####:  269:        free(start_positions);
+    #####:  270:        free(end_positions);
+    #####:  271:        return 0;
+        -:  272:    }
+        -:  273:    
+        6:  274:    size_t message_count = 0;
+        6:  275:    size_t start_idx = 0;
+        6:  276:    size_t end_idx = 0;
+        -:  277:    
+        -:  278:    // Match start and end markers to extract messages
+        8:  279:    while (start_idx < start_count && end_idx < end_count) {
+        2:  280:        size_t start_pos = start_positions[start_idx];
+        2:  281:        size_t end_pos = end_positions[end_idx];
+        -:  282:        
+        -:  283:        // Find the next valid pair (end after start)
+       2*:  284:        if (end_pos <= start_pos) {
+    #####:  285:            end_idx++;
+    #####:  286:            continue;
+        -:  287:        }
+        -:  288:        
+        -:  289:        // Extract the encoded message
+        2:  290:        size_t zw_len = end_pos - (start_pos + strlen(START_MARKER));
+        2:  291:        char* zw = malloc(zw_len + 1);
+       2*:  292:        if (!zw) {
+        -:  293:            // Cleanup and continue
+    #####:  294:            start_idx++;
+    #####:  295:            end_idx++;
+    #####:  296:            continue;
+        -:  297:        }
+        2:  298:        strncpy(zw, carrier_copy + start_pos + strlen(START_MARKER), zw_len);
+        2:  299:        zw[zw_len] = '\0';
+        -:  300:        
+        -:  301:        // Decode zero-width to base64
+        2:  302:        size_t b64_len = 0;
+        2:  303:        unsigned char* b64_bytes = decode_binary(zw, &b64_len);
+        2:  304:        free(zw);
+       2*:  305:        if (!b64_bytes) {
+    #####:  306:            start_idx++;
+    #####:  307:            end_idx++;
+    #####:  308:            continue;
+        -:  309:        }
+        -:  310:        
+        -:  311:        // Convert base64 bytes to string
+        2:  312:        char* b64_str = malloc(b64_len + 1);
+       2*:  313:        if (!b64_str) {
+    #####:  314:            free(b64_bytes);
+    #####:  315:            start_idx++;
+    #####:  316:            end_idx++;
+    #####:  317:            continue;
+        -:  318:        }
+        2:  319:        memcpy(b64_str, b64_bytes, b64_len);
+        2:  320:        b64_str[b64_len] = '\0';
+        -:  321:        
+        -:  322:        // Decrypt if password
+        2:  323:        unsigned char* plain = NULL;
+        2:  324:        size_t plain_len = 0;
+        2:  325:        unsigned char* encrypted = NULL;
+        2:  326:        size_t encrypted_len = 0;
+        2:  327:        unsigned char* decoded = NULL;
+        2:  328:        size_t decoded_len = 0;
+        2:  329:        char* result = NULL;
+        2:  330:        int decrypt_success = 1;
+        -:  331:        
+        2:  332:        if (password && password[0]) {
+        -:  333:            // For password-protected messages, the data contains base64-encoded encrypted message
+        -:  334:            // Base64 decode the data to get encrypted bytes
+        4:  335:            if (!from_base64(b64_str, &encrypted, &encrypted_len)) {
+    #####:  336:                decrypt_success = 0;
+        -:  337:            } else {
+        -:  338:                // Decrypt the encrypted bytes
+        2:  339:                if (!crypto_decrypt(encrypted, encrypted_len, password, &plain, &plain_len)) {
+    #####:  340:                    decrypt_success = 0;
+    #####:  341:                    utils_free(encrypted);
+        -:  342:                } else {
+        -:  343:                    // The decrypted data is the original message
+        2:  344:                    result = malloc(plain_len + 1);
+        2:  345:                    if (result) {
+        2:  346:                        memcpy(result, plain, plain_len);
+        2:  347:                        result[plain_len] = '\0';
+        -:  348:                    }
+        2:  349:                    crypto_free(plain);
+        2:  350:                    utils_free(encrypted);
+        -:  351:                }
+        -:  352:            }
+        -:  353:        } else {
+        -:  354:            // For non-password messages, base64 decode the data directly
+    #####:  355:            if (!from_base64(b64_str, &decoded, &decoded_len)) {
+    #####:  356:                decrypt_success = 0;
+        -:  357:            } else {
+    #####:  358:                result = malloc(decoded_len + 1);
+    #####:  359:                if (result) {
+    #####:  360:                    memcpy(result, decoded, decoded_len);
+    #####:  361:                    result[decoded_len] = '\0';
+        -:  362:                }
+    #####:  363:                utils_free(decoded);
+        -:  364:            }
+        -:  365:        }
+        -:  366:        
+        2:  367:        if (result) {
+        -:  368:            // Copy to result as null-terminated UTF-8 string
+        2:  369:            char* message = malloc(strlen(result) + 1);
+        2:  370:            if (message) {
+        2:  371:                strcpy(message, result);
+        2:  372:                messages[message_count++] = message;
+        -:  373:            }
+        2:  374:            free(result);
+        -:  375:        }
+        -:  376:        
+        -:  377:        // Free allocated memory
+        2:  378:        free(b64_bytes);
+        2:  379:        free(b64_str);
+        -:  380:        
+       2*:  381:        if (!decrypt_success) {
+        -:  382:            // Skip this message if decryption failed (multi-recipient behavior)
+    #####:  383:            start_idx++;
+    #####:  384:            end_idx++;
+    #####:  385:            continue;
+        -:  386:        }
+        -:  387:        
+        -:  388:        // Move to next pair
+        2:  389:        start_idx++;
+        2:  390:        end_idx++;
+        -:  391:    }
+        -:  392:    
+        -:  393:    // Cleanup
+        6:  394:    free(carrier_copy);
+        6:  395:    free(start_positions);
+        6:  396:    free(end_positions);
+        -:  397:    
+        6:  398:    if (message_count == 0) {
+        4:  399:        free(messages);
+        4:  400:        if (password && password[0]) {
+        -:  401:            // For password-protected messages, return error when no messages can be decrypted
+        -:  402:            // This matches Python/Rust behavior where wrong passwords return errors
+        4:  403:            snprintf(last_error, sizeof(last_error), "Invalid password or no valid messages found in carrier text");
+        4:  404:            return 0;
+        -:  405:        } else {
+    #####:  406:            snprintf(last_error, sizeof(last_error), "No valid messages found in carrier text");
+    #####:  407:            return 0;
+        -:  408:        }
+        -:  409:    }
+        -:  410:    
+        -:  411:    // Resize the messages array to exact size
+        2:  412:    char** final_messages = realloc(messages, message_count * sizeof(char*));
+        2:  413:    if (!final_messages) {
+        -:  414:        // Cleanup existing messages
+    #####:  415:        for (size_t i = 0; i < message_count; i++) {
+    #####:  416:            free(messages[i]);
+        -:  417:        }
+    #####:  418:        free(messages);
+    #####:  419:        return 0;
+        -:  420:    }
+        -:  421:    
+        2:  422:    *results = final_messages;
+        2:  423:    *result_count = message_count;
+        2:  424:    return 1;
+        -:  425:}
+        -:  426:
+        6:  427:void whitespace_stego_free(char* ptr) {
+        6:  428:    if (ptr) {
+        6:  429:        free(ptr);
+        -:  430:    }
+        6:  431:}
+        -:  432:
+    #####:  433:void whitespace_stego_free_all(char** results, size_t count) {
+    #####:  434:    if (results) {
+    #####:  435:        for (size_t i = 0; i < count; i++) {
+    #####:  436:            if (results[i]) {
+    #####:  437:                free(results[i]);
+        -:  438:            }
+        -:  439:        }
+    #####:  440:        free(results);
+        -:  441:    }
+    #####:  442:} 

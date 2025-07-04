@@ -18,22 +18,24 @@ A high-performance C implementation of whitespace steganography for hiding messa
 - Make
 - CMake (optional, for CMake builds)
 - lcov and gcov (for coverage reports)
+- ccache (optional, for faster builds)
 
 ### Ubuntu/Debian
 ```bash
 sudo apt-get update
-sudo apt-get install build-essential libssl-dev make cmake lcov
+sudo apt-get install build-essential libssl-dev make cmake lcov ccache
 ```
 
 ### macOS
 ```bash
-brew install openssl make cmake lcov
+brew install openssl make cmake lcov ccache
 ```
 
 ### Windows
 - Install MinGW-w64 or Visual Studio
 - Install OpenSSL development libraries
 - Install Make (via Chocolatey: `choco install make`)
+- Install ccache (optional, for faster builds)
 
 ## Quick Start
 
@@ -61,24 +63,77 @@ whitespace-stego-c encode --message "Hello, World!" --carrier "This is innocent 
 whitespace-stego-c decode --carrier-file encoded.txt --output decoded.txt
 ```
 
+## Build Acceleration with ccache
+
+The C implementation includes automatic ccache integration for significantly faster builds. ccache caches compiled object files, so subsequent builds are much faster when source files haven't changed.
+
+### Setup ccache
+```bash
+# Install ccache (if not already installed)
+sudo apt-get install ccache  # Ubuntu/Debian
+brew install ccache          # macOS
+
+# Setup ccache for the project
+make ccache-setup
+```
+
+### Using ccache
+```bash
+# First build (normal speed)
+make clean
+make all
+
+# Subsequent builds (much faster due to caching)
+make all
+
+# Check ccache statistics
+make ccache-stats
+
+# Show ccache configuration
+make ccache-show
+
+# Clean ccache if needed
+make ccache-clean
+```
+
+### ccache Configuration
+The Makefile automatically configures ccache with:
+- **Cache directory**: `.ccache` (local to project)
+- **Max cache size**: 1GB
+- **Compression**: Enabled
+- **Automatic detection**: Falls back to regular compiler if ccache not available
+
 ## Makefile Targets
 
 Run `make help` to see all available targets:
 
+### Build Acceleration
+- `make ccache-setup` - Setup ccache for faster builds
+- `make ccache-stats` - Show ccache statistics
+- `make ccache-clean` - Clean ccache
+- `make ccache-show` - Show ccache configuration
+
+### Build Targets
 - `make all` - Build binary and shared library (default)
 - `make build` - Build binary only
 - `make shared` - Build shared library only
+- `make dev` - Build with debug flags
+- `make debug` - Build with debug flags and symbols
+- `make release` - Build optimized release version
+
+### Installation
 - `make install` - Install to /usr/local/bin
 - `make uninstall` - Remove from /usr/local/bin
+
+### Testing
 - `make test` - Run basic tests
 - `make test-c` - Run C implementation tests
 - `make test-unity` - Run Unity framework tests
 - `make test-coverage` - Run coverage tests
 - `make test-all` - Run all tests
 - `make coverage-report` - Generate HTML coverage report
-- `make dev` - Build with debug flags
-- `make debug` - Build with debug flags and symbols
-- `make release` - Build optimized release version
+
+### Maintenance
 - `make clean` - Remove all build artifacts
 - `make distclean` - Remove all build artifacts and dependencies
 
@@ -146,7 +201,10 @@ cd implementations/c
 
 # Install dependencies (Ubuntu/Debian)
 sudo apt-get update
-sudo apt-get install build-essential libssl-dev make cmake lcov
+sudo apt-get install build-essential libssl-dev make cmake lcov ccache
+
+# Setup ccache for faster builds
+make ccache-setup
 
 # Build the implementation
 make clean
@@ -154,6 +212,9 @@ make all
 
 # Verify the binary was created
 ls -la bin/whitespace-stego-c
+
+# Check ccache statistics
+make ccache-stats
 ```
 
 ### Basic Encoding and Decoding Examples
@@ -234,6 +295,34 @@ firefox coverage/html/index.html  # or your preferred browser
 # Run CMake tests
 make cmake-build
 make cmake-test
+```
+
+### Build Acceleration Examples
+
+```bash
+# Setup ccache for faster builds
+make ccache-setup
+
+# First build (normal speed)
+make clean
+time make all
+
+# Subsequent builds (much faster due to caching)
+time make all
+
+# Check ccache effectiveness
+make ccache-stats
+
+# Show ccache configuration
+make ccache-show
+
+# Test different build profiles with ccache
+make clean && time make debug
+make clean && time make release
+make clean && time make dev
+
+# Clean ccache if needed
+make ccache-clean
 ```
 
 ### Development Examples

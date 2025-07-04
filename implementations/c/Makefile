@@ -1,3 +1,24 @@
+# Build accelerator configuration
+CCACHE ?= ccache
+CCACHE_DIR_NAME ?= .ccache
+CCACHE_MAXSIZE_VAL ?= 1G
+CCACHE_COMPRESS_VAL ?= 1
+
+# Detect if ccache is available and configure it
+ifeq ($(shell which $(CCACHE) 2>/dev/null),)
+    # ccache not found, use regular compiler
+    CC_WRAPPER = $(CC)
+    CCACHE_AVAILABLE = 0
+else
+    # ccache found, configure and use it
+    CC_WRAPPER = $(CCACHE) $(CC)
+    CCACHE_AVAILABLE = 1
+    # Set ccache environment variables
+    export CCACHE_DIR = $(CCACHE_DIR_NAME)
+    export CCACHE_MAXSIZE = $(CCACHE_MAXSIZE_VAL)
+    export CCACHE_COMPRESS = $(CCACHE_COMPRESS_VAL)
+endif
+
 CC = gcc
 CFLAGS = -Wall -Wextra -O2 -I./include -fPIC
 COVERAGE_CFLAGS = -Wall -Wextra -O0 -g -I./include -fPIC --coverage -fprofile-arcs -ftest-coverage -std=c99
@@ -20,15 +41,33 @@ SHARED_LIB = $(LIB_DIR)/libwhitespace_stego.so
 TEST_C_TARGET = $(BIN_DIR)/test-c
 TEST_UNITY_TARGET = $(BIN_DIR)/test-unity
 TEST_COVERAGE_TARGET = $(BIN_DIR)/test-coverage
+TEST_100_COVERAGE_TARGET = $(BIN_DIR)/test-100-coverage
 
-.PHONY: all clean test test-c test-unity test-coverage coverage-report shared cmake-build cmake-test cmake-clean install-unity help install uninstall dev debug release
+CMAKE_BUILD_DIR = test/build
+CMAKE_GENERATOR ?= "Unix Makefiles"
+CMAKE_CCACHE_ARG = -DCMAKE_C_COMPILER_LAUNCHER=$(CCACHE)
+
+.PHONY: all clean test test-c test-unity test-coverage coverage-report shared cmake-build cmake-test cmake-clean install-unity help install uninstall dev debug release ccache-setup ccache-stats ccache-clean ccache-show
 
 # Default target
-all: $(TARGET) $(SHARED_LIB)
+all: ccache-setup $(TARGET) $(SHARED_LIB)
 
 help:
 	@echo "Whitespace Steganography - C Implementation"
 	@echo "=========================================="
+	@echo ""
+	@echo "Build Acceleration:"
+	@echo "  ccache-setup    - Setup ccache for faster builds"
+	@echo "  ccache-stats    - Show ccache statistics"
+	@echo "  ccache-clean    - Clean ccache"
+	@echo "  ccache-show     - Show ccache configuration"
+	@echo ""
+	@echo "CMake Integration:"
+	@echo "  cmake-build     - Build using CMake (default=Release)"
+	@echo "  cmake-debug     - Build using CMake (Debug profile)"
+	@echo "  cmake-release   - Build using CMake (Release profile)"
+	@echo "  cmake-test      - Run CMake-based tests"
+	@echo "  cmake-clean     - Clean CMake build artifacts"
 	@echo ""
 	@echo "Available targets:"
 	@echo "  all             - Build binary and shared library (default)"
@@ -41,6 +80,7 @@ help:
 	@echo "  test-c          - Run C implementation tests"
 	@echo "  test-unity      - Run Unity framework tests"
 	@echo "  test-coverage   - Run coverage tests"
+	@echo "  test-100-coverage - Run 100%% coverage tests"
 	@echo "  test-all        - Run all tests"
 	@echo "  coverage-report - Generate HTML coverage report"
 	@echo "  cmake-build     - Build using CMake"
@@ -53,47 +93,101 @@ help:
 	@echo "  clean           - Remove all build artifacts"
 	@echo "  distclean       - Remove all build artifacts and dependencies"
 
-build: $(TARGET)
+# ccache setup and management
+ccache-setup:
+	@if [ $(CCACHE_AVAILABLE) -eq 1 ]; then \
+		echo "🚀 Setting up ccache for faster builds..."; \
+		mkdir -p $(CCACHE_DIR_NAME); \
+		$(CCACHE) -s; \
+		echo "✅ ccache configured and ready!"; \
+	else \
+		echo "⚠️  ccache not found. Install ccache for faster builds:"; \
+		echo "   Ubuntu/Debian: sudo apt-get install ccache"; \
+		echo "   macOS: brew install ccache"; \
+		echo "   CentOS/RHEL: sudo yum install ccache"; \
+	fi
 
-shared: $(SHARED_LIB)
+ccache-stats:
+	@if [ $(CCACHE_AVAILABLE) -eq 1 ]; then \
+		echo "📊 ccache statistics:"; \
+		$(CCACHE) -s; \
+	else \
+		echo "❌ ccache not available"; \
+	fi
+
+ccache-clean:
+	@if [ $(CCACHE_AVAILABLE) -eq 1 ]; then \
+		echo "🧹 Cleaning ccache..."; \
+		$(CCACHE) -C; \
+		echo "✅ ccache cleaned!"; \
+	else \
+		echo "❌ ccache not available"; \
+	fi
+
+ccache-show:
+	@if [ $(CCACHE_AVAILABLE) -eq 1 ]; then \
+		echo "🔧 ccache configuration:"; \
+		echo "CCACHE_DIR: $(CCACHE_DIR_NAME)"; \
+		echo "CCACHE_MAXSIZE: $(CCACHE_MAXSIZE_VAL)"; \
+		echo "CCACHE_COMPRESS: $(CCACHE_COMPRESS_VAL)"; \
+		$(CCACHE) -p; \
+	else \
+		echo "❌ ccache not available"; \
+	fi
+
+build: ccache-setup $(TARGET)
+
+shared: ccache-setup $(SHARED_LIB)
 
 $(TARGET): $(OBJS)
 	@mkdir -p $(BIN_DIR)
-	$(CC) $(OBJS) -o $@ $(LDFLAGS)
+	@echo "🔗 Linking $(TARGET)..."
+	$(CC_WRAPPER) $(OBJS) -o $@ $(LDFLAGS)
 
 $(SHARED_LIB): $(filter-out $(OBJ_DIR)/main.o, $(OBJS))
 	@mkdir -p $(LIB_DIR)
-	$(CC) $(filter-out $(OBJ_DIR)/main.o, $(OBJS)) -o $@ $(SHARED_LDFLAGS)
+	@echo "🔗 Linking shared library $(SHARED_LIB)..."
+	$(CC_WRAPPER) $(filter-out $(OBJ_DIR)/main.o, $(OBJS)) -o $@ $(SHARED_LDFLAGS)
 
 $(TEST_C_TARGET): $(filter-out $(OBJ_DIR)/main.o, $(OBJS)) $(TEST_DIR)/test-c.c
 	@mkdir -p $(BIN_DIR)
-	$(CC) $(CFLAGS) $(TEST_DIR)/test-c.c $(filter-out $(OBJ_DIR)/main.o, $(OBJS)) -o $@ $(LDFLAGS)
+	@echo "🔗 Linking test-c..."
+	$(CC_WRAPPER) $(CFLAGS) $(TEST_DIR)/test-c.c $(filter-out $(OBJ_DIR)/main.o, $(OBJS)) -o $@ $(LDFLAGS)
 
 $(TEST_UNITY_TARGET): $(filter-out $(OBJ_DIR)/main.o, $(OBJS)) $(TEST_DIR)/test_unity.c
 	@mkdir -p $(BIN_DIR)
-	$(CC) $(CFLAGS) $(TEST_DIR)/test_unity.c $(filter-out $(OBJ_DIR)/main.o, $(OBJS)) -o $@ $(LDFLAGS)
+	@echo "🔗 Linking test-unity..."
+	$(CC_WRAPPER) $(CFLAGS) $(TEST_DIR)/test_unity.c $(filter-out $(OBJ_DIR)/main.o, $(OBJS)) -o $@ $(LDFLAGS)
 
 $(TEST_COVERAGE_TARGET): $(filter-out $(OBJ_DIR)/main_coverage.o, $(COVERAGE_OBJS)) $(TEST_DIR)/test_gcov.c
 	@mkdir -p $(BIN_DIR)
-	$(CC) $(COVERAGE_CFLAGS) $(TEST_DIR)/test_gcov.c $(filter-out $(OBJ_DIR)/main_coverage.o, $(COVERAGE_OBJS)) -o $@ $(COVERAGE_LDFLAGS)
+	@echo "🔗 Linking test-coverage..."
+	$(CC_WRAPPER) $(COVERAGE_CFLAGS) $(TEST_DIR)/test_gcov.c $(filter-out $(OBJ_DIR)/main_coverage.o, $(COVERAGE_OBJS)) -o $@ $(COVERAGE_LDFLAGS)
+
+$(TEST_100_COVERAGE_TARGET): $(filter-out $(OBJ_DIR)/main_coverage.o, $(COVERAGE_OBJS)) $(TEST_DIR)/test_100_coverage.c
+	@mkdir -p $(BIN_DIR)
+	@echo "🔗 Linking test-100-coverage..."
+	$(CC_WRAPPER) $(COVERAGE_CFLAGS) $(TEST_DIR)/test_100_coverage.c $(filter-out $(OBJ_DIR)/main_coverage.o, $(COVERAGE_OBJS)) -o $@ $(COVERAGE_LDFLAGS)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(OBJ_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@
+	@echo "🔨 Compiling $<..."
+	$(CC_WRAPPER) $(CFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/%_coverage.o: $(SRC_DIR)/%.c
 	@mkdir -p $(OBJ_DIR)
-	$(CC) $(COVERAGE_CFLAGS) -c $< -o $@
+	@echo "🔨 Compiling $< (coverage)..."
+	$(CC_WRAPPER) $(COVERAGE_CFLAGS) -c $< -o $@
 
 # Development targets
 dev: CFLAGS += -g -DDEBUG
-dev: $(TARGET)
+dev: ccache-setup $(TARGET)
 
 debug: CFLAGS += -g -O0 -DDEBUG
-debug: $(TARGET)
+debug: ccache-setup $(TARGET)
 
 release: CFLAGS += -O3 -DNDEBUG
-release: $(TARGET)
+release: ccache-setup $(TARGET)
 
 # Installation targets
 install: $(TARGET)
@@ -124,7 +218,11 @@ test-coverage: $(TEST_COVERAGE_TARGET)
 	@echo "Running coverage tests..."
 	@./$(TEST_COVERAGE_TARGET)
 
-coverage-report: test-coverage
+test-100-coverage: $(TEST_100_COVERAGE_TARGET)
+	@echo "Running 100%% coverage tests..."
+	@./$(TEST_100_COVERAGE_TARGET)
+
+coverage-report: test-100-coverage
 	@echo "Generating coverage report..."
 	@mkdir -p $(COVERAGE_DIR)
 	@gcov -r obj/crypto_coverage.gcda obj/utils_coverage.gcda obj/whitespace_stego_coverage.gcda
@@ -133,22 +231,38 @@ coverage-report: test-coverage
 	@echo "Coverage report generated in $(COVERAGE_DIR)/html/index.html"
 
 # Run all tests
-test-all: test test-c test-unity test-coverage
+test-all: test test-c test-unity test-coverage test-100-coverage
 	@echo "All tests completed!"
 
 # CMake integration targets
 cmake-build:
-	@echo "Building with CMake..."
-	@mkdir -p test/build
-	@cd test/build && cmake .. && make
+	@echo "Building with CMake (Release)..."
+	@mkdir -p $(CMAKE_BUILD_DIR)
+	cd $(CMAKE_BUILD_DIR) && \
+		cmake -G $(CMAKE_GENERATOR) -DCMAKE_BUILD_TYPE=Release $(if $(shell which $(CCACHE) 2>/dev/null),$(CMAKE_CCACHE_ARG),) ../.. && \
+		cmake --build .
+
+cmake-debug:
+	@echo "Building with CMake (Debug)..."
+	@mkdir -p $(CMAKE_BUILD_DIR)
+	cd $(CMAKE_BUILD_DIR) && \
+		cmake -G $(CMAKE_GENERATOR) -DCMAKE_BUILD_TYPE=Debug $(if $(shell which $(CCACHE) 2>/dev/null),$(CMAKE_CCACHE_ARG),) ../.. && \
+		cmake --build .
+
+cmake-release:
+	@echo "Building with CMake (Release)..."
+	@mkdir -p $(CMAKE_BUILD_DIR)
+	cd $(CMAKE_BUILD_DIR) && \
+		cmake -G $(CMAKE_GENERATOR) -DCMAKE_BUILD_TYPE=Release $(if $(shell which $(CCACHE) 2>/dev/null),$(CMAKE_CCACHE_ARG),) ../.. && \
+		cmake --build .
 
 cmake-test: cmake-build
-	@echo "Running CMake tests..."
-	@cd test/build && ctest --verbose
+	@echo "Running CMake-based tests..."
+	cd $(CMAKE_BUILD_DIR) && ctest --verbose
 
 cmake-clean:
 	@echo "Cleaning CMake build..."
-	@rm -rf test/build
+	@rm -rf $(CMAKE_BUILD_DIR)
 
 # Install Unity framework (if not already installed)
 install-unity:
@@ -165,6 +279,7 @@ clean:
 	find . -name "*.gcda" -delete
 	find . -name "*.gcov" -delete
 
-distclean: clean
+distclean: clean ccache-clean
 	rm -f test/unity.h test/unity.c
-	rm -rf test/build 
+	rm -rf test/build
+	rm -rf $(CCACHE_DIR_NAME) 
