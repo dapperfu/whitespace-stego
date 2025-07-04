@@ -127,13 +127,33 @@ add_library(whitespace_stego_static_small STATIC
 )
 target_link_libraries(whitespace_stego_static_small OpenSSL::SSL OpenSSL::Crypto)
 
+# Tiny static implementation executable
+add_executable(whitespace-stego-tiny
+    src/main_static_tiny.c
+)
+target_link_libraries(whitespace-stego-tiny OpenSSL::SSL OpenSSL::Crypto)
+
+# Large static implementation executable
+add_executable(whitespace-stego-large
+    src/main_static_large.c
+)
+target_link_libraries(whitespace-stego-large OpenSSL::SSL OpenSSL::Crypto)
+
+# Large static library
+add_library(whitespace_stego_static_large STATIC
+    src/whitespace_stego_static_large.c
+    src/crypto.c
+    src/utils.c
+)
+target_link_libraries(whitespace_stego_static_large OpenSSL::SSL OpenSSL::Crypto)
+
 # Install targets
-install(TARGETS whitespace-stego-c whitespace_stego whitespace-stego-static whitespace_stego_static whitespace-stego-static-small whitespace_stego_static_small
+install(TARGETS whitespace-stego-c whitespace_stego whitespace-stego-static whitespace_stego_static whitespace-stego-static-small whitespace_stego_static_small whitespace-stego-tiny whitespace-stego-large whitespace_stego_static_large
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
 )
 
-install(FILES include/whitespace_stego.h include/whitespace_stego_static.h include/whitespace_stego_static_small.h
+install(FILES include/whitespace_stego.h include/whitespace_stego_static.h include/whitespace_stego_static_small.h include/whitespace_stego_static_large.h
     DESTINATION include
 ) 

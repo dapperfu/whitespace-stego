@@ -77,11 +77,20 @@ std::string fromZeroWidth(const std::string& zwstr) {
     std::string result;
     std::string current_byte;
     
+    // Zero-width space: \u200b (3 bytes: 0xE2 0x80 0x8B)
+    // Zero-width joiner: \u200d (3 bytes: 0xE2 0x80 0x8D)
     for (size_t i = 0; i < zwstr.length(); ++i) {
-        if (zwstr[i] == '\u200b') {
-            current_byte += '1';
-        } else if (zwstr[i] == '\u200d') {
-            current_byte += '0';
+        if (i + 2 < zwstr.length() && 
+            (unsigned char)zwstr[i] == 0xE2 && 
+            (unsigned char)zwstr[i+1] == 0x80) {
+            
+            if ((unsigned char)zwstr[i+2] == 0x8B) {
+                current_byte += '1';
+                i += 2; // Skip the next 2 bytes
+            } else if ((unsigned char)zwstr[i+2] == 0x8D) {
+                current_byte += '0';
+                i += 2; // Skip the next 2 bytes
+            }
         }
         
         if (current_byte.length() == 8) {

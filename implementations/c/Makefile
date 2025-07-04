@@ -143,7 +143,7 @@ ccache-show:
 		echo "❌ ccache not available"; \
 	fi
 
-build: ccache-setup $(TARGET)
+build: ccache-setup $(TARGET) $(SHARED_LIB)
 
 shared: ccache-setup $(SHARED_LIB)
 
@@ -155,48 +155,27 @@ $(TARGET): $(OBJS)
 $(SHARED_LIB): $(CORE_OBJS)
 	@mkdir -p $(LIB_DIR)
 	@echo "🔗 Linking shared library $(SHARED_LIB)..."
-<<<<<<< HEAD
-	$(CC_WRAPPER) $(filter-out $(OBJ_DIR)/main.o, $(OBJS)) -o $@ $(SHARED_LDFLAGS)
-=======
 	$(CC_WRAPPER) $(CORE_OBJS) -o $@ $(SHARED_LDFLAGS)
->>>>>>> a5252ef (Update C Makefile for accurate 100% coverage measurement)
 
 $(TEST_C_TARGET): $(CORE_OBJS) $(TEST_DIR)/test-c.c
 	@mkdir -p $(BIN_DIR)
 	@echo "🔗 Linking test-c..."
-<<<<<<< HEAD
-	$(CC_WRAPPER) $(CFLAGS) $(TEST_DIR)/test-c.c $(filter-out $(OBJ_DIR)/main.o, $(OBJS)) -o $@ $(LDFLAGS)
-=======
 	$(CC_WRAPPER) $(CFLAGS) $(TEST_DIR)/test-c.c $(CORE_OBJS) -o $@ $(LDFLAGS)
->>>>>>> a5252ef (Update C Makefile for accurate 100% coverage measurement)
 
 $(TEST_UNITY_TARGET): $(CORE_OBJS) $(TEST_DIR)/test_unity.c
 	@mkdir -p $(BIN_DIR)
 	@echo "🔗 Linking test-unity..."
-<<<<<<< HEAD
-	$(CC_WRAPPER) $(CFLAGS) $(TEST_DIR)/test_unity.c $(filter-out $(OBJ_DIR)/main.o, $(OBJS)) -o $@ $(LDFLAGS)
-=======
 	$(CC_WRAPPER) $(CFLAGS) $(TEST_DIR)/test_unity.c $(CORE_OBJS) -o $@ $(LDFLAGS)
->>>>>>> a5252ef (Update C Makefile for accurate 100% coverage measurement)
 
 $(TEST_COVERAGE_TARGET): $(CORE_COVERAGE_OBJS) $(TEST_DIR)/test_gcov.c
 	@mkdir -p $(BIN_DIR)
 	@echo "🔗 Linking test-coverage..."
-<<<<<<< HEAD
-	$(CC_WRAPPER) $(COVERAGE_CFLAGS) $(TEST_DIR)/test_gcov.c $(filter-out $(OBJ_DIR)/main_coverage.o, $(COVERAGE_OBJS)) -o $@ $(COVERAGE_LDFLAGS)
-
-$(TEST_100_COVERAGE_TARGET): $(filter-out $(OBJ_DIR)/main_coverage.o, $(COVERAGE_OBJS)) $(TEST_DIR)/test_100_coverage.c
-	@mkdir -p $(BIN_DIR)
-	@echo "🔗 Linking test-100-coverage..."
-	$(CC_WRAPPER) $(COVERAGE_CFLAGS) $(TEST_DIR)/test_100_coverage.c $(filter-out $(OBJ_DIR)/main_coverage.o, $(COVERAGE_OBJS)) -o $@ $(COVERAGE_LDFLAGS)
-=======
 	$(CC_WRAPPER) $(COVERAGE_CFLAGS) $(TEST_DIR)/test_gcov.c $(CORE_COVERAGE_OBJS) -o $@ $(COVERAGE_LDFLAGS)
 
 $(TEST_100_COVERAGE_TARGET): $(CORE_COVERAGE_OBJS) $(TEST_DIR)/test_100_coverage.c
 	@mkdir -p $(BIN_DIR)
 	@echo "🔗 Linking test-100-coverage..."
 	$(CC_WRAPPER) $(COVERAGE_CFLAGS) $(TEST_DIR)/test_100_coverage.c $(CORE_COVERAGE_OBJS) -o $@ $(COVERAGE_LDFLAGS)
->>>>>>> a5252ef (Update C Makefile for accurate 100% coverage measurement)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(OBJ_DIR)
@@ -252,11 +231,7 @@ test-100-coverage: $(TEST_100_COVERAGE_TARGET)
 	@./$(TEST_100_COVERAGE_TARGET)
 
 coverage-report: test-100-coverage
-<<<<<<< HEAD
-	@echo "Generating coverage report..."
-=======
 	@echo "Generating coverage report for core library files..."
->>>>>>> a5252ef (Update C Makefile for accurate 100% coverage measurement)
 	@mkdir -p $(COVERAGE_DIR)
 	@gcov -r obj/crypto_coverage.gcda obj/utils_coverage.gcda obj/whitespace_stego_coverage.gcda
 	@lcov --capture --directory . --output-file $(COVERAGE_DIR)/coverage.info
@@ -327,4 +302,95 @@ clean:
 distclean: clean ccache-clean
 	rm -f test/unity.h test/unity.c
 	rm -rf test/build
-	rm -rf $(CCACHE_DIR_NAME) 
+	rm -rf $(CCACHE_DIR_NAME)
+
+# Default target builds all implementations
+all: whitespace-stego-c whitespace-stego-static whitespace-stego-static-small whitespace-stego-tiny whitespace-stego-large
+
+# Standard dynamic implementation
+whitespace-stego-c: bin/whitespace-stego-c
+
+# Standard static implementation (4 GiB buffers)
+whitespace-stego-static: bin/whitespace-stego-static
+
+# Small static implementation (1 MiB buffers)
+whitespace-stego-static-small: bin/whitespace-stego-static-small
+
+# Tiny static implementation (4 KiB buffers)
+whitespace-stego-tiny: bin/whitespace-stego-tiny
+
+# Large static implementation (4 GiB buffers, optimized for large systems)
+whitespace-stego-large: bin/whitespace-stego-large
+
+# Build directory
+bin:
+	mkdir -p bin
+
+# Individual build targets
+bin/whitespace-stego-c: bin
+	cmake -B build -S .
+	cmake --build build --target whitespace-stego-c
+	cp build/whitespace-stego-c bin/
+
+bin/whitespace-stego-static: bin
+	cmake -B build -S .
+	cmake --build build --target whitespace-stego-static
+	cp build/whitespace-stego-static bin/
+
+bin/whitespace-stego-static-small: bin
+	cmake -B build -S .
+	cmake --build build --target whitespace-stego-static-small
+	cp build/whitespace-stego-static-small bin/
+
+bin/whitespace-stego-tiny: bin
+	cmake -B build -S .
+	cmake --build build --target whitespace-stego-tiny
+	cp build/whitespace-stego-tiny bin/
+
+bin/whitespace-stego-large: bin
+	cmake -B build -S .
+	cmake --build build --target whitespace-stego-large
+	cp build/whitespace-stego-large bin/
+
+# Test targets
+test: test-c test-static test-static-small test-tiny test-large
+
+test-c: bin/whitespace-stego-c
+	./bin/whitespace-stego-c --help
+
+test-static: bin/whitespace-stego-static
+	./bin/whitespace-stego-static --help
+
+test-static-small: bin/whitespace-stego-static-small
+	./bin/whitespace-stego-static-small --help
+
+test-tiny: bin/whitespace-stego-tiny
+	./bin/whitespace-stego-tiny --help
+
+test-large: bin/whitespace-stego-large
+	./bin/whitespace-stego-large --help
+
+# Clean targets
+clean:
+	rm -rf build bin
+
+# Install targets
+install: all
+	cmake -B build -S .
+	cmake --build build --target install
+
+# Show available targets
+help:
+	@echo "Available targets:"
+	@echo "  all                    - Build all implementations"
+	@echo "  whitespace-stego-c     - Standard dynamic implementation"
+	@echo "  whitespace-stego-static - Standard static implementation (4 GiB)"
+	@echo "  whitespace-stego-static-small - Small static implementation (1 MiB)"
+	@echo "  whitespace-stego-tiny  - Tiny static implementation (4 KiB)"
+	@echo "  whitespace-stego-large - Large static implementation (4 GiB, optimized)"
+	@echo "  test                   - Test all implementations"
+	@echo "  clean                  - Remove build artifacts"
+	@echo "  install                - Install all implementations"
+	@echo "  help                   - Show this help message"
+
+.PHONY: all test test-c test-static test-static-small test-tiny test-large clean install help 
