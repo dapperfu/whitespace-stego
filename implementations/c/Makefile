@@ -54,10 +54,10 @@ CMAKE_BUILD_DIR = test/build
 CMAKE_GENERATOR ?= "Unix Makefiles"
 CMAKE_CCACHE_ARG = -DCMAKE_C_COMPILER_LAUNCHER=$(CCACHE)
 
-.PHONY: all clean test test-c test-unity test-coverage coverage-report shared cmake-build cmake-test cmake-clean install-unity help install uninstall dev debug release ccache-setup ccache-stats ccache-clean ccache-show
+.PHONY: all clean test test-c test-unity test-coverage coverage-report shared cmake-build cmake-test cmake-clean install-unity help install uninstall dev debug release ccache-setup ccache-stats ccache-clean ccache-show whitespace-stego-static whitespace-stego-static-small whitespace-stego-static-tiny whitespace-stego-static-large test-static test-static-small test-static-tiny test-static-large
 
-# Default target
-all: ccache-setup $(TARGET) $(SHARED_LIB)
+# Default target builds all implementations
+all: ccache-setup $(TARGET) $(SHARED_LIB) whitespace-stego-static whitespace-stego-static-small whitespace-stego-static-tiny whitespace-stego-static-large
 
 help:
 	@echo "Whitespace Steganography - C Implementation"
@@ -77,20 +77,36 @@ help:
 	@echo "  cmake-clean     - Clean CMake build artifacts"
 	@echo ""
 	@echo "Available targets:"
-	@echo "  all             - Build binary and shared library (default)"
+	@echo "  all             - Build all implementations (default)"
 	@echo "  help            - Show this help message"
 	@echo "  build           - Build binary only"
 	@echo "  shared          - Build shared library only"
 	@echo "  install         - Install to /usr/local/bin"
 	@echo "  uninstall       - Remove from /usr/local/bin"
+	@echo ""
+	@echo "Static Implementations:"
+	@echo "  whitespace-stego-static        - Standard static implementation (4 GiB buffers)"
+	@echo "  whitespace-stego-static-small  - Small static implementation (1 MiB buffers)"
+	@echo "  whitespace-stego-static-tiny   - Tiny static implementation (4 KiB buffers)"
+	@echo "  whitespace-stego-static-large  - Large static implementation (4 GiB, optimized)"
+	@echo ""
+	@echo "Testing:"
 	@echo "  test            - Run basic tests"
 	@echo "  test-c          - Run C implementation tests"
 	@echo "  test-unity      - Run Unity framework tests"
 	@echo "  test-coverage   - Run coverage tests"
 	@echo "  test-100-coverage - Run 100%% coverage tests"
-	@echo "  test-all        - Run all tests"
+	@echo "  test-all        - Run all tests (including static implementations)"
+	@echo "  test-static     - Test standard static implementation"
+	@echo "  test-static-small - Test small static implementation"
+	@echo "  test-static-tiny - Test tiny static implementation"
+	@echo "  test-static-large - Test large static implementation"
+	@echo ""
+	@echo "Coverage:"
 	@echo "  coverage-report - Generate HTML coverage report"
 	@echo "  coverage-summary - Show core library coverage summary"
+	@echo ""
+	@echo "Development:"
 	@echo "  cmake-build     - Build using CMake"
 	@echo "  cmake-test      - Run CMake tests"
 	@echo "  cmake-clean     - Clean CMake build"
@@ -250,8 +266,8 @@ coverage-summary: test-100-coverage
 	@echo "  - utils.c: Target 100%% (currently ~59%%)"
 	@echo "  - whitespace_stego.c: Target 100%% (currently ~80%%)"
 
-# Run all tests
-test-all: test test-c test-unity test-coverage test-100-coverage
+# Run all tests (original)
+test-all-original: test test-c test-unity test-coverage test-100-coverage
 	@echo "All tests completed!"
 
 # CMake integration targets
@@ -304,34 +320,16 @@ distclean: clean ccache-clean
 	rm -rf test/build
 	rm -rf $(CCACHE_DIR_NAME)
 
-# Default target builds all implementations
-all: whitespace-stego-c whitespace-stego-static whitespace-stego-static-small whitespace-stego-tiny whitespace-stego-large
-
-# Standard dynamic implementation
-whitespace-stego-c: bin/whitespace-stego-c
-
-# Standard static implementation (4 GiB buffers)
+# Static implementation targets
 whitespace-stego-static: bin/whitespace-stego-static
 
-# Small static implementation (1 MiB buffers)
 whitespace-stego-static-small: bin/whitespace-stego-static-small
 
-# Tiny static implementation (4 KiB buffers)
-whitespace-stego-tiny: bin/whitespace-stego-tiny
+whitespace-stego-static-tiny: bin/whitespace-stego-static-tiny
 
-# Large static implementation (4 GiB buffers, optimized for large systems)
-whitespace-stego-large: bin/whitespace-stego-large
+whitespace-stego-static-large: bin/whitespace-stego-static-large
 
-# Build directory
-bin:
-	mkdir -p bin
-
-# Individual build targets
-bin/whitespace-stego-c: bin
-	cmake -B build -S .
-	cmake --build build --target whitespace-stego-c
-	cp build/whitespace-stego-c bin/
-
+# Individual build targets for static implementations
 bin/whitespace-stego-static: bin
 	cmake -B build -S .
 	cmake --build build --target whitespace-stego-static
@@ -342,55 +340,33 @@ bin/whitespace-stego-static-small: bin
 	cmake --build build --target whitespace-stego-static-small
 	cp build/whitespace-stego-static-small bin/
 
-bin/whitespace-stego-tiny: bin
+bin/whitespace-stego-static-tiny: bin
 	cmake -B build -S .
-	cmake --build build --target whitespace-stego-tiny
-	cp build/whitespace-stego-tiny bin/
+	cmake --build build --target whitespace-stego-static-tiny
+	cp build/whitespace-stego-static-tiny bin/
 
-bin/whitespace-stego-large: bin
+bin/whitespace-stego-static-large: bin
 	cmake -B build -S .
-	cmake --build build --target whitespace-stego-large
-	cp build/whitespace-stego-large bin/
+	cmake --build build --target whitespace-stego-static-large
+	cp build/whitespace-stego-static-large bin/
 
-# Test targets
-test: test-c test-static test-static-small test-tiny test-large
+# whitespace-stego-c is now an alias for whitespace-stego-static
+bin/whitespace-stego-c: bin/whitespace-stego-static
+	ln -sf whitespace-stego-static bin/whitespace-stego-c
 
-test-c: bin/whitespace-stego-c
-	./bin/whitespace-stego-c --help
-
+# Test targets for static implementations
 test-static: bin/whitespace-stego-static
 	./bin/whitespace-stego-static --help
 
 test-static-small: bin/whitespace-stego-static-small
 	./bin/whitespace-stego-static-small --help
 
-test-tiny: bin/whitespace-stego-tiny
-	./bin/whitespace-stego-tiny --help
+test-static-tiny: bin/whitespace-stego-static-tiny
+	./bin/whitespace-stego-static-tiny --help
 
-test-large: bin/whitespace-stego-large
-	./bin/whitespace-stego-large --help
+test-static-large: bin/whitespace-stego-static-large
+	./bin/whitespace-stego-static-large --help
 
-# Clean targets
-clean:
-	rm -rf build bin
-
-# Install targets
-install: all
-	cmake -B build -S .
-	cmake --build build --target install
-
-# Show available targets
-help:
-	@echo "Available targets:"
-	@echo "  all                    - Build all implementations"
-	@echo "  whitespace-stego-c     - Standard dynamic implementation"
-	@echo "  whitespace-stego-static - Standard static implementation (4 GiB)"
-	@echo "  whitespace-stego-static-small - Small static implementation (1 MiB)"
-	@echo "  whitespace-stego-tiny  - Tiny static implementation (4 KiB)"
-	@echo "  whitespace-stego-large - Large static implementation (4 GiB, optimized)"
-	@echo "  test                   - Test all implementations"
-	@echo "  clean                  - Remove build artifacts"
-	@echo "  install                - Install all implementations"
-	@echo "  help                   - Show this help message"
-
-.PHONY: all test test-c test-static test-static-small test-tiny test-large clean install help 
+# Update test-all to include static implementations
+test-all: test test-c test-unity test-coverage test-100-coverage test-static test-static-small test-static-tiny test-static-large
+	@echo "All tests completed!" 

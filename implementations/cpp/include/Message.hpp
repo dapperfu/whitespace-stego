@@ -17,7 +17,7 @@ public:
     std::string encode(const std::string& carrier, const std::string& password = "");
 
     // Decode a message from a carrier
-    static std::vector<std::string> decode(const std::string& carrier, const std::string& password = "");
+    std::vector<std::string> decode(const std::string& carrier, const std::string& password = "");
 
     // Encrypt the message with a password
     std::string encrypt(const std::string& password) const;

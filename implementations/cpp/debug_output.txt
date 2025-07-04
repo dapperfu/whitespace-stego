@@ -1,0 +1,9 @@
+Testing Encoder...
+Message: Secret message for testing
+Carrier: This is a test carrier text for steganography.
+Encoded length: 694
+START_MARKER length: 12
+END_MARKER length: 12
+START_MARKER found at: 5
+END_MARKER found at: 26
+Markers found! Encoding successful.

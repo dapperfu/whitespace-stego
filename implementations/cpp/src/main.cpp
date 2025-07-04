@@ -120,7 +120,8 @@ int main(int argc, char* argv[]) {
             return 1;
         }
         std::string carrier = read_file(carrier_file);
-        std::vector<std::string> messages = Message::decode(carrier, password);
+        Message msg(""); // Create empty message for decoding
+        std::vector<std::string> messages = msg.decode(carrier, password);
         std::string output;
         for (const auto& msg : messages) {
             output += msg + "\n";

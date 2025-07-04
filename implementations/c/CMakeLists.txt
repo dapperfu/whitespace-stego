@@ -14,34 +14,35 @@ find_package(OpenSSL REQUIRED)
 # Include directories
 include_directories(include)
 
-# Source files
-set(SOURCES
-    src/whitespace_stego.c
+# Source files for static implementations
+set(STATIC_SOURCES
     src/crypto.c
     src/utils.c
-    src/main.c
 )
 
-# Main executable
-add_executable(whitespace-stego-c ${SOURCES})
-target_link_libraries(whitespace-stego-c OpenSSL::SSL OpenSSL::Crypto)
+# Main executable (using static implementation)
+# add_executable(whitespace-stego-c 
+#     src/whitespace_stego_static.c
+#     ${STATIC_SOURCES}
+#     src/main_static.c
+# )
+# target_link_libraries(whitespace-stego-c OpenSSL::SSL OpenSSL::Crypto)
 
-# Shared library (without main.c)
+# Shared library (using static implementation)
 set(LIB_SOURCES
-    src/whitespace_stego.c
-    src/crypto.c
-    src/utils.c
+    src/whitespace_stego_static.c
+    ${STATIC_SOURCES}
 )
 
 add_library(whitespace_stego SHARED ${LIB_SOURCES})
 target_link_libraries(whitespace_stego OpenSSL::SSL OpenSSL::Crypto)
 
-# Test executable
-add_executable(test-c test/test-c.c ${LIB_SOURCES})
+# Test executable (using static implementation)
+add_executable(test-c test/test_100_coverage.c ${LIB_SOURCES})
 target_link_libraries(test-c OpenSSL::SSL OpenSSL::Crypto)
 
-# Coverage test executable
-add_executable(test-coverage test/test_gcov.c ${LIB_SOURCES})
+# Coverage test executable (using static implementation)
+add_executable(test-coverage test/test_100_coverage.c ${LIB_SOURCES})
 target_compile_options(test-coverage PRIVATE --coverage -fprofile-arcs -ftest-coverage)
 target_link_libraries(test-coverage OpenSSL::SSL OpenSSL::Crypto)
 target_link_options(test-coverage PRIVATE --coverage -fprofile-arcs -ftest-coverage)
@@ -93,7 +94,7 @@ if(EXISTS "test/unity.h")
     )
 endif()
 
-# Static implementation executable
+# Standard static implementation executable
 add_executable(whitespace-stego-static
     src/whitespace_stego_static.c
     src/crypto.c
@@ -101,6 +102,36 @@ add_executable(whitespace-stego-static
     src/main_static.c
 )
 target_link_libraries(whitespace-stego-static OpenSSL::SSL OpenSSL::Crypto)
+
+# Small static implementation executable
+add_executable(whitespace-stego-static-small
+    src/whitespace_stego_static_small.c
+    src/crypto.c
+    src/utils.c
+    src/main_static_small.c
+)
+target_link_libraries(whitespace-stego-static-small OpenSSL::SSL OpenSSL::Crypto)
+
+# Tiny static implementation executable
+add_executable(whitespace-stego-static-tiny
+    src/whitespace_stego_static_small.c
+    src/crypto.c
+    src/utils.c
+    src/main_static_tiny.c
+)
+target_link_libraries(whitespace-stego-static-tiny OpenSSL::SSL OpenSSL::Crypto)
+
+# Large static implementation executable
+add_executable(whitespace-stego-static-large
+    src/whitespace_stego_static_large.c
+    src/crypto.c
+    src/utils.c
+    src/main_static_large.c
+)
+target_link_libraries(whitespace-stego-static-large OpenSSL::SSL OpenSSL::Crypto)
+
+# Optionally, make whitespace-stego-c an alias for the standard static
+add_executable(whitespace-stego-c ALIAS whitespace-stego-static)
 
 # Static library
 add_library(whitespace_stego_static STATIC
@@ -110,45 +141,8 @@ add_library(whitespace_stego_static STATIC
 )
 target_link_libraries(whitespace_stego_static OpenSSL::SSL OpenSSL::Crypto)
 
-# Small static implementation executable (for testing)
-add_executable(whitespace-stego-static-small
-    src/whitespace_stego_static_small.c
-    src/crypto.c
-    src/utils.c
-    src/main_static_small.c
-)
-target_link_libraries(whitespace-stego-static-small OpenSSL::SSL OpenSSL::Crypto)
-
-# Small static library
-add_library(whitespace_stego_static_small STATIC
-    src/whitespace_stego_static_small.c
-    src/crypto.c
-    src/utils.c
-)
-target_link_libraries(whitespace_stego_static_small OpenSSL::SSL OpenSSL::Crypto)
-
-# Tiny static implementation executable
-add_executable(whitespace-stego-tiny
-    src/main_static_tiny.c
-)
-target_link_libraries(whitespace-stego-tiny OpenSSL::SSL OpenSSL::Crypto)
-
-# Large static implementation executable
-add_executable(whitespace-stego-large
-    src/main_static_large.c
-)
-target_link_libraries(whitespace-stego-large OpenSSL::SSL OpenSSL::Crypto)
-
-# Large static library
-add_library(whitespace_stego_static_large STATIC
-    src/whitespace_stego_static_large.c
-    src/crypto.c
-    src/utils.c
-)
-target_link_libraries(whitespace_stego_static_large OpenSSL::SSL OpenSSL::Crypto)
-
 # Install targets
-install(TARGETS whitespace-stego-c whitespace_stego whitespace-stego-static whitespace_stego_static whitespace-stego-static-small whitespace_stego_static_small whitespace-stego-tiny whitespace-stego-large whitespace_stego_static_large
+install(TARGETS whitespace_stego whitespace-stego-static whitespace-stego-static-small whitespace-stego-static-tiny whitespace-stego-static-large
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib

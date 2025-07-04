@@ -25,11 +25,13 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 # Add include directory
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
-# Gather all source files
-file(GLOB SOURCES ${CMAKE_SOURCE_DIR}/src/*.cpp)
+# Gather source files (excluding main.cpp for tests)
+file(GLOB ALL_SOURCES ${CMAKE_SOURCE_DIR}/src/*.cpp)
+list(REMOVE_ITEM ALL_SOURCES ${CMAKE_SOURCE_DIR}/src/main.cpp)
 
-# Main executable
-add_executable(whitespace-stego-cpp ${SOURCES})
+# Main executable (includes main.cpp)
+file(GLOB MAIN_SOURCES ${CMAKE_SOURCE_DIR}/src/*.cpp)
+add_executable(whitespace-stego-cpp ${MAIN_SOURCES})
 set_target_properties(whitespace-stego-cpp PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 # Compiler warnings
@@ -51,7 +53,7 @@ install(TARGETS whitespace-stego-cpp DESTINATION bin)
 file(GLOB TEST_SOURCES ${CMAKE_SOURCE_DIR}/test/*.cpp)
 foreach(TEST_SOURCE ${TEST_SOURCES})
     get_filename_component(TEST_NAME ${TEST_SOURCE} NAME_WE)
-    add_executable(${TEST_NAME} ${TEST_SOURCE} ${SOURCES})
+    add_executable(${TEST_NAME} ${TEST_SOURCE} ${ALL_SOURCES})
     target_include_directories(${TEST_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/include)
     if(MSVC)
         target_compile_options(${TEST_NAME} PRIVATE /W4)
