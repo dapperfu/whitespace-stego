@@ -121,7 +121,7 @@ jobs:
           
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: c-test-results
           path: |
@@ -133,7 +133,7 @@ jobs:
           
       - name: Upload coverage report
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: c-coverage-report
           path: implementations/c/coverage/html/
