@@ -99,7 +99,7 @@ coverage-xml: coverage
 		echo "gocover-cobertura not available, skipping Go XML conversion"; \
 	fi
 	# Rust already generates XML
-	@cp implementations/rust/coverage/tarpaulin.xml coverage-reports/rust-coverage.xml
+	@cp coverage/cobertura.xml coverage-reports/rust-coverage.xml
 	# C coverage to XML
 	@cd implementations/c && gcovr --xml --output=../../coverage-reports/c-coverage.xml
 	@echo "📊 Consolidated coverage reports in coverage-reports/"
@@ -127,7 +127,7 @@ cov-go:
 
 cov-python: all
 	@echo "🧪 Running Python tests with coverage..."
-	cd implementations/python && ../../.venv/bin/pytest -v
+	cd implementations/python && ../../.venv/bin/pytest --cov=whitespace_stego --cov-report=xml:../../coverage.xml --cov-report=html:../../htmlcov -v
 	@echo "📊 Python coverage report generated: htmlcov/index.html"
 
 cov-rust:
