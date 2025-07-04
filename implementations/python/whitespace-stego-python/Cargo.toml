@@ -1,0 +1,18 @@
+[package]
+name = "whitespace-stego-python"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+description.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[lib]
+name = "whitespace_stego_rust"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+pyo3.workspace = true
+whitespace-stego-core = { path = "../whitespace-stego-core" } 

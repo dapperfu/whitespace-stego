@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whitespace Steganography Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .sections-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid #e9ecef;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .section-header h2 {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin-left: 10px;
+        }
+
+        .encode-section .section-header {
+            color: #667eea;
+        }
+
+        .decode-section .section-header {
+            color: #f093fb;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1rem;
+        }
+
+        textarea, input[type="text"], input[type="file"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            resize: vertical;
+        }
+
+        textarea:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            min-height: 120px;
+        }
+
+        input[type="file"] {
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .file-upload-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .file-upload-container input[type="file"] {
+            flex: 1;
+        }
+
+        .file-info {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(240, 147, 251, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #333;
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 236, 210, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .output-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .output-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .status {
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-weight: 500;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .copy-btn, .download-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .download-btn {
+            background: #17a2b8;
+        }
+
+        .copy-btn:hover, .download-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .copy-btn:hover {
+            background: #218838;
+        }
+
+        .download-btn:hover {
+            background: #138496;
+        }
+
+        .copy-btn:active, .download-btn:active {
+            transform: translateY(0);
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-box h4 {
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+
+        .info-box ul {
+            margin-left: 20px;
+            color: #424242;
+        }
+
+        .info-box li {
+            margin-bottom: 5px;
+        }
+
+        .debug-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid #e9ecef;
+            margin-top: 30px;
+        }
+
+        .debug-controls {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .debug-controls .btn {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        #debug-output {
+            background: #2d3748;
+            color: #e2e8f0;
+            border: 1px solid #4a5568;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        #debug-output:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .sections-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 Whitespace Steganography</h1>
+            <p>Hide messages in plain sight using invisible Unicode characters</p>
+        </div>
+
+        <div class="main-content">
+            <div class="info-box">
+                <h4>ℹ️ How it works:</h4>
+                <ul>
+                    <li><strong>Encode:</strong> Hide your secret message within normal-looking text</li>
+                    <li><strong>Decode:</strong> Extract hidden messages from text that contains encoded data</li>
+                    <li><strong>Password Protection:</strong> Optionally encrypt your messages with a password</li>
+                    <li><strong>File Upload:</strong> Upload files for decoding or use text input</li>
+                    <li><strong>Download:</strong> Save encoded text to a file</li>
+                    <li><strong>Invisible:</strong> Uses zero-width Unicode characters that are invisible to the human eye</li>
+                </ul>
+                <div style="margin-top: 15px; text-align: center;">
+                    <button class="btn btn-warning" onclick="toggleDebug()" id="show-debug-btn">🔍 Show Debug Information</button>
+                </div>
+            </div>
+
+            <div class="sections-container">
+                <!-- Encode Section -->
+                <div class="section encode-section">
+                    <div class="section-header">
+                        <span style="font-size: 1.5rem;">🔒</span>
+                        <h2>Encode</h2>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="message">Secret Message:</label>
+                        <textarea id="message" placeholder="Enter the message you want to hide..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="carrier-encode">Carrier Text (where to hide the message):</label>
+                        <textarea id="carrier-encode" placeholder="Enter the text where you want to hide your message..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password-encode">Password (optional):</label>
+                        <input type="password" id="password-encode" placeholder="Enter password to encrypt the message">
+                        <div class="file-info">Note: Password encryption uses Fernet (AES-128) and is compatible with Python, Rust, and C implementations.</div>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="encodeMessage()">
+                            <span id="encode-loading" class="loading" style="display: none;"></span>
+                            🔒 Encode Message
+                        </button>
+                        <button class="btn btn-success" onclick="clearEncode()">🗑️ Clear</button>
+                    </div>
+                </div>
+
+                <!-- Decode Section -->
+                <div class="section decode-section">
+                    <div class="section-header">
+                        <span style="font-size: 1.5rem;">🔓</span>
+                        <h2>Decode</h2>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="carrier-decode">Text to Decode:</label>
+                        <textarea id="carrier-decode" placeholder="Enter text that contains hidden messages..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="file-upload">Upload File for Decoding (optional):</label>
+                        <div class="file-upload-container">
+                            <input type="file" id="file-upload" accept=".txt,.md,.html,.js,.py,.rs,.c,.cpp,.h,.hpp,.json,.xml,.csv">
+                            <button class="btn btn-warning" onclick="loadFileContent()">📁 Load File</button>
+                        </div>
+                        <div class="file-info" id="file-info"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password-decode">Password (if message was encrypted):</label>
+                        <input type="password" id="password-decode" placeholder="Enter password if the message was encrypted">
+                    </div>
+
+                    <div class="button-group">
+                        <button class="btn btn-secondary" onclick="decodeMessage()">
+                            <span id="decode-loading" class="loading" style="display: none;"></span>
+                            🔓 Decode Message
+                        </button>
+                        <button class="btn btn-success" onclick="clearDecode()">🗑️ Clear</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="output-section">
+                <h3>📤 Output</h3>
+                <div id="status"></div>
+                <div class="form-group">
+                    <label for="output">Result:</label>
+                    <textarea id="output" placeholder="Encoded or decoded text will appear here..." readonly></textarea>
+                    <button class="copy-btn" onclick="copyToClipboard()">📋 Copy to Clipboard</button>
+                    <button class="download-btn" onclick="downloadOutput()" id="download-btn" style="display: none;">💾 Download File</button>
+                </div>
+            </div>
+
+            <!-- Debug Section -->
+            <div class="debug-section" id="debug-section" style="display: none;">
+                <div class="section-header">
+                    <span style="font-size: 1.5rem;">🔍</span>
+                    <h2>Debug Information</h2>
+                    <button class="btn btn-warning" onclick="toggleDebug()" style="margin-left: auto;">Hide Debug</button>
+                </div>
+                
+                <div class="debug-controls">
+                    <button class="btn btn-primary" onclick="showEncodeDebug()">🔍 Show Encode Debug</button>
+                    <button class="btn btn-secondary" onclick="showDecodeDebug()">🔍 Show Decode Debug</button>
+                    <button class="btn btn-success" onclick="showWhitespaceVisualization()">👁️ Visualize Whitespace</button>
+                    <button class="btn btn-warning" onclick="clearDebug()">🗑️ Clear Debug</button>
+                </div>
+                
+                <div class="form-group">
+                    <label for="debug-output">Debug Output:</label>
+                    <textarea id="debug-output" placeholder="Debug information will appear here..." readonly style="font-family: 'Courier New', monospace; font-size: 0.9rem; min-height: 300px;"></textarea>
+                    <button class="copy-btn" onclick="copyDebugToClipboard()">📋 Copy Debug Info</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import init, { encode, decode, has_encoded_data, extract_carrier, debug_encode, debug_decode, visualize_whitespace } from './whitespace_stego_wasi.js';
+
+        let wasmModule = null;
+
+        async function initializeWasm() {
+            try {
+                wasmModule = await init();
+                console.log('WASM module loaded successfully');
+            } catch (error) {
+                console.error('Failed to load WASM module:', error);
+                showStatus('Error: Failed to load WASM module. Please refresh the page.', 'error');
+            }
+        }
+
+        window.encodeMessage = async function() {
+            if (!wasmModule) {
+                showStatus('Error: WASM module not loaded. Please refresh the page.', 'error');
+                return;
+            }
+
+            const message = document.getElementById('message').value.trim();
+            const carrier = document.getElementById('carrier-encode').value.trim();
+            const password = document.getElementById('password-encode').value.trim();
+
+            if (!message) {
+                showStatus('Error: Please enter a message to encode.', 'error');
+                return;
+            }
+
+            if (!carrier) {
+                showStatus('Error: Please enter carrier text.', 'error');
+                return;
+            }
+
+            showLoading('encode');
+            
+            try {
+                const passwordOption = password ? password : null;
+                const result = encode(message, carrier, passwordOption);
+                document.getElementById('output').value = result;
+                showStatus('✅ Message encoded successfully! The encoded text is now in the output area.', 'success');
+                document.getElementById('download-btn').style.display = 'inline-block';
+            } catch (error) {
+                showStatus(`Error: ${error}`, 'error');
+                document.getElementById('download-btn').style.display = 'none';
+            } finally {
+                hideLoading('encode');
+            }
+        };
+
+        window.decodeMessage = async function() {
+            if (!wasmModule) {
+                showStatus('Error: WASM module not loaded. Please refresh the page.', 'error');
+                return;
+            }
+
+            const carrier = document.getElementById('carrier-decode').value.trim();
+            const password = document.getElementById('password-decode').value.trim();
+
+            if (!carrier) {
+                showStatus('Error: Please enter text to decode.', 'error');
+                return;
+            }
+
+            showLoading('decode');
+
+            try {
+                // Check if the text contains encoded data
+                if (!has_encoded_data(carrier)) {
+                    showStatus('Info: No encoded data found in the provided text.', 'info');
+                    hideLoading('decode');
+                    return;
+                }
+
+                const passwordOption = password ? password : null;
+                const result = decode(carrier, passwordOption);
+                document.getElementById('output').value = result;
+                showStatus('✅ Message decoded successfully! The hidden message is now in the output area.', 'success');
+                document.getElementById('download-btn').style.display = 'inline-block';
+            } catch (error) {
+                showStatus(`Error: ${error}`, 'error');
+                document.getElementById('download-btn').style.display = 'none';
+            } finally {
+                hideLoading('decode');
+            }
+        };
+
+        window.loadFileContent = function() {
+            const fileInput = document.getElementById('file-upload');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showStatus('Error: Please select a file first.', 'error');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                document.getElementById('carrier-decode').value = content;
+                document.getElementById('file-info').textContent = `Loaded: ${file.name} (${file.size} bytes)`;
+                showStatus(`✅ File "${file.name}" loaded successfully!`, 'success');
+            };
+            
+            reader.onerror = function() {
+                showStatus('Error: Failed to read file.', 'error');
+            };
+            
+            reader.readAsText(file);
+        };
+
+        window.downloadOutput = function() {
+            const output = document.getElementById('output').value;
+            if (!output) {
+                showStatus('Error: Nothing to download. Please encode or decode a message first.', 'error');
+                return;
+            }
+
+            const blob = new Blob([output], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'whitespace_stego_output.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showStatus('✅ File downloaded successfully!', 'success');
+        };
+
+        window.clearEncode = function() {
+            document.getElementById('message').value = '';
+            document.getElementById('carrier-encode').value = '';
+            document.getElementById('password-encode').value = '';
+        };
+
+        window.clearDecode = function() {
+            document.getElementById('carrier-decode').value = '';
+            document.getElementById('password-decode').value = '';
+            document.getElementById('file-upload').value = '';
+            document.getElementById('file-info').textContent = '';
+        };
+
+        window.clearAll = function() {
+            clearEncode();
+            clearDecode();
+            document.getElementById('output').value = '';
+            document.getElementById('status').innerHTML = '';
+            document.getElementById('download-btn').style.display = 'none';
+        };
+
+        window.copyToClipboard = async function() {
+            const output = document.getElementById('output').value;
+            if (!output) {
+                showStatus('Error: Nothing to copy. Please encode or decode a message first.', 'error');
+                return;
+            }
+
+            try {
+                await navigator.clipboard.writeText(output);
+                showStatus('✅ Text copied to clipboard!', 'success');
+            } catch (error) {
+                showStatus('Error: Failed to copy to clipboard. Please copy manually.', 'error');
+            }
+        };
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function showLoading(type) {
+            const loadingElement = document.getElementById(`${type}-loading`);
+            if (loadingElement) {
+                loadingElement.style.display = 'inline-block';
+            }
+        }
+
+        function hideLoading(type) {
+            const loadingElement = document.getElementById(`${type}-loading`);
+            if (loadingElement) {
+                loadingElement.style.display = 'none';
+            }
+        }
+
+        // Debug functions
+        window.toggleDebug = function() {
+            const debugSection = document.getElementById('debug-section');
+            const showDebugBtn = document.getElementById('show-debug-btn');
+            
+            if (debugSection.style.display === 'none') {
+                debugSection.style.display = 'block';
+                showDebugBtn.textContent = '🔍 Hide Debug Information';
+            } else {
+                debugSection.style.display = 'none';
+                showDebugBtn.textContent = '🔍 Show Debug Information';
+            }
+        };
+
+        window.showEncodeDebug = async function() {
+            if (!wasmModule) {
+                showStatus('Error: WASM module not loaded. Please refresh the page.', 'error');
+                return;
+            }
+
+            const message = document.getElementById('message').value.trim();
+            const carrier = document.getElementById('carrier-encode').value.trim();
+            const password = document.getElementById('password-encode').value.trim();
+
+            if (!message || !carrier) {
+                showStatus('Error: Please enter both message and carrier text for debug information.', 'error');
+                return;
+            }
+
+            try {
+                const passwordOption = password ? password : null;
+                const debugInfo = debug_encode(message, carrier, passwordOption);
+                document.getElementById('debug-output').value = debugInfo;
+                showStatus('✅ Encode debug information generated!', 'success');
+            } catch (error) {
+                showStatus(`Error: ${error}`, 'error');
+            }
+        };
+
+        window.showDecodeDebug = async function() {
+            if (!wasmModule) {
+                showStatus('Error: WASM module not loaded. Please refresh the page.', 'error');
+                return;
+            }
+
+            const carrier = document.getElementById('carrier-decode').value.trim();
+            const password = document.getElementById('password-decode').value.trim();
+
+            if (!carrier) {
+                showStatus('Error: Please enter text to decode for debug information.', 'error');
+                return;
+            }
+
+            try {
+                const passwordOption = password ? password : null;
+                const debugInfo = debug_decode(carrier, passwordOption);
+                document.getElementById('debug-output').value = debugInfo;
+                showStatus('✅ Decode debug information generated!', 'success');
+            } catch (error) {
+                showStatus(`Error: ${error}`, 'error');
+            }
+        };
+
+        window.showWhitespaceVisualization = function() {
+            if (!wasmModule) {
+                showStatus('Error: WASM module not loaded. Please refresh the page.', 'error');
+                return;
+            }
+
+            const output = document.getElementById('output').value.trim();
+            const carrierEncode = document.getElementById('carrier-encode').value.trim();
+            const carrierDecode = document.getElementById('carrier-decode').value.trim();
+
+            let textToVisualize = '';
+            if (output) {
+                textToVisualize = output;
+            } else if (carrierEncode) {
+                textToVisualize = carrierEncode;
+            } else if (carrierDecode) {
+                textToVisualize = carrierDecode;
+            } else {
+                showStatus('Error: Please encode or decode a message first, or enter text to visualize.', 'error');
+                return;
+            }
+
+            try {
+                const visualization = visualize_whitespace(textToVisualize);
+                document.getElementById('debug-output').value = visualization;
+                showStatus('✅ Whitespace visualization generated!', 'success');
+            } catch (error) {
+                showStatus(`Error: ${error}`, 'error');
+            }
+        };
+
+        window.clearDebug = function() {
+            document.getElementById('debug-output').value = '';
+            showStatus('✅ Debug output cleared!', 'success');
+        };
+
+        window.copyDebugToClipboard = async function() {
+            const debugOutput = document.getElementById('debug-output').value;
+            if (!debugOutput) {
+                showStatus('Error: Nothing to copy. Please generate debug information first.', 'error');
+                return;
+            }
+
+            try {
+                await navigator.clipboard.writeText(debugOutput);
+                showStatus('✅ Debug information copied to clipboard!', 'success');
+            } catch (error) {
+                showStatus('Error: Failed to copy debug info to clipboard. Please copy manually.', 'error');
+            }
+        };
+
+        // Initialize WASM when the page loads
+        initializeWasm();
+    </script>
+</body>
+</html> 

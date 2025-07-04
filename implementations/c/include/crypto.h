@@ -44,6 +44,7 @@ int crypto_decrypt(const unsigned char* data, size_t data_len,
  */
 void crypto_free(unsigned char* ptr);
 
+<<<<<<< HEAD
 /**
  * @brief Encrypt data using a password with static buffer
  *
@@ -74,4 +75,6 @@ int crypto_decrypt_static(const unsigned char* data, size_t data_len,
                           const char* password, unsigned char* result_buffer,
                           size_t result_buffer_size, size_t* result_len);
 
+=======
+>>>>>>> 92b3c39d6dc84306d706a192eafe0a81e720e625
 #endif // CRYPTO_H 

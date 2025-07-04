@@ -1,0 +1,15 @@
+Collecting gcovr
+  Downloading gcovr-8.3-py3-none-any.whl.metadata (10 kB)
+Collecting colorlog (from gcovr)
+  Downloading colorlog-6.9.0-py3-none-any.whl.metadata (10 kB)
+Requirement already satisfied: jinja2 in ./.venv/lib/python3.12/site-packages (from gcovr) (3.1.6)
+Collecting lxml (from gcovr)
+  Using cached lxml-6.0.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (6.6 kB)
+Requirement already satisfied: pygments>=2.13.0 in ./.venv/lib/python3.12/site-packages (from gcovr) (2.19.2)
+Requirement already satisfied: MarkupSafe>=2.0 in ./.venv/lib/python3.12/site-packages (from jinja2->gcovr) (3.0.2)
+Downloading gcovr-8.3-py3-none-any.whl (224 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 224.2/224.2 kB 3.0 MB/s eta 0:00:00
+Downloading colorlog-6.9.0-py3-none-any.whl (11 kB)
+Using cached lxml-6.0.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (5.3 MB)
+Installing collected packages: lxml, colorlog, gcovr
+Successfully installed colorlog-6.9.0 gcovr-8.3 lxml-6.0.0

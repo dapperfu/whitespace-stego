@@ -165,6 +165,7 @@ void crypto_free(unsigned char* ptr) {
     if (ptr) {
         free(ptr);
     }
+<<<<<<< HEAD
 }
 
 int crypto_encrypt_static(const unsigned char* data, size_t data_len,
@@ -282,4 +283,6 @@ int crypto_decrypt_static(const unsigned char* data, size_t data_len,
     *result_len = out_len + len;
     EVP_CIPHER_CTX_free(ctx);
     return 1;
+=======
+>>>>>>> 92b3c39d6dc84306d706a192eafe0a81e720e625
 } 

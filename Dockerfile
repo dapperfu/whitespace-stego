@@ -1,0 +1,47 @@
+# Use Python 3.10 slim for portability
+FROM python:3.10-slim
+
+# Install build dependencies for Python, Rust, and maturin
+RUN apt-get update && \
+    apt-get install -y build-essential python3-dev git curl libssl-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install Rust using rustup (for up-to-date cargo)
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+# Create and activate virtual environment
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+ENV VIRTUAL_ENV="/opt/venv"
+
+# Install maturin and pyinstaller in the venv
+RUN /opt/venv/bin/pip install --upgrade pip && \
+    /opt/venv/bin/pip install maturin pyinstaller
+
+WORKDIR /build
+COPY . /build
+
+# Build and install the Rust backend in the venv
+RUN cd implementations/python/whitespace-stego-python && /opt/venv/bin/maturin develop --release
+
+# Build C backend
+RUN cd implementations/c && make clean && make && cd ../..
+
+# Copy the C shared library to a standard location
+RUN cp implementations/c/lib/libwhitespace_stego.so /usr/local/lib/ && ldconfig
+ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
+
+# Install your Python package and dependencies in the venv
+RUN /opt/venv/bin/pip install implementations/python
+
+# Build the binary with PyInstaller (bundling the .so file)
+RUN /opt/venv/bin/pyinstaller --onefile --add-data "/usr/local/lib/libwhitespace_stego.so:." --name whitespace-stego-py scripts/whitespace_stego_main.py
+
+# The resulting binary will be in /build/dist/whitespace-stego-py
+# Copy it to a standard location
+RUN cp /build/dist/whitespace-stego-py /usr/local/bin/whitespace-stego && \
+    chmod +x /usr/local/bin/whitespace-stego
+
+# Set the entrypoint to the binary
+ENTRYPOINT ["/usr/local/bin/whitespace-stego"] 

@@ -1,0 +1,234 @@
+name: Test All Internal Languages
+
+on:
+  push:
+    branches: [ main, implementation5 ]
+    paths:
+      - 'implementations/rust/**'
+      - 'implementations/python/whitespace-stego-core/**'
+      - 'implementations/c/**'
+      - 'implementations/go/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+  pull_request:
+    branches: [ main, implementation5 ]
+    paths:
+      - 'implementations/rust/**'
+      - 'implementations/python/whitespace-stego-core/**'
+      - 'implementations/c/**'
+      - 'implementations/go/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+  workflow_dispatch:
+
+jobs:
+  test-rust:
+    name: Test Rust Implementation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          
+      - name: Cache Rust dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+            
+      - name: Run Rust tests
+        run: |
+          echo "🧪 Testing Rust implementation..."
+          cd implementations/rust && cargo test --verbose
+          cd ../python/whitespace-stego-core && cargo test --verbose
+          
+      - name: Run Rust code quality checks
+        run: |
+          echo "🔍 Running Rust code quality checks..."
+          cd implementations/rust && cargo fmt -- --check && cargo clippy -- -D warnings
+          cd ../python/whitespace-stego-core && cargo fmt -- --check && cargo clippy -- -D warnings
+
+  test-c:
+    name: Test C Implementation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Install C dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential gcc make valgrind lcov gcovr cmake libssl-dev pkg-config
+          
+      - name: Run C tests
+        run: |
+          echo "🧪 Testing C implementation..."
+          cd implementations/c
+          make install-unity
+          make clean
+          make all
+          make test-all
+          make coverage-report
+          
+      - name: Run C memory checks
+        run: |
+          echo "🔍 Running C memory checks..."
+          cd implementations/c
+          valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose --log-file=valgrind-out.txt ./bin/test-c
+          valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose --log-file=valgrind-unity.txt ./bin/test-unity
+
+  test-go:
+    name: Test Go Implementation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+          cache: true
+          
+      - name: Run Go tests
+        run: |
+          echo "🧪 Testing Go implementation..."
+          cd implementations/go
+          go mod download
+          make build
+          make test
+          go test -coverprofile=coverage.out -covermode=atomic ./src/stego
+          go test -race ./src/stego
+          
+      - name: Run Go code quality checks
+        run: |
+          echo "🔍 Running Go code quality checks..."
+          cd implementations/go
+          go fmt ./src/...
+          go vet ./src/...
+          go install honnef.co/go/tools/cmd/staticcheck@latest
+          staticcheck ./src/...
+
+  test-integration:
+    name: Test Cross-Language Integration
+    runs-on: ubuntu-latest
+    needs: [test-rust, test-c, test-go]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup all environments
+        run: |
+          # Setup Rust
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          source ~/.cargo/env
+          
+          # Setup Go
+          wget https://go.dev/dl/go1.21.0.linux-amd64.tar.gz
+          sudo tar -C /usr/local -xzf go1.21.0.linux-amd64.tar.gz
+          export PATH=$PATH:/usr/local/go/bin
+          
+          # Setup C
+          sudo apt-get update
+          sudo apt-get install -y build-essential gcc make libssl-dev
+          
+      - name: Build all implementations
+        run: |
+          echo "🔨 Building all implementations..."
+          
+          # Build Rust
+          cd implementations/rust && cargo build --release
+          cd ../python/whitespace-stego-core && cargo build --release
+          
+          # Build C
+          cd ../c && make clean && make all
+          
+          # Build Go
+          cd ../go && make build
+          
+      - name: Test cross-language compatibility
+        run: |
+          echo "🔄 Testing cross-language compatibility..."
+          
+          # Create test files
+          echo "Hello, World!" > test_message.txt
+          echo "This is carrier text." > test_carrier.txt
+          
+          # Test Rust encode -> C decode
+          echo "Testing Rust -> C compatibility..."
+          cd implementations/rust && cargo run --release encode -m "Hello, World!" -c "$(cat ../../test_carrier.txt)" -o ../../rust_encoded.txt
+          cd ../c && ./bin/whitespace-stego-c decode --carrier-file ../../rust_encoded.txt --output ../../decoded_rust_c.txt
+          if [ "$(cat ../../decoded_rust_c.txt)" = "Hello, World!" ]; then
+            echo "✅ Rust -> C compatibility test passed"
+          else
+            echo "❌ Rust -> C compatibility test failed"
+            exit 1
+          fi
+          
+          # Test C encode -> Go decode
+          echo "Testing C -> Go compatibility..."
+          cd ../c && ./bin/whitespace-stego-c encode --message-file ../../test_message.txt --carrier-file ../../test_carrier.txt --output ../../c_encoded.txt
+          cd ../go && ./bin/whitespace-stego-go decode -cf ../../c_encoded.txt -o ../../decoded_c_go.txt
+          if [ "$(cat ../../decoded_c_go.txt)" = "Hello, World!" ]; then
+            echo "✅ C -> Go compatibility test passed"
+          else
+            echo "❌ C -> Go compatibility test failed"
+            exit 1
+          fi
+          
+          # Test Go encode -> Rust decode
+          echo "Testing Go -> Rust compatibility..."
+          cd ../go && ./bin/whitespace-stego-go encode -m "Hello, World!" -cf ../../test_carrier.txt -o ../../go_encoded.txt
+          cd ../rust && cargo run --release decode --cf ../../go_encoded.txt -o ../../decoded_go_rust.txt
+          if [ "$(cat ../../decoded_go_rust.txt)" = "Hello, World!" ]; then
+            echo "✅ Go -> Rust compatibility test passed"
+          else
+            echo "❌ Go -> Rust compatibility test failed"
+            exit 1
+          fi
+          
+          # Cleanup
+          rm -f test_*.txt *_encoded.txt decoded_*.txt
+
+  test-summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: [test-rust, test-c, test-go, test-integration]
+    if: always()
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Generate test summary
+        run: |
+          echo "📊 Test Summary Report"
+          echo "======================"
+          echo ""
+          echo "✅ Rust Implementation: ${{ needs.test-rust.result }}"
+          echo "✅ C Implementation: ${{ needs.test-c.result }}"
+          echo "✅ Go Implementation: ${{ needs.test-go.result }}"
+          echo "✅ Cross-Language Integration: ${{ needs.test-integration.result }}"
+          echo ""
+          
+          if [[ "${{ needs.test-rust.result }}" == "success" && "${{ needs.test-c.result }}" == "success" && "${{ needs.test-go.result }}" == "success" && "${{ needs.test-integration.result }}" == "success" ]]; then
+            echo "🎉 All internal language tests passed!"
+            exit 0
+          else
+            echo "❌ Some tests failed. Check the individual job results for details."
+            exit 1
+          fi 

@@ -1,0 +1,23 @@
+[package]
+name = "whitespace-stego-wasi"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+description = "Whitespace steganography WASI implementation"
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[dependencies]
+whitespace-stego-core = { path = "../implementations/python/whitespace-stego-core" }
+wasm-bindgen = "0.2"
+js-sys = "0.3"
+web-sys = { version = "0.3", features = ["console"] }
+
+[lib]
+crate-type = ["cdylib"]
+
+[profile.release]
+lto = true
+codegen-units = 1 

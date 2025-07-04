@@ -1,0 +1,27 @@
+[package]
+name = "whitespace-stego-cli"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+description.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[[bin]]
+name = "whitespace-stego-rs"
+path = "src/main.rs"
+
+[dependencies]
+whitespace-stego-core = { path = "../whitespace-stego-core" }
+clap.workspace = true
+indicatif.workspace = true
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+toml.workspace = true
+dirs.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true 

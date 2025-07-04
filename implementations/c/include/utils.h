@@ -52,6 +52,7 @@ void utils_free(void* ptr);
  */
 size_t utf8_strlen(const char* str);
 
+<<<<<<< HEAD
 /**
  * @brief Convert a string to base64 with static buffer
  *
@@ -78,4 +79,6 @@ int to_base64_static(const unsigned char* data, size_t data_len,
 int from_base64_static(const unsigned char* data, size_t data_len,
                        unsigned char* result_buffer, size_t result_buffer_size, size_t* result_len);
 
+=======
+>>>>>>> 92b3c39d6dc84306d706a192eafe0a81e720e625
 #endif // UTILS_H 

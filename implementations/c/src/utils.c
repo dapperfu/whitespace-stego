@@ -185,6 +185,7 @@ size_t utf8_strlen(const char* str) {
         len++;
     }
     return len;
+<<<<<<< HEAD
 }
 
 int to_base64_static(const unsigned char* data, size_t data_len, 
@@ -303,4 +304,6 @@ int from_base64_static(const unsigned char* data, size_t data_len,
     }
 
     return 1;
+=======
+>>>>>>> 92b3c39d6dc84306d706a192eafe0a81e720e625
 } 

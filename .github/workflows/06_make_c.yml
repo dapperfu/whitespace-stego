@@ -1,0 +1,39 @@
+name: 06 Make C
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+  workflow_dispatch:
+
+jobs:
+  make-c:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake pkg-config libssl-dev make
+
+      - name: Run make c
+        run: make c
+
+      - name: Verify C binary exists
+        run: |
+          if [ ! -f "bin/whitespace-stego-c" ]; then
+            echo "❌ C binary not created"
+            exit 1
+          fi
+          echo "✅ C binary created successfully"
+          ls -la bin/whitespace-stego-c
+
+      - name: Upload C binary as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: c-binary
+          path: bin/whitespace-stego-c
+          retention-days: 7 

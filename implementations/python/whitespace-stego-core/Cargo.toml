@@ -1,0 +1,28 @@
+[package]
+name = "whitespace-stego-core"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+description.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[dependencies]
+aes = "0.7"
+block-modes = "0.8"
+getrandom = { version = "0.2", features = ["js"] }
+thiserror.workspace = true
+base64 = "0.21"
+sha2 = "0.10"
+regex = "1.0"
+
+[dev-dependencies]
+proptest.workspace = true
+criterion.workspace = true
+test-case.workspace = true
+
+[[bench]]
+name = "performance"
+harness = false 

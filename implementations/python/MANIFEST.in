@@ -1,0 +1,37 @@
+# Include C shared library
+include c/lib/libwhitespace_stego.so
+
+# Include C headers for reference
+recursive-include c/include *.h
+
+# Include Rust backend
+recursive-include whitespace-stego-rust/whitespace_stego_rust *.so
+
+# Include documentation
+include README.md
+include LICENSE
+include whitespace_steganography_spec.md
+
+# Include notebooks
+recursive-include notebooks *.ipynb
+
+# Include examples
+recursive-include examples *.md
+
+# Include documentation
+recursive-include docs *.md
+
+# Include test data
+recursive-include cross_vectors *.txt
+
+# Exclude development files
+global-exclude *.pyc
+global-exclude __pycache__
+global-exclude .git*
+global-exclude .pytest_cache
+global-exclude .coverage
+global-exclude coverage.xml
+global-exclude htmlcov
+global-exclude *.log
+global-exclude *.tmp
+global-exclude *.bak 
