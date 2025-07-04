@@ -127,7 +127,7 @@ cov-go:
 
 cov-python: all
 	@echo "🧪 Running Python tests with coverage..."
-	cd implementations/python && ${VENV}/bin/pytest --cov=whitespace_stego --cov=whitespace_stego_rust --cov-report=html:../htmlcov --cov-report=term-missing --cov-report=xml:../coverage.xml
+	cd implementations/python && ../../.venv/bin/pytest -v
 	@echo "📊 Python coverage report generated: htmlcov/index.html"
 
 cov-rust:
@@ -152,7 +152,7 @@ install: venv maturin-develop
 # Install Rust extension in development mode
 VENV_ABS:=$(abspath ${VENV})
 maturin-develop: ${VENV}/bin/maturin
-	PATH="${VENV_ABS}/bin:$$PATH" PYTHON_SYS_EXECUTABLE="${VENV_ABS}/bin/python3" cd implementations/python/whitespace-stego-python && ../../${VENV}/bin/maturin develop
+	PATH="${VENV_ABS}/bin:$$PATH" PYTHON_SYS_EXECUTABLE="${VENV_ABS}/bin/python3" cd implementations/python/whitespace-stego-python && ../../../${VENV}/bin/maturin develop
 
 ${VENV}/bin/maturin: venv
 	${VENV}/bin/pip install maturin
@@ -186,7 +186,7 @@ rust: venv
 # Run Python module tests
 test: venv maturin-develop install all
 	@echo "Running Python module tests..."
-	cd implementations/python && ${VENV}/bin/pytest -v
+	cd implementations/python && ../../.venv/bin/pytest -v
 
 # Create Python virtual environment
 venv:

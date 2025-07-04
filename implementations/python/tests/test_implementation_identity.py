@@ -172,7 +172,7 @@ class ImplementationTester:
     def test_cli_implementation(self, test_case: Dict[str, Any], backend: Optional[str] = None) -> Dict[str, Any]:
         """Test the CLI implementation."""
         try:
-            cli_path = ".venv/bin/whitespace-stego"
+            cli_path = "bin/whitespace-stego-py"
             if not os.path.exists(cli_path):
                 return {"error": f"CLI binary not found at {cli_path}"}
             

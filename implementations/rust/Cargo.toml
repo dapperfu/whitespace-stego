@@ -13,7 +13,7 @@ fernet = "0.1.1"
 sha2 = "0.10.8"
 pyo3.workspace = true
 thiserror = "1.0"
-whitespace-stego-core = { path = "../whitespace-stego-core" }
+whitespace-stego-core = { path = "../python/whitespace-stego-core" }
 
 [[bin]]
 name = "whitespace-stego-rs"

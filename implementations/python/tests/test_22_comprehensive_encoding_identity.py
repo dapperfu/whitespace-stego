@@ -13,6 +13,7 @@ import pytest
 import hashlib
 from pathlib import Path
 
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
 class TestComprehensiveEncodingIdentity:
     """Test that all implementations produce identical encoded output."""
@@ -33,27 +34,27 @@ class TestComprehensiveEncodingIdentity:
             # Python CLI with different backends
             {
                 'name': 'python-cli-python',
-                'path': '.venv/bin/whitespace-stego',
+                'path': os.path.join(PROJECT_ROOT, 'bin', 'whitespace-stego-py'),
                 'encode_cmd': lambda msg, carrier_path, output_path, password=None: [
-                    '.venv/bin/whitespace-stego', '-b', 'python', 'encode',
+                    os.path.join(PROJECT_ROOT, 'bin', 'whitespace-stego-py'), '-b', 'python', 'encode',
                     '-m', msg, '--carrier-file', carrier_path, '-o', output_path
                 ] + (['-p', password] if password else []),
                 'needs_message_file': False
             },
             {
                 'name': 'python-cli-rust',
-                'path': '.venv/bin/whitespace-stego',
+                'path': os.path.join(PROJECT_ROOT, 'bin', 'whitespace-stego-py'),
                 'encode_cmd': lambda msg, carrier_path, output_path, password=None: [
-                    '.venv/bin/whitespace-stego', '-b', 'rust', 'encode',
+                    os.path.join(PROJECT_ROOT, 'bin', 'whitespace-stego-py'), '-b', 'rust', 'encode',
                     '-m', msg, '--carrier-file', carrier_path, '-o', output_path
                 ] + (['-p', password] if password else []),
                 'needs_message_file': False
             },
             {
                 'name': 'python-cli-c',
-                'path': '.venv/bin/whitespace-stego',
+                'path': os.path.join(PROJECT_ROOT, 'bin', 'whitespace-stego-py'),
                 'encode_cmd': lambda msg, carrier_path, output_path, password=None: [
-                    '.venv/bin/whitespace-stego', '-b', 'c', 'encode',
+                    os.path.join(PROJECT_ROOT, 'bin', 'whitespace-stego-py'), '-b', 'c', 'encode',
                     '-m', msg, '--carrier-file', carrier_path, '-o', output_path
                 ] + (['-p', password] if password else []),
                 'needs_message_file': False
@@ -61,27 +62,27 @@ class TestComprehensiveEncodingIdentity:
             # Standalone Python binary with different backends
             {
                 'name': 'py-python',
-                'path': 'bin/whitespace-stego-py',
+                'path': os.path.join(PROJECT_ROOT, 'bin', 'whitespace-stego-py'),
                 'encode_cmd': lambda msg, carrier_path, output_path, password=None: [
-                    'bin/whitespace-stego-py', '-b', 'python', 'encode',
+                    os.path.join(PROJECT_ROOT, 'bin', 'whitespace-stego-py'), '-b', 'python', 'encode',
                     '-m', msg, '--carrier-file', carrier_path, '-o', output_path
                 ] + (['-p', password] if password else []),
                 'needs_message_file': False
             },
             {
                 'name': 'py-rust',
-                'path': 'bin/whitespace-stego-py',
+                'path': os.path.join(PROJECT_ROOT, 'bin', 'whitespace-stego-py'),
                 'encode_cmd': lambda msg, carrier_path, output_path, password=None: [
-                    'bin/whitespace-stego-py', '-b', 'rust', 'encode',
+                    os.path.join(PROJECT_ROOT, 'bin', 'whitespace-stego-py'), '-b', 'rust', 'encode',
                     '-m', msg, '--carrier-file', carrier_path, '-o', output_path
                 ] + (['-p', password] if password else []),
                 'needs_message_file': False
             },
             {
                 'name': 'py-c',
-                'path': 'bin/whitespace-stego-py',
+                'path': os.path.join(PROJECT_ROOT, 'bin', 'whitespace-stego-py'),
                 'encode_cmd': lambda msg, carrier_path, output_path, password=None: [
-                    'bin/whitespace-stego-py', '-b', 'c', 'encode',
+                    os.path.join(PROJECT_ROOT, 'bin', 'whitespace-stego-py'), '-b', 'c', 'encode',
                     '-m', msg, '--carrier-file', carrier_path, '-o', output_path
                 ] + (['-p', password] if password else []),
                 'needs_message_file': False
@@ -89,9 +90,9 @@ class TestComprehensiveEncodingIdentity:
             # Standalone C binary
             {
                 'name': 'c-standalone',
-                'path': 'bin/whitespace-stego-c',
+                'path': os.path.join(PROJECT_ROOT, 'bin', 'whitespace-stego-c'),
                 'encode_cmd': lambda msg, carrier_path, output_path, password=None: [
-                    'bin/whitespace-stego-c', 'encode',
+                    os.path.join(PROJECT_ROOT, 'bin', 'whitespace-stego-c'), 'encode',
                     '--message-file', msg, '--carrier-file', carrier_path, '--output', output_path
                 ] + (['--password', password] if password else []),
                 'needs_message_file': True
@@ -99,9 +100,9 @@ class TestComprehensiveEncodingIdentity:
             # Standalone Go binary
             {
                 'name': 'go-standalone',
-                'path': 'bin/whitespace-stego-go',
+                'path': os.path.join(PROJECT_ROOT, 'bin', 'whitespace-stego-go'),
                 'encode_cmd': lambda msg, carrier_path, output_path, password=None: [
-                    'bin/whitespace-stego-go', 'encode',
+                    os.path.join(PROJECT_ROOT, 'bin', 'whitespace-stego-go'), 'encode',
                     '-m', msg, '-cf', carrier_path, '-o', output_path
                 ] + (['-p', password] if password else []),
                 'needs_message_file': False
@@ -109,9 +110,9 @@ class TestComprehensiveEncodingIdentity:
             # Standalone Rust binary
             {
                 'name': 'rs-standalone',
-                'path': 'bin/whitespace-stego-rs',
+                'path': os.path.join(PROJECT_ROOT, 'bin', 'whitespace-stego-rs'),
                 'encode_cmd': lambda msg, carrier_path, output_path, password=None: [
-                    'bin/whitespace-stego-rs', 'encode',
+                    os.path.join(PROJECT_ROOT, 'bin', 'whitespace-stego-rs'), 'encode',
                     '-m', msg, '--cf', carrier_path, '-o', output_path
                 ] + (['-p', password] if password else []),
                 'needs_message_file': False
@@ -314,29 +315,21 @@ class TestComprehensiveEncodingIdentity:
                         f.write(encoded_output)
                     
                     # Build decode command
-                    if decoder_name.startswith('python-cli-'):
+                    if decoder_name.startswith('python-cli-') or decoder_name.startswith('py-'):
                         decode_cmd = [
-                            '.venv/bin/whitespace-stego', 
-                            '-b', decoder_name.split('-')[-1], 
-                            'decode', 
-                            '--carrier-file', test_input_path, 
-                            '-p', password
-                        ]
-                    elif decoder_name.startswith('py-'):
-                        decode_cmd = [
-                            'bin/whitespace-stego-py', 
-                            '-b', decoder_name.split('-')[-1], 
-                            'decode', 
-                            '--carrier-file', test_input_path, 
+                            os.path.join(PROJECT_ROOT, 'bin', 'whitespace-stego-py'),
+                            '-b', decoder_name.split('-')[-1],
+                            'decode',
+                            '--carrier-file', test_input_path,
                             '-p', password
                         ]
                     elif decoder_name == 'c-standalone':
                         # C binary requires output file
                         decoded_output_path = os.path.join(tmpdir, f'decoded_{encoder_name}_by_{decoder_name}.txt')
                         decode_cmd = [
-                            'bin/whitespace-stego-c', 
-                            'decode', 
-                            '--carrier-file', test_input_path, 
+                            os.path.join(PROJECT_ROOT, 'bin', 'whitespace-stego-c'),
+                            'decode',
+                            '--carrier-file', test_input_path,
                             '--output', decoded_output_path,
                             '--password', password
                         ]
@@ -344,17 +337,17 @@ class TestComprehensiveEncodingIdentity:
                         # Go binary outputs to file to avoid binary data issues
                         decoded_output_path = os.path.join(tmpdir, f'decoded_{encoder_name}_by_{decoder_name}.txt')
                         decode_cmd = [
-                            'bin/whitespace-stego-go', 
-                            'decode', 
-                            '-cf', test_input_path, 
+                            os.path.join(PROJECT_ROOT, 'bin', 'whitespace-stego-go'),
+                            'decode',
+                            '-cf', test_input_path,
                             '-o', decoded_output_path,
                             '-p', password
                         ]
                     elif decoder_name == 'rs-standalone':
                         decode_cmd = [
-                            'bin/whitespace-stego-rs', 
-                            'decode', 
-                            '--cf', test_input_path, 
+                            os.path.join(PROJECT_ROOT, 'bin', 'whitespace-stego-rs'),
+                            'decode',
+                            '--cf', test_input_path,
                             '-p', password
                         ]
                     else:

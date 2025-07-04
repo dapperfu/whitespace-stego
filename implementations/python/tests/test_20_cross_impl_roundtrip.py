@@ -5,9 +5,10 @@ import pytest
 from whitespace_stego.constants import START_MARKER, END_MARKER, ZERO_BIT, ONE_BIT
 
 # Define binaries and their supported backends
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 BINARIES = {
     'python-cli': {
-        'path': os.path.abspath('.venv/bin/whitespace-stego'),
+        'path': os.path.join(PROJECT_ROOT, 'bin', 'whitespace-stego-py'),
         'backends': ['python', 'rust', 'c'],
         'encode_cmd': lambda bin_path, msg, carrier_path, output_path, backend=None: 
             [bin_path, '-b', backend] + ['encode', '-m', msg, '-c', carrier_path, '-o', output_path] if backend else
@@ -17,7 +18,7 @@ BINARIES = {
             [bin_path, 'decode', '--carrier-file', carrier_path, '-o', output_path]
     },
     'py': {
-        'path': os.path.abspath('bin/whitespace-stego-py'),
+        'path': os.path.join(PROJECT_ROOT, 'bin', 'whitespace-stego-py'),
         'backends': ['python', 'rust', 'c'],
         'encode_cmd': lambda bin_path, msg, carrier_path, output_path, backend=None: 
             [bin_path, '-b', backend] + ['encode', '-m', msg, '-c', carrier_path, '-o', output_path] if backend else
@@ -27,7 +28,7 @@ BINARIES = {
             [bin_path, 'decode', '--carrier-file', carrier_path, '-o', output_path]
     },
     'c': {
-        'path': os.path.abspath('bin/whitespace-stego-c'),
+        'path': os.path.join(PROJECT_ROOT, 'bin', 'whitespace-stego-c'),
         'backends': [None],
         'encode_cmd': lambda bin_path, msg, carrier_path, output_path, backend=None: 
             [bin_path, 'encode', '--message-file', msg, '--carrier-file', carrier_path, '--output', output_path],
@@ -35,7 +36,7 @@ BINARIES = {
             [bin_path, 'decode', '--carrier-file', carrier_path, '--output', output_path]
     },
     'go': {
-        'path': os.path.abspath('bin/whitespace-stego-go'),
+        'path': os.path.join(PROJECT_ROOT, 'bin', 'whitespace-stego-go'),
         'backends': [None],
         'encode_cmd': lambda bin_path, msg, carrier_path, output_path, backend=None: 
             [bin_path, 'encode', '-m', msg, '-cf', carrier_path, '-o', output_path],
@@ -43,7 +44,7 @@ BINARIES = {
             [bin_path, 'decode', '-cf', carrier_path, '-o', output_path]
     },
     'rs': {
-        'path': os.path.abspath('bin/whitespace-stego-rs'),
+        'path': os.path.join(PROJECT_ROOT, 'bin', 'whitespace-stego-rs'),
         'backends': [None],
         'encode_cmd': lambda bin_path, msg, carrier_path, output_path, backend=None: 
             [bin_path, 'encode', '-m', msg, '--cf', carrier_path, '-o', output_path],
@@ -108,33 +109,33 @@ def test_encoding_compatibility():
     
     BINARIES = {
         'python-cli': {
-            'path': os.path.abspath('.venv/bin/whitespace-stego'),
+            'path': os.path.join(PROJECT_ROOT, 'bin', 'whitespace-stego-py'),
             'backends': ['python', 'rust', 'c'],
             'encode_cmd': lambda bin_path, msg, carrier_path, output_path, backend=None: 
                 [bin_path, '-b', backend] + ['encode', '-m', msg, '--carrier-file', carrier_path, '-o', output_path] if backend else
                 [bin_path, 'encode', '-m', msg, '--carrier-file', carrier_path, '-o', output_path],
         },
         'py': {
-            'path': os.path.abspath('bin/whitespace-stego-py'),
+            'path': os.path.join(PROJECT_ROOT, 'bin', 'whitespace-stego-py'),
             'backends': ['python', 'rust', 'c'],
             'encode_cmd': lambda bin_path, msg, carrier_path, output_path, backend=None: 
                 [bin_path, '-b', backend] + ['encode', '-m', msg, '--carrier-file', carrier_path, '-o', output_path] if backend else
                 [bin_path, 'encode', '-m', msg, '--carrier-file', carrier_path, '-o', output_path],
         },
         'c': {
-            'path': os.path.abspath('bin/whitespace-stego-c'),
+            'path': os.path.join(PROJECT_ROOT, 'bin', 'whitespace-stego-c'),
             'backends': [None],
             'encode_cmd': lambda bin_path, msg, carrier_path, output_path, backend=None: 
                 [bin_path, 'encode', '--message-file', msg, '--carrier-file', carrier_path, '--output', output_path],
         },
         'go': {
-            'path': os.path.abspath('bin/whitespace-stego-go'),
+            'path': os.path.join(PROJECT_ROOT, 'bin', 'whitespace-stego-go'),
             'backends': [None],
             'encode_cmd': lambda bin_path, msg, carrier_path, output_path, backend=None: 
                 [bin_path, 'encode', '-m', msg, '-cf', carrier_path, '-o', output_path],
         },
         'rs': {
-            'path': os.path.abspath('bin/whitespace-stego-rs'),
+            'path': os.path.join(PROJECT_ROOT, 'bin', 'whitespace-stego-rs'),
             'backends': [None],
             'encode_cmd': lambda bin_path, msg, carrier_path, output_path, backend=None: 
                 [bin_path, 'encode', '-m', msg, '--cf', carrier_path, '-o', output_path],

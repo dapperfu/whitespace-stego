@@ -1,12 +1,11 @@
 [workspace]
 members = [
-    "whitespace-stego-core",
-    "whitespace-stego-cli", 
-    "whitespace-stego-python",
-    "whitespace-stego-rust",
-    "rust",
+    "implementations/python/whitespace-stego-core",
+    "implementations/python/whitespace-stego-cli", 
+    "implementations/python/whitespace-stego-python",
+    "implementations/python/whitespace-stego-rust",
+    "implementations/rust",
     "wasi",
-    "test_rust_binary",
 ]
 
 [workspace.package]
