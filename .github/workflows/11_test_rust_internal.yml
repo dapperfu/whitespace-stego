@@ -4,15 +4,15 @@ on:
   push:
     branches: [ main, implementation5 ]
     paths:
-      - 'rust/**'
-      - 'whitespace-stego-core/**'
+      - 'implementations/rust/**'
+      - 'implementations/python/whitespace-stego-core/**'
       - 'Cargo.toml'
       - 'Cargo.lock'
   pull_request:
     branches: [ main, implementation5 ]
     paths:
-      - 'rust/**'
-      - 'whitespace-stego-core/**'
+      - 'implementations/rust/**'
+      - 'implementations/python/whitespace-stego-core/**'
       - 'Cargo.toml'
       - 'Cargo.lock'
   workflow_dispatch:
@@ -45,63 +45,63 @@ jobs:
             
       - name: Install dependencies
         run: |
-          cd rust
+          cd implementations/rust
           cargo fetch
-          cd ../whitespace-stego-core
+          cd ../python/whitespace-stego-core
           cargo fetch
           
       - name: Run Rust CLI tests
         run: |
           echo "🧪 Testing Rust CLI implementation..."
-          cd rust
+          cd implementations/rust
           cargo test --verbose
           
       - name: Run Rust core library tests
         run: |
           echo "🧪 Testing Rust core library..."
-          cd whitespace-stego-core
+          cd implementations/python/whitespace-stego-core
           cargo test --verbose
           
       - name: Run Rust integration tests
         run: |
           echo "🧪 Testing Rust integration tests..."
-          cd whitespace-stego-core
+          cd implementations/python/whitespace-stego-core
           cargo test --test integration_tests --verbose
           
       - name: Run Rust property tests
         run: |
           echo "🧪 Testing Rust property tests..."
-          cd whitespace-stego-core
+          cd implementations/python/whitespace-stego-core
           cargo test --test test_core_prop --verbose
           
       - name: Run Rust benchmarks
         run: |
           echo "🏃 Running Rust benchmarks..."
-          cd whitespace-stego-core
+          cd implementations/python/whitespace-stego-core
           cargo bench --no-run
           
       - name: Check Rust code formatting
         run: |
           echo "🎨 Checking Rust code formatting..."
-          cd rust
+          cd implementations/rust
           cargo fmt -- --check
-          cd ../whitespace-stego-core
+          cd ../python/whitespace-stego-core
           cargo fmt -- --check
           
       - name: Run Rust clippy
         run: |
           echo "🔍 Running Rust clippy..."
-          cd rust
+          cd implementations/rust
           cargo clippy -- -D warnings
-          cd ../whitespace-stego-core
+          cd ../python/whitespace-stego-core
           cargo clippy -- -D warnings
           
       - name: Build Rust release binaries
         run: |
           echo "🔨 Building Rust release binaries..."
-          cd rust
+          cd implementations/rust
           cargo build --release
-          cd ../whitespace-stego-core
+          cd ../python/whitespace-stego-core
           cargo build --release
           
       - name: Upload test results
@@ -110,6 +110,6 @@ jobs:
         with:
           name: rust-test-results
           path: |
-            rust/target/test-results/
-            whitespace-stego-core/target/test-results/
+            implementations/rust/target/test-results/
+            implementations/python/whitespace-stego-core/target/test-results/
           retention-days: 7 

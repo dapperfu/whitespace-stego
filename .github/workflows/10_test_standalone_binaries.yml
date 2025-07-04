@@ -60,19 +60,19 @@ jobs:
       - name: Run standalone binary tests
         run: |
           echo "🧪 Testing standalone binaries..."
-          bash test_scripts/test_standalone_binaries.sh
+          bash scripts/test_scripts/test_standalone_binaries.sh
         working-directory: ${{ github.workspace }}
 
       - name: Run cross-round-trip tests
         run: |
           echo "🔄 Testing cross-round-trip compatibility..."
-          bash test_scripts/test_cross_roundtrip.sh
+          bash scripts/test_scripts/test_cross_roundtrip.sh
         working-directory: ${{ github.workspace }}
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
         with:
           name: standalone-binary-test-results
-          path: test_results/
+          path: results/
           retention-days: 7
         if: always() 

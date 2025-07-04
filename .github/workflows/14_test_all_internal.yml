@@ -4,19 +4,19 @@ on:
   push:
     branches: [ main, implementation5 ]
     paths:
-      - 'rust/**'
-      - 'whitespace-stego-core/**'
-      - 'c/**'
-      - 'go/**'
+      - 'implementations/rust/**'
+      - 'implementations/python/whitespace-stego-core/**'
+      - 'implementations/c/**'
+      - 'implementations/go/**'
       - 'Cargo.toml'
       - 'Cargo.lock'
   pull_request:
     branches: [ main, implementation5 ]
     paths:
-      - 'rust/**'
-      - 'whitespace-stego-core/**'
-      - 'c/**'
-      - 'go/**'
+      - 'implementations/rust/**'
+      - 'implementations/python/whitespace-stego-core/**'
+      - 'implementations/c/**'
+      - 'implementations/go/**'
       - 'Cargo.toml'
       - 'Cargo.lock'
   workflow_dispatch:
@@ -50,14 +50,14 @@ jobs:
       - name: Run Rust tests
         run: |
           echo "🧪 Testing Rust implementation..."
-          cd rust && cargo test --verbose
-          cd ../whitespace-stego-core && cargo test --verbose
+          cd implementations/rust && cargo test --verbose
+          cd ../python/whitespace-stego-core && cargo test --verbose
           
       - name: Run Rust code quality checks
         run: |
           echo "🔍 Running Rust code quality checks..."
-          cd rust && cargo fmt -- --check && cargo clippy -- -D warnings
-          cd ../whitespace-stego-core && cargo fmt -- --check && cargo clippy -- -D warnings
+          cd implementations/rust && cargo fmt -- --check && cargo clippy -- -D warnings
+          cd ../python/whitespace-stego-core && cargo fmt -- --check && cargo clippy -- -D warnings
 
   test-c:
     name: Test C Implementation
@@ -75,7 +75,7 @@ jobs:
       - name: Run C tests
         run: |
           echo "🧪 Testing C implementation..."
-          cd c
+          cd implementations/c
           make install-unity
           make clean
           make all
@@ -85,7 +85,7 @@ jobs:
       - name: Run C memory checks
         run: |
           echo "🔍 Running C memory checks..."
-          cd c
+          cd implementations/c
           valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose --log-file=valgrind-out.txt ./bin/test-c
           valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose --log-file=valgrind-unity.txt ./bin/test-unity
 
@@ -106,7 +106,7 @@ jobs:
       - name: Run Go tests
         run: |
           echo "🧪 Testing Go implementation..."
-          cd go
+          cd implementations/go
           go mod download
           make build
           make test
@@ -116,7 +116,7 @@ jobs:
       - name: Run Go code quality checks
         run: |
           echo "🔍 Running Go code quality checks..."
-          cd go
+          cd implementations/go
           go fmt ./src/...
           go vet ./src/...
           go install honnef.co/go/tools/cmd/staticcheck@latest
@@ -151,8 +151,8 @@ jobs:
           echo "🔨 Building all implementations..."
           
           # Build Rust
-          cd rust && cargo build --release
-          cd ../whitespace-stego-core && cargo build --release
+          cd implementations/rust && cargo build --release
+          cd ../python/whitespace-stego-core && cargo build --release
           
           # Build C
           cd ../c && make clean && make all
@@ -170,9 +170,9 @@ jobs:
           
           # Test Rust encode -> C decode
           echo "Testing Rust -> C compatibility..."
-          cd rust && cargo run --release encode -m "Hello, World!" -c "$(cat ../test_carrier.txt)" -o ../rust_encoded.txt
-          cd ../c && ./bin/whitespace-stego-c decode --carrier-file ../rust_encoded.txt --output ../decoded_rust_c.txt
-          if [ "$(cat ../decoded_rust_c.txt)" = "Hello, World!" ]; then
+          cd implementations/rust && cargo run --release encode -m "Hello, World!" -c "$(cat ../../test_carrier.txt)" -o ../../rust_encoded.txt
+          cd ../c && ./bin/whitespace-stego-c decode --carrier-file ../../rust_encoded.txt --output ../../decoded_rust_c.txt
+          if [ "$(cat ../../decoded_rust_c.txt)" = "Hello, World!" ]; then
             echo "✅ Rust -> C compatibility test passed"
           else
             echo "❌ Rust -> C compatibility test failed"
@@ -181,9 +181,9 @@ jobs:
           
           # Test C encode -> Go decode
           echo "Testing C -> Go compatibility..."
-          cd ../c && ./bin/whitespace-stego-c encode --message-file ../test_message.txt --carrier-file ../test_carrier.txt --output ../c_encoded.txt
-          cd ../go && ./bin/whitespace-stego-go decode -cf ../c_encoded.txt -o ../decoded_c_go.txt
-          if [ "$(cat ../decoded_c_go.txt)" = "Hello, World!" ]; then
+          cd ../c && ./bin/whitespace-stego-c encode --message-file ../../test_message.txt --carrier-file ../../test_carrier.txt --output ../../c_encoded.txt
+          cd ../go && ./bin/whitespace-stego-go decode -cf ../../c_encoded.txt -o ../../decoded_c_go.txt
+          if [ "$(cat ../../decoded_c_go.txt)" = "Hello, World!" ]; then
             echo "✅ C -> Go compatibility test passed"
           else
             echo "❌ C -> Go compatibility test failed"
@@ -192,9 +192,9 @@ jobs:
           
           # Test Go encode -> Rust decode
           echo "Testing Go -> Rust compatibility..."
-          cd ../go && ./bin/whitespace-stego-go encode -m "Hello, World!" -cf ../test_carrier.txt -o ../go_encoded.txt
-          cd ../rust && cargo run --release decode --cf ../go_encoded.txt -o ../decoded_go_rust.txt
-          if [ "$(cat ../decoded_go_rust.txt)" = "Hello, World!" ]; then
+          cd ../go && ./bin/whitespace-stego-go encode -m "Hello, World!" -cf ../../test_carrier.txt -o ../../go_encoded.txt
+          cd ../rust && cargo run --release decode --cf ../../go_encoded.txt -o ../../decoded_go_rust.txt
+          if [ "$(cat ../../decoded_go_rust.txt)" = "Hello, World!" ]; then
             echo "✅ Go -> Rust compatibility test passed"
           else
             echo "❌ Go -> Rust compatibility test failed"
