@@ -115,6 +115,334 @@ whitespace-stego -b rust encode -m "secret" --carrier-file input.txt -o output.t
 ./bin/whitespace-stego-c encode --message-file message.txt --carrier-file input.txt --output output.txt
 ```
 
+## 🎯 Extensive Examples
+
+### Complete Setup and Build Example
+
+```bash
+# Clone and set up the project
+git clone https://github.com/dapperfu/whitespace-stego.git
+cd whitespace-stego
+
+# Install system dependencies (Ubuntu/Debian)
+sudo apt-get update
+sudo apt-get install build-essential libssl-dev make cmake lcov golang-go
+
+# Set up Python environment
+make venv
+source .venv/bin/activate
+make install
+
+# Build all implementations
+make all
+
+# Verify all binaries were created
+ls -la bin/
+```
+
+### Basic Encoding and Decoding Examples
+
+```bash
+# Create test files
+echo "This is a secret message that needs to be hidden." > secret_message.txt
+echo "This is innocent text that will serve as a carrier for the hidden message. It contains normal content that nobody would suspect contains hidden information." > carrier_text.txt
+
+# Python CLI examples
+whitespace-stego encode -m "Hello, World!" --carrier-file carrier_text.txt -o python_encoded.txt
+whitespace-stego decode --carrier-file python_encoded.txt -o python_decoded.txt
+
+# Rust CLI examples
+./bin/whitespace-stego-rs encode --message "Hello, World!" --carrier-file carrier_text.txt --output rust_encoded.txt
+./bin/whitespace-stego-rs decode --carrier-file rust_encoded.txt --output rust_decoded.txt
+
+# Go CLI examples
+./bin/whitespace-stego-go encode -m "Hello, World!" -cf carrier_text.txt -o go_encoded.txt
+./bin/whitespace-stego-go decode -cf go_encoded.txt -o go_decoded.txt
+
+# C CLI examples
+./bin/whitespace-stego-c encode --message "Hello, World!" --carrier-file carrier_text.txt --output c_encoded.txt
+./bin/whitespace-stego-c decode --carrier-file c_encoded.txt --output c_decoded.txt
+
+# View the results
+echo "Original message:"
+cat secret_message.txt
+echo -e "\nPython decoded:"
+cat python_decoded.txt
+echo -e "\nRust decoded:"
+cat rust_decoded.txt
+echo -e "\nGo decoded:"
+cat go_decoded.txt
+echo -e "\nC decoded:"
+cat c_decoded.txt
+```
+
+### Advanced Usage Examples
+
+```bash
+# Encode with password protection (Python)
+whitespace-stego encode -m "Top secret information" --carrier-file carrier_text.txt -p "mysecretpass" -o protected.txt
+whitespace-stego decode --carrier-file protected.txt -p "mysecretpass" -o decrypted.txt
+
+# Encode with password protection (Rust)
+./bin/whitespace-stego-rs encode --message "Top secret information" --carrier-file carrier_text.txt --password "mysecretpass" --output protected_rust.txt
+./bin/whitespace-stego-rs decode --carrier-file protected_rust.txt --password "mysecretpass" --output decrypted_rust.txt
+
+# Encode with password protection (Go)
+./bin/whitespace-stego-go encode -m "Top secret information" -cf carrier_text.txt -p "mysecretpass" -o protected_go.txt
+./bin/whitespace-stego-go decode -cf protected_go.txt -p "mysecretpass" -o decrypted_go.txt
+
+# Encode with password protection (C)
+./bin/whitespace-stego-c encode --message "Top secret information" --carrier-file carrier_text.txt --password "mysecretpass" --output protected_c.txt
+./bin/whitespace-stego-c decode --carrier-file protected_c.txt --password "mysecretpass" --output decrypted_c.txt
+```
+
+### Cross-Language Compatibility Examples
+
+```bash
+# Encode with Python, decode with Rust
+whitespace-stego encode -m "Cross-language test" --carrier-file carrier_text.txt -o cross_test.txt
+./bin/whitespace-stego-rs decode --carrier-file cross_test.txt --output cross_decoded_rust.txt
+
+# Encode with Rust, decode with Go
+./bin/whitespace-stego-rs encode --message "Cross-language test" --carrier-file carrier_text.txt --output cross_test_rust.txt
+./bin/whitespace-stego-go decode -cf cross_test_rust.txt -o cross_decoded_go.txt
+
+# Encode with Go, decode with C
+./bin/whitespace-stego-go encode -m "Cross-language test" -cf carrier_text.txt -o cross_test_go.txt
+./bin/whitespace-stego-c decode --carrier-file cross_test_go.txt --output cross_decoded_c.txt
+
+# Encode with C, decode with Python
+./bin/whitespace-stego-c encode --message "Cross-language test" --carrier-file carrier_text.txt --output cross_test_c.txt
+whitespace-stego decode --carrier-file cross_test_c.txt -o cross_decoded_python.txt
+
+# Verify all cross-language tests
+echo "Cross-language compatibility test results:"
+diff cross_decoded_rust.txt cross_decoded_go.txt && echo "✅ Rust ↔ Go: Compatible"
+diff cross_decoded_go.txt cross_decoded_c.txt && echo "✅ Go ↔ C: Compatible"
+diff cross_decoded_c.txt cross_decoded_python.txt && echo "✅ C ↔ Python: Compatible"
+```
+
+### Unicode and Emoji Examples
+
+```bash
+# Create test files with Unicode and emoji
+cat > unicode_message.txt << 'EOF'
+Hello, 世界! 🌍
+This message contains:
+- Chinese characters: 你好世界
+- Japanese: こんにちは世界
+- Korean: 안녕하세요 세계
+- Emojis: 🚀 🎉 💻 🔐
+- Special symbols: © ® ™ € £ ¥
+EOF
+
+cat > unicode_carrier.txt << 'EOF'
+This is a document with various Unicode content:
+- English: Hello World
+- Español: ¡Hola Mundo!
+- Français: Bonjour le Monde!
+- Deutsch: Hallo Welt!
+- Italiano: Ciao Mondo!
+- Português: Olá Mundo!
+- Русский: Привет Мир!
+- العربية: مرحبا بالعالم!
+- हिन्दी: नमस्ते दुनिया!
+- 中文: 你好世界!
+- 日本語: こんにちは世界!
+- 한국어: 안녕하세요 세계!
+EOF
+
+# Test Unicode support across all implementations
+whitespace-stego encode -mf unicode_message.txt --carrier-file unicode_carrier.txt -o unicode_encoded_python.txt
+./bin/whitespace-stego-rs encode --message-file unicode_message.txt --carrier-file unicode_carrier.txt --output unicode_encoded_rust.txt
+./bin/whitespace-stego-go encode -mf unicode_message.txt -cf unicode_carrier.txt -o unicode_encoded_go.txt
+./bin/whitespace-stego-c encode --message-file unicode_message.txt --carrier-file unicode_carrier.txt --output unicode_encoded_c.txt
+
+# Decode and verify
+whitespace-stego decode --carrier-file unicode_encoded_python.txt -o unicode_decoded_python.txt
+./bin/whitespace-stego-rs decode --carrier-file unicode_encoded_rust.txt --output unicode_decoded_rust.txt
+./bin/whitespace-stego-go decode -cf unicode_encoded_go.txt -o unicode_decoded_go.txt
+./bin/whitespace-stego-c decode --carrier-file unicode_encoded_c.txt --output unicode_decoded_c.txt
+
+# Verify Unicode preservation
+echo "Unicode compatibility test results:"
+diff unicode_message.txt unicode_decoded_python.txt && echo "✅ Python: Unicode preserved"
+diff unicode_message.txt unicode_decoded_rust.txt && echo "✅ Rust: Unicode preserved"
+diff unicode_message.txt unicode_decoded_go.txt && echo "✅ Go: Unicode preserved"
+diff unicode_message.txt unicode_decoded_c.txt && echo "✅ C: Unicode preserved"
+```
+
+### Performance Testing Examples
+
+```bash
+# Create large test files
+dd if=/dev/urandom bs=1M count=10 | tr -dc 'a-zA-Z0-9 ' > large_carrier.txt
+echo "Secret message for performance testing" > test_message.txt
+
+# Test encoding performance across all implementations
+echo "Testing encoding performance..."
+echo "Python:"
+time whitespace-stego encode -mf test_message.txt --carrier-file large_carrier.txt -o large_encoded_python.txt
+
+echo "Rust:"
+time ./bin/whitespace-stego-rs encode --message-file test_message.txt --carrier-file large_carrier.txt --output large_encoded_rust.txt
+
+echo "Go:"
+time ./bin/whitespace-stego-go encode -mf test_message.txt -cf large_carrier.txt -o large_encoded_go.txt
+
+echo "C:"
+time ./bin/whitespace-stego-c encode --message-file test_message.txt --carrier-file large_carrier.txt --output large_encoded_c.txt
+
+# Test decoding performance
+echo "Testing decoding performance..."
+echo "Python:"
+time whitespace-stego decode --carrier-file large_encoded_python.txt -o large_decoded_python.txt
+
+echo "Rust:"
+time ./bin/whitespace-stego-rs decode --carrier-file large_encoded_rust.txt --output large_decoded_rust.txt
+
+echo "Go:"
+time ./bin/whitespace-stego-go decode -cf large_encoded_go.txt -o large_decoded_go.txt
+
+echo "C:"
+time ./bin/whitespace-stego-c decode --carrier-file large_encoded_c.txt --output large_decoded_c.txt
+
+# Verify correctness
+echo "Performance test verification:"
+diff test_message.txt large_decoded_python.txt && echo "✅ Python: Correct"
+diff test_message.txt large_decoded_rust.txt && echo "✅ Rust: Correct"
+diff test_message.txt large_decoded_go.txt && echo "✅ Go: Correct"
+diff test_message.txt large_decoded_c.txt && echo "✅ C: Correct"
+```
+
+### Testing Examples
+
+```bash
+# Run all tests
+make test
+
+# Run specific language tests
+make cov-python
+make cov-rust
+make cov-go
+make cov-c
+
+# Run cross-language integration tests
+bash scripts/test_scripts/test_cross_roundtrip.sh
+
+# Run standalone binary tests
+bash scripts/test_scripts/test_standalone_binaries.sh
+
+# Run comprehensive tests
+bash scripts/test_scripts/comprehensive_test.sh
+```
+
+### Development Examples
+
+```bash
+# Build individual implementations
+make rust
+make go
+make c
+
+# Build with different profiles
+cd implementations/rust && make debug && cd ../..
+cd implementations/go && make debug && cd ../..
+cd implementations/c && make debug && cd ../..
+
+# Install system-wide
+sudo make install
+
+# Test installed binaries
+whitespace-stego --help
+./bin/whitespace-stego-rs --help
+./bin/whitespace-stego-go help
+./bin/whitespace-stego-c --help
+```
+
+### Library Usage Examples
+
+```bash
+# Python library usage
+python3 -c "
+import whitespace_stego
+encoded = whitespace_stego.encode('Hello from library!', 'Carrier text', password='secret')
+decoded = whitespace_stego.decode(encoded, password='secret')
+print(f'Encoded: {encoded}')
+print(f'Decoded: {decoded}')
+"
+
+# Test different backends
+python3 -c "
+import whitespace_stego
+# Test Python backend
+encoded_py = whitespace_stego.encode('Hello!', 'Carrier', backend='python')
+# Test Rust backend
+encoded_rs = whitespace_stego.encode('Hello!', 'Carrier', backend='rust')
+# Test C backend
+encoded_c = whitespace_stego.encode('Hello!', 'Carrier', backend='c')
+print('All backends work!')
+"
+```
+
+### Error Handling Examples
+
+```bash
+# Test with invalid inputs
+whitespace-stego encode -m "" --carrier-file carrier_text.txt -o test.txt
+whitespace-stego encode -m "test" --carrier-file nonexistent.txt -o test.txt
+whitespace-stego decode --carrier-file nonexistent.txt -o test.txt
+
+# Test with very long inputs
+python3 -c "print('A' * 10000)" > very_long_message.txt
+whitespace-stego encode -mf very_long_message.txt --carrier-file carrier_text.txt -o test.txt
+
+# Test with special characters
+whitespace-stego encode -m "Special chars: !@#$%^&*()_+-=[]{}|;':\",./<>?" --carrier-file carrier_text.txt -o special.txt
+whitespace-stego decode --carrier-file special.txt -o special_decoded.txt
+```
+
+### Integration Examples
+
+```bash
+# Create a shell script for batch processing
+cat > batch_encode.sh << 'EOF'
+#!/bin/bash
+# Batch encoding script using all implementations
+
+for i in {1..3}; do
+    echo "Processing file $i..."
+    echo "Secret message $i" > "message_$i.txt"
+    echo "Carrier text for file $i" > "carrier_$i.txt"
+    
+    # Encode with all implementations
+    whitespace-stego encode -mf "message_$i.txt" --carrier-file "carrier_$i.txt" -o "encoded_python_$i.txt"
+    ./bin/whitespace-stego-rs encode --message-file "message_$i.txt" --carrier-file "carrier_$i.txt" --output "encoded_rust_$i.txt"
+    ./bin/whitespace-stego-go encode -mf "message_$i.txt" -cf "carrier_$i.txt" -o "encoded_go_$i.txt"
+    ./bin/whitespace-stego-c encode --message-file "message_$i.txt" --carrier-file "carrier_$i.txt" --output "encoded_c_$i.txt"
+    
+    # Decode with all implementations
+    whitespace-stego decode --carrier-file "encoded_python_$i.txt" -o "decoded_python_$i.txt"
+    ./bin/whitespace-stego-rs decode --carrier-file "encoded_rust_$i.txt" --output "decoded_rust_$i.txt"
+    ./bin/whitespace-stego-go decode -cf "encoded_go_$i.txt" -o "decoded_go_$i.txt"
+    ./bin/whitespace-stego-c decode --carrier-file "encoded_c_$i.txt" --output "decoded_c_$i.txt"
+    
+    # Verify all implementations
+    if diff "message_$i.txt" "decoded_python_$i.txt" > /dev/null && \
+       diff "message_$i.txt" "decoded_rust_$i.txt" > /dev/null && \
+       diff "message_$i.txt" "decoded_go_$i.txt" > /dev/null && \
+       diff "message_$i.txt" "decoded_c_$i.txt" > /dev/null; then
+        echo "✅ File $i: All implementations successful"
+    else
+        echo "❌ File $i: Some implementations failed"
+    fi
+done
+EOF
+
+chmod +x batch_encode.sh
+./batch_encode.sh
+```
+
 ## 🧪 Testing
 
 The project includes comprehensive test suites:

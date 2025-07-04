@@ -143,6 +143,373 @@ make
 ./bin/whitespace-stego-go decode -cf output.txt -o decoded.txt
 ```
 
+## Extensive Examples
+
+### Complete Setup and Build Example
+
+```bash
+# Navigate to the Go implementation directory
+cd implementations/go
+
+# Verify Go installation
+go version
+
+# Initialize and build
+go mod download
+make clean
+make build
+
+# Verify the binary was created
+ls -la bin/whitespace-stego-go
+```
+
+### Basic Encoding and Decoding Examples
+
+```bash
+# Create test files
+echo "This is a secret message that needs to be hidden." > secret_message.txt
+echo "This is innocent text that will serve as a carrier for the hidden message. It contains normal content that nobody would suspect contains hidden information." > carrier_text.txt
+
+# Encode a message using command line arguments
+./bin/whitespace-stego-go encode -m "Hello, World!" -cf carrier_text.txt -o encoded.txt
+
+# Encode a message using input files
+./bin/whitespace-stego-go encode -mf secret_message.txt -cf carrier_text.txt -o encoded_with_files.txt
+
+# Decode the message
+./bin/whitespace-stego-go decode -cf encoded.txt -o decoded.txt
+
+# View the results
+echo "Original message:"
+cat secret_message.txt
+echo -e "\nEncoded carrier:"
+cat encoded.txt
+echo -e "\nDecoded message:"
+cat decoded.txt
+```
+
+### Advanced Usage Examples
+
+```bash
+# Encode with password protection
+./bin/whitespace-stego-go encode -m "Top secret information" -cf carrier_text.txt -p "mysecretpass" -o protected.txt
+
+# Decode with password
+./bin/whitespace-stego-go decode -cf protected.txt -p "mysecretpass" -o decrypted.txt
+
+# Encode a long message
+cat > long_message.txt << 'EOF'
+This is a very long secret message that contains multiple lines
+of sensitive information that needs to be hidden within innocent
+text. The message can be quite long and contain various types
+of content including numbers, symbols, and special characters.
+EOF
+
+cat > long_carrier.txt << 'EOF'
+This is a long document that appears to be a normal text file.
+It contains various paragraphs and sections that make it look
+like legitimate content. Nobody would suspect that this text
+contains hidden information encoded using whitespace steganography.
+The document continues with more content to provide sufficient
+space for hiding the secret message.
+EOF
+
+./bin/whitespace-stego-go encode -mf long_message.txt -cf long_carrier.txt -o long_encoded.txt
+./bin/whitespace-stego-go decode -cf long_encoded.txt -o long_decoded.txt
+
+# Verify the encoding worked
+diff long_message.txt long_decoded.txt && echo "✅ Encoding/decoding successful!"
+```
+
+### Testing Examples
+
+```bash
+# Run all tests
+make test
+
+# Run tests with verbose output
+make test-verbose
+
+# Run tests with race detection
+make test-race
+
+# Run tests with coverage
+make coverage
+
+# Generate HTML coverage report
+make coverage-html
+# Open coverage.html in your browser
+firefox coverage.html  # or your preferred browser
+
+# Generate XML coverage report
+make coverage-xml
+
+# Run benchmarks
+make bench
+```
+
+### Development Examples
+
+```bash
+# Build with different profiles
+make debug         # Debug build with symbols
+make release       # Optimized release build
+make dev           # Development build
+
+# Install system-wide
+sudo make install
+
+# Test the installed binary
+whitespace-stego-go help
+whitespace-stego-go encode --help
+whitespace-stego-go decode --help
+
+# Uninstall
+sudo make uninstall
+```
+
+### Library Usage Examples
+
+```bash
+# Create a simple test program
+cat > test_lib.go << 'EOF'
+package main
+
+import (
+    "fmt"
+    "log"
+    "./src/stego"
+)
+
+func main() {
+    // Encode a message
+    encoded, err := stego.Encode("Hello from library!", "Carrier text", "")
+    if err != nil {
+        log.Fatal(err)
+    }
+    fmt.Printf("Encoded: %s\n", encoded)
+
+    // Decode the message
+    decoded, err := stego.Decode(encoded, "")
+    if err != nil {
+        log.Fatal(err)
+    }
+    fmt.Printf("Decoded: %s\n", decoded)
+}
+EOF
+
+# Run the test program
+go run test_lib.go
+```
+
+### Performance Testing Examples
+
+```bash
+# Test encoding performance with large files
+dd if=/dev/urandom bs=1M count=10 | tr -dc 'a-zA-Z0-9 ' > large_carrier.txt
+echo "Secret message" > test_message.txt
+
+# Time the encoding process
+time ./bin/whitespace-stego-go encode -mf test_message.txt -cf large_carrier.txt -o large_encoded.txt
+
+# Time the decoding process
+time ./bin/whitespace-stego-go decode -cf large_encoded.txt -o large_decoded.txt
+
+# Verify correctness
+diff test_message.txt large_decoded.txt && echo "✅ Large file test passed!"
+
+# Run performance benchmarks
+go test -bench=. -benchmem ./src/stego
+```
+
+### Cross-Platform Building Examples
+
+```bash
+# Build for current platform
+make build
+
+# Build for multiple platforms
+GOOS=linux GOARCH=amd64 make build
+GOOS=darwin GOARCH=amd64 make build
+GOOS=windows GOARCH=amd64 make build
+
+# Build for ARM architectures
+GOOS=linux GOARCH=arm64 make build
+GOOS=darwin GOARCH=arm64 make build
+
+# Build with specific Go version
+go version
+make clean && make build
+```
+
+### Code Quality Examples
+
+```bash
+# Format code
+make fmt
+
+# Run go vet
+make vet
+
+# Run linter (if available)
+make lint
+
+# Run staticcheck (if available)
+go install honnef.co/go/tools/cmd/staticcheck@latest
+staticcheck ./src/...
+
+# Run all code quality checks
+make fmt && make vet && make lint
+```
+
+### Error Handling Examples
+
+```bash
+# Test with invalid inputs
+./bin/whitespace-stego-go encode -m "" -cf carrier_text.txt -o test.txt
+./bin/whitespace-stego-go encode -m "test" -cf nonexistent.txt -o test.txt
+./bin/whitespace-stego-go decode -cf nonexistent.txt -o test.txt
+
+# Test with very long inputs
+python3 -c "print('A' * 10000)" > very_long_message.txt
+./bin/whitespace-stego-go encode -mf very_long_message.txt -cf carrier_text.txt -o test.txt
+
+# Test with special characters
+./bin/whitespace-stego-go encode -m "Special chars: !@#$%^&*()_+-=[]{}|;':\",./<>?" -cf carrier_text.txt -o special.txt
+./bin/whitespace-stego-go decode -cf special.txt -o special_decoded.txt
+```
+
+### Integration Examples
+
+```bash
+# Create a shell script for batch processing
+cat > batch_encode.sh << 'EOF'
+#!/bin/bash
+# Batch encoding script
+
+for i in {1..5}; do
+    echo "Processing file $i..."
+    echo "Secret message $i" > "message_$i.txt"
+    echo "Carrier text for file $i" > "carrier_$i.txt"
+    
+    ./bin/whitespace-stego-go encode \
+        -mf "message_$i.txt" \
+        -cf "carrier_$i.txt" \
+        -o "encoded_$i.txt"
+    
+    ./bin/whitespace-stego-go decode \
+        -cf "encoded_$i.txt" \
+        -o "decoded_$i.txt"
+    
+    # Verify
+    if diff "message_$i.txt" "decoded_$i.txt" > /dev/null; then
+        echo "✅ File $i: Success"
+    else
+        echo "❌ File $i: Failed"
+    fi
+done
+EOF
+
+chmod +x batch_encode.sh
+./batch_encode.sh
+```
+
+### Web Integration Examples
+
+```bash
+# Create a simple web server that uses the library
+cat > web_server.go << 'EOF'
+package main
+
+import (
+    "encoding/json"
+    "fmt"
+    "log"
+    "net/http"
+    "strings"
+    "./src/stego"
+)
+
+type EncodeRequest struct {
+    Message string `json:"message"`
+    Carrier string `json:"carrier"`
+    Password string `json:"password"`
+}
+
+type EncodeResponse struct {
+    Encoded string `json:"encoded"`
+    Error   string `json:"error,omitempty"`
+}
+
+func encodeHandler(w http.ResponseWriter, r *http.Request) {
+    if r.Method != "POST" {
+        http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+        return
+    }
+
+    var req EncodeRequest
+    if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+        http.Error(w, err.Error(), http.StatusBadRequest)
+        return
+    }
+
+    encoded, err := stego.Encode(req.Message, req.Carrier, req.Password)
+    if err != nil {
+        resp := EncodeResponse{Error: err.Error()}
+        json.NewEncoder(w).Encode(resp)
+        return
+    }
+
+    resp := EncodeResponse{Encoded: encoded}
+    json.NewEncoder(w).Encode(resp)
+}
+
+func main() {
+    http.HandleFunc("/encode", encodeHandler)
+    fmt.Println("Server starting on :8080")
+    log.Fatal(http.ListenAndServe(":8080", nil))
+}
+EOF
+
+# Run the web server
+go run web_server.go &
+
+# Test the web server
+curl -X POST http://localhost:8080/encode \
+  -H "Content-Type: application/json" \
+  -d '{"message":"Hello from web!","carrier":"Innocent text","password":""}'
+
+# Stop the server
+pkill -f web_server.go
+```
+
+### Docker Integration Examples
+
+```bash
+# Create a Dockerfile
+cat > Dockerfile << 'EOF'
+FROM golang:1.21-alpine AS builder
+
+WORKDIR /app
+COPY . .
+RUN go mod download
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o whitespace-stego-go ./src/main.go
+
+FROM alpine:latest
+RUN apk --no-cache add ca-certificates
+WORKDIR /root/
+COPY --from=builder /app/whitespace-stego-go .
+CMD ["./whitespace-stego-go"]
+EOF
+
+# Build Docker image
+docker build -t whitespace-stego-go .
+
+# Run in Docker
+docker run --rm whitespace-stego-go help
+docker run --rm -v $(pwd):/data whitespace-stego-go encode -m "Hello from Docker!" -cf /data/carrier_text.txt -o /data/docker_encoded.txt
+```
+
 ## Testing
 
 ### Run All Tests

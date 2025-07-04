@@ -3,98 +3,66 @@
 [![Docker](https://github.com/${{GITHUB_REPOSITORY}}/actions/workflows/docker.yml/badge.svg)](https://github.com/${{GITHUB_REPOSITORY}}/actions/workflows/docker.yml)
 [![Nightly](https://github.com/${{GITHUB_REPOSITORY}}/actions/workflows/nightly-binaries.yml/badge.svg)](https://github.com/${{GITHUB_REPOSITORY}}/actions/workflows/nightly-binaries.yml)
 
-# Whitespace Steganography
+# Whitespace Steganography - Python Implementation
 
-A multi-language implementation of whitespace steganography with support for Python, Rust, Go, and C.
+A high-performance Python implementation of whitespace steganography with multiple backends (Python, Rust, C) for hiding messages in text using invisible Unicode characters.
 
-## 🚀 Quick Start
+## Features
 
+- **Multiple Backends**: Python, Rust, and C implementations
+- **High Performance**: Optimized for speed with Rust and C backends
+- **Cross-Platform**: Works on Linux, macOS, and Windows
+- **Comprehensive Testing**: 1300+ tests ensuring reliability
+- **Unicode Support**: Full Unicode and emoji compatibility
+- **Password Protection**: Optional AES-256 encryption
+- **Library Usage**: Can be used as a Python module
+- **CLI Interface**: Command-line tool for easy use
+
+## Requirements
+
+- Python 3.8 or later
+- pip
+- make (optional, for using Makefile)
+- Rust (for Rust backend)
+- C compiler (for C backend)
+
+### Ubuntu/Debian
 ```bash
-# Clone the repository
-git clone https://github.com/dapperfu/whitespace-stego.git
-cd whitespace-stego
-
-# Set up the environment
-make venv
-make install
-
-# Run tests
-make test
-
-# Build all binaries
-make all
+sudo apt-get update
+sudo apt-get install python3 python3-pip python3-venv build-essential libssl-dev make
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
-## 📁 Project Structure
-
-```
-whitespace-stego/
-├── implementations/          # Language-specific implementations
-│   ├── python/              # Python implementation with multiple backends
-│   ├── rust/                # Rust CLI implementation
-│   ├── go/                  # Go CLI implementation
-│   └── c/                   # C CLI implementation
-├── bin/                     # Compiled binaries (created by make all)
-├── tests/                   # Test suites
-├── docs/                    # Documentation
-├── examples/                # Usage examples
-├── notebooks/               # Jupyter notebooks for exploration
-└── scripts/                 # Utility scripts
-```
-
-## 🛠️ Build System
-
-The project uses a unified Makefile for all operations:
-
+### macOS
 ```bash
-# Core targets
-make venv                    # Create Python virtual environment
-make install                 # Install Python package and dependencies
-make test                    # Run all tests
-make all                     # Build all binaries (Go, Rust, C, Python)
-
-# Language-specific builds
-make rust                    # Build Rust binary
-make go                      # Build Go binary
-make c                       # Build C binary
-
-# Coverage and testing
-make coverage                # Run coverage for all languages
-make cov-python              # Python tests with coverage
-make cov-rust                # Rust tests with coverage
-make cov-go                  # Go tests with coverage
-make cov-c                   # C tests with coverage
+brew install python3 make
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
-## 🔧 Implementations
+### Windows
+- Download Python from https://python.org/
+- Install Make via Chocolatey: `choco install make`
+- Download Rust from https://rustup.rs/
 
-### Python Implementation
-- **Multiple backends**: Python, Rust, and C
-- **CLI interface**: `whitespace-stego` command
-- **Library usage**: Import `whitespace_stego` module
-- **Features**: Unicode support, password protection, multiple message encoding
+## Quick Start
 
-### Rust Implementation
-- **Standalone binary**: `whitespace-stego-rs`
-- **High performance**: Optimized for speed
-- **Cross-platform**: Works on Linux, macOS, Windows
+### Setup
+```bash
+# Create virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-### Go Implementation
-- **Standalone binary**: `whitespace-stego-go`
-- **Simple deployment**: Single executable
-- **Fast compilation**: Quick development cycle
+# Install package
+pip install -e .
 
-### C Implementation
-- **Standalone binary**: `whitespace-stego-c`
-- **Minimal dependencies**: Only standard C library
-- **Portable**: Works on any system with a C compiler
+# Build backends
+make build-backends
+```
 
-## 📖 Usage
-
-### Python CLI
+### Basic Usage
 ```bash
 # Encode a message
-whitespace-stego encode -m "secret message" --carrier-file input.txt -o output.txt
+whitespace-stego encode -m "Hello, World!" --carrier-file input.txt -o output.txt
 
 # Decode a message
 whitespace-stego decode --carrier-file output.txt -o decoded.txt
@@ -103,273 +71,392 @@ whitespace-stego decode --carrier-file output.txt -o decoded.txt
 whitespace-stego -b rust encode -m "secret" --carrier-file input.txt -o output.txt
 ```
 
-### Standalone Binaries
-```bash
-# Rust
-./bin/whitespace-stego-rs encode -m "secret" --cf input.txt -o output.txt
+## Project Structure
 
-# Go
-./bin/whitespace-stego-go encode -m "secret" -cf input.txt -o output.txt
-
-# C
-./bin/whitespace-stego-c encode --message-file message.txt --carrier-file input.txt --output output.txt
+```
+python/
+├── whitespace_stego/        # Main package
+│   ├── __init__.py         # Package initialization
+│   ├── core.py             # Core implementation
+│   ├── cli.py              # CLI interface
+│   ├── constants.py        # Constants and configuration
+│   ├── logger.py           # Logging utilities
+│   └── c_backend.py        # C backend integration
+├── tests/                  # Test suites
+├── setup.py                # Package configuration
+├── pyproject.toml          # Modern Python packaging
+├── pytest.ini             # pytest configuration
+├── Makefile                # Build system
+└── README.md               # This file
 ```
 
-## 🧪 Testing
+## API Usage
 
-The project includes comprehensive test suites:
+### As a Library
 
-- **Unit tests**: Language-specific test suites
-- **Integration tests**: Cross-implementation compatibility
-- **Property-based tests**: Automated edge case discovery
-- **Performance benchmarks**: Speed and memory usage tests
+```python
+import whitespace_stego
+
+# Encode a message
+encoded = whitespace_stego.encode("Hello, World!", "Carrier text", password="secret")
+print(f"Encoded: {encoded}")
+
+# Decode a message
+decoded = whitespace_stego.decode(encoded, password="secret")
+print(f"Decoded: {decoded}")
+
+# Use specific backend
+encoded_rust = whitespace_stego.encode("Hello!", "Carrier", backend="rust")
+encoded_c = whitespace_stego.encode("Hello!", "Carrier", backend="c")
+```
+
+### As a CLI Tool
+
+```bash
+# Basic encoding/decoding
+whitespace-stego encode -m "secret message" --carrier-file input.txt -o output.txt
+whitespace-stego decode --carrier-file output.txt -o decoded.txt
+
+# With password protection
+whitespace-stego encode -m "secret" --carrier-file input.txt -p "password" -o output.txt
+whitespace-stego decode --carrier-file output.txt -p "password" -o decoded.txt
+
+# Using specific backend
+whitespace-stego -b rust encode -m "secret" --carrier-file input.txt -o output.txt
+whitespace-stego -b c encode -m "secret" --carrier-file input.txt -o output.txt
+```
+
+## Extensive Examples
+
+### Complete Setup and Build Example
+
+```bash
+# Navigate to the Python implementation directory
+cd implementations/python
+
+# Create and activate virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install the package in development mode
+pip install -e .
+
+# Build all backends
+make build-backends
+
+# Verify installation
+whitespace-stego --help
+python3 -c "import whitespace_stego; print('✅ Package installed successfully')"
+```
+
+### Basic Encoding and Decoding Examples
+
+```bash
+# Create test files
+echo "This is a secret message that needs to be hidden." > secret_message.txt
+echo "This is innocent text that will serve as a carrier for the hidden message. It contains normal content that nobody would suspect contains hidden information." > carrier_text.txt
+
+# Encode a message using command line arguments
+whitespace-stego encode -m "Hello, World!" --carrier-file carrier_text.txt -o encoded.txt
+
+# Encode a message using input files
+whitespace-stego encode -mf secret_message.txt --carrier-file carrier_text.txt -o encoded_with_files.txt
+
+# Decode the message
+whitespace-stego decode --carrier-file encoded.txt -o decoded.txt
+
+# View the results
+echo "Original message:"
+cat secret_message.txt
+echo -e "\nEncoded carrier:"
+cat encoded.txt
+echo -e "\nDecoded message:"
+cat decoded.txt
+```
+
+### Backend Comparison Examples
+
+```bash
+# Test all backends with the same input
+echo "Testing all backends..."
+
+# Python backend
+whitespace-stego -b python encode -m "Hello from Python!" --carrier-file carrier_text.txt -o encoded_python.txt
+whitespace-stego -b python decode --carrier-file encoded_python.txt -o decoded_python.txt
+
+# Rust backend
+whitespace-stego -b rust encode -m "Hello from Rust!" --carrier-file carrier_text.txt -o encoded_rust.txt
+whitespace-stego -b rust decode --carrier-file encoded_rust.txt -o decoded_rust.txt
+
+# C backend
+whitespace-stego -b c encode -m "Hello from C!" --carrier-file carrier_text.txt -o encoded_c.txt
+whitespace-stego -b c decode --carrier-file encoded_c.txt -o decoded_c.txt
+
+# Compare results
+echo "Backend comparison results:"
+echo "Python decoded: $(cat decoded_python.txt)"
+echo "Rust decoded: $(cat decoded_rust.txt)"
+echo "C decoded: $(cat decoded_c.txt)"
+```
+
+### Advanced Usage Examples
+
+```bash
+# Encode with password protection
+whitespace-stego encode -m "Top secret information" --carrier-file carrier_text.txt -p "mysecretpass" -o protected.txt
+
+# Decode with password
+whitespace-stego decode --carrier-file protected.txt -p "mysecretpass" -o decrypted.txt
+
+# Encode a long message
+cat > long_message.txt << 'EOF'
+This is a very long secret message that contains multiple lines
+of sensitive information that needs to be hidden within innocent
+text. The message can be quite long and contain various types
+of content including numbers, symbols, and special characters.
+EOF
+
+cat > long_carrier.txt << 'EOF'
+This is a long document that appears to be a normal text file.
+It contains various paragraphs and sections that make it look
+like legitimate content. Nobody would suspect that this text
+contains hidden information encoded using whitespace steganography.
+The document continues with more content to provide sufficient
+space for hiding the secret message.
+EOF
+
+whitespace-stego encode -mf long_message.txt --carrier-file long_carrier.txt -o long_encoded.txt
+whitespace-stego decode --carrier-file long_encoded.txt -o long_decoded.txt
+
+# Verify the encoding worked
+diff long_message.txt long_decoded.txt && echo "✅ Encoding/decoding successful!"
+```
+
+### Unicode and Emoji Examples
+
+```bash
+# Create test files with Unicode and emoji
+cat > unicode_message.txt << 'EOF'
+Hello, 世界! 🌍
+This message contains:
+- Chinese characters: 你好世界
+- Japanese: こんにちは世界
+- Korean: 안녕하세요 세계
+- Emojis: 🚀 🎉 💻 🔐
+- Special symbols: © ® ™ € £ ¥
+EOF
+
+cat > unicode_carrier.txt << 'EOF'
+This is a document with various Unicode content:
+- English: Hello World
+- Español: ¡Hola Mundo!
+- Français: Bonjour le Monde!
+- Deutsch: Hallo Welt!
+- Italiano: Ciao Mondo!
+- Português: Olá Mundo!
+- Русский: Привет Мир!
+- العربية: مرحبا بالعالم!
+- हिन्दी: नमस्ते दुनिया!
+- 中文: 你好世界!
+- 日本語: こんにちは世界!
+- 한국어: 안녕하세요 세계!
+EOF
+
+# Test Unicode support with all backends
+whitespace-stego -b python encode -mf unicode_message.txt --carrier-file unicode_carrier.txt -o unicode_encoded_python.txt
+whitespace-stego -b rust encode -mf unicode_message.txt --carrier-file unicode_carrier.txt -o unicode_encoded_rust.txt
+whitespace-stego -b c encode -mf unicode_message.txt --carrier-file unicode_carrier.txt -o unicode_encoded_c.txt
+
+# Decode and verify
+whitespace-stego -b python decode --carrier-file unicode_encoded_python.txt -o unicode_decoded_python.txt
+whitespace-stego -b rust decode --carrier-file unicode_encoded_rust.txt -o unicode_decoded_rust.txt
+whitespace-stego -b c decode --carrier-file unicode_encoded_c.txt -o unicode_decoded_c.txt
+
+# Verify Unicode preservation
+echo "Unicode compatibility test results:"
+diff unicode_message.txt unicode_decoded_python.txt && echo "✅ Python backend: Unicode preserved"
+diff unicode_message.txt unicode_decoded_rust.txt && echo "✅ Rust backend: Unicode preserved"
+diff unicode_message.txt unicode_decoded_c.txt && echo "✅ C backend: Unicode preserved"
+```
+
+### Performance Testing Examples
+
+```bash
+# Create large test files
+dd if=/dev/urandom bs=1M count=10 | tr -dc 'a-zA-Z0-9 ' > large_carrier.txt
+echo "Secret message for performance testing" > test_message.txt
+
+# Test encoding performance across all backends
+echo "Testing encoding performance..."
+echo "Python backend:"
+time whitespace-stego -b python encode -mf test_message.txt --carrier-file large_carrier.txt -o large_encoded_python.txt
+
+echo "Rust backend:"
+time whitespace-stego -b rust encode -mf test_message.txt --carrier-file large_carrier.txt -o large_encoded_rust.txt
+
+echo "C backend:"
+time whitespace-stego -b c encode -mf test_message.txt --carrier-file large_carrier.txt -o large_encoded_c.txt
+
+# Test decoding performance
+echo "Testing decoding performance..."
+echo "Python backend:"
+time whitespace-stego -b python decode --carrier-file large_encoded_python.txt -o large_decoded_python.txt
+
+echo "Rust backend:"
+time whitespace-stego -b rust decode --carrier-file large_encoded_rust.txt -o large_decoded_rust.txt
+
+echo "C backend:"
+time whitespace-stego -b c decode --carrier-file large_encoded_c.txt -o large_decoded_c.txt
+
+# Verify correctness
+echo "Performance test verification:"
+diff test_message.txt large_decoded_python.txt && echo "✅ Python backend: Correct"
+diff test_message.txt large_decoded_rust.txt && echo "✅ Rust backend: Correct"
+diff test_message.txt large_decoded_c.txt && echo "✅ C backend: Correct"
+```
+
+### Testing Examples
 
 ```bash
 # Run all tests
 make test
-
-# Run specific test suites
-make cov-python
-make cov-rust
-make cov-go
-make cov-c
 ```
 
-## 📊 Performance
+### Run with Coverage
+```bash
+make coverage
+```
 
-Performance benchmarks are available in the `notebooks/` directory:
+### Run Specific Test Suites
+```bash
+pytest tests/test_00_parametrized_core_and_rust.py -v
+pytest tests/test_01_multiple_messages.py -v
+pytest tests/test_02_whitespace_stego_decode.py -v
+pytest tests/test_03_whitespace_stego_encode.py -v
+pytest tests/test_04_whitespace_stego_core.py -v
+pytest tests/test_05_whitespace_stego_cli.py -v
+```
 
-- **Speed comparison**: All implementations
-- **Memory usage**: Resource consumption analysis
-- **Scalability**: Performance with large files
+### Cross-Implementation Tests
+```bash
+pytest tests/test_20_cross_impl_roundtrip.py -v
+pytest tests/test_21_unicode_cross_impl.py -v
+pytest tests/test_22_comprehensive_encoding_identity.py -v
+```
 
-## 🤝 Contributing
+### Security Tests
+```bash
+pytest tests/test_30_security_and_cryptography.py -v
+```
+
+### Property-Based Tests
+```bash
+pytest tests/test_40_fuzz_and_property.py -v
+pytest tests/test_41_protocol_and_constants.py -v
+```
+
+## Development
+
+### Development Setup
+```bash
+pip install -e .
+make build-backends
+```
+
+### Code Quality
+```bash
+make lint      # Run linter
+make type-check # Run type checker
+make check-all  # Run all checks
+```
+
+### All Checks
+```bash
+make check-all
+```
+
+## Installation
+
+### Development Installation
+```bash
+pip install -e .
+```
+
+### System-wide Installation
+```bash
+make install
+```
+
+### Uninstall
+```bash
+make uninstall
+```
+
+## Dependencies
+
+This implementation uses:
+
+- **Core Dependencies**: See `setup.py` and `pyproject.toml`
+- **Development Dependencies**: See `requirements-dev.txt`
+- **Optional Tools**: 
+  - `pytest` for testing
+  - `pytest-cov` for coverage
+  - `mypy` for type checking
+  - `black` for code formatting
+  - `flake8` for linting
+
+## Building from Source
+
+1. Clone the repository
+2. Navigate to the Python directory: `cd python`
+3. Create virtual environment: `python3 -m venv venv`
+4. Activate environment: `source venv/bin/activate`
+5. Install: `pip install -e .`
+6. Build backends: `make build-backends`
+7. Test: `make test`
+8. Install: `make install`
+
+## Performance
+
+The Python implementation is optimized for:
+- **Multiple Backends**: Choose the fastest backend for your use case
+- **Memory Efficiency**: Efficient memory usage across all backends
+- **CPU Performance**: Rust and C backends provide near-native performance
+- **Cross-Platform**: Works on all major platforms
+
+## Security
+
+### Password Protection
+```bash
+# Use AES-256 encryption
+whitespace-stego encode -m "secret" --carrier-file input.txt -p "strong_password" -o output.txt
+whitespace-stego decode --carrier-file output.txt -p "strong_password" -o decoded.txt
+```
+
+### Dependency Auditing
+```bash
+pip audit
+```
+
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
 4. Add tests for new functionality
 5. Ensure all tests pass: `make test`
-6. Submit a pull request
+6. Check code quality: `make check-all`
+7. Submit a pull request
 
-## 📄 License
+## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the same license as the main whitespace-stego project.
 
-## 🔗 Links
+## Support
 
-- [Documentation](docs/)
-- [Examples](examples/)
-- [API Reference](docs/API_REFERENCE.md)
-- [Architecture](docs/ARCHITECTURE.md)
-
-# 🕵️‍♂️ Whitespace Steganography
-
-> *"The best place to hide a tree is in a forest. The best place to hide a secret is in plain sight."* 🌲
-
-A modern, multi-language toolkit for hiding secret messages in text using **invisible Unicode characters**. Supports Python 🐍, Rust 🦀, C ⚡, Go 🐹, and WebAssembly 🌐 backends.
-
----
-
-## 🎯 What is Whitespace Steganography?
-
-Whitespace steganography hides secret messages in plain text using **zero-width Unicode characters** — invisible characters that don't appear to human readers but can be detected and decoded by the right tools. It's like having a conversation in a crowded room where only you and your friend know you're actually speaking in code! 🕵️‍♀️
-
----
-
-## ✨ Key Features
-
-- **🔄 Multi-language Support:** Python (with Rust/C backends), Rust, C, Go, and WebAssembly implementations
-- **🖥️ Multiple Interfaces:** Command-line tools and web browser interface
-- **🌍 Unicode & Emoji Friendly:** Works with any text, language, or emoji
-- **🔐 Password Protection:** Optional AES-256 encryption for sensitive messages
-- **🤝 Cross-compatibility:** Encode in one language, decode in another
-- **🧪 Comprehensive Testing:** 1300+ tests ensuring reliability
-- **📚 MISRA C Compliant:** C implementation follows safety-critical coding standards
-
----
-
-## 📝 How It Works
-
-The toolkit converts your secret message into binary data, then embeds it using invisible Unicode characters:
-
-- **U+FEFF** (Zero-width no-break space) - Start marker
-- **U+200B** (Zero-width space) - Represents binary 0
-- **U+200D** (Zero-width joiner) - Represents binary 1
-- **U+200C** (Zero-width non-joiner) - End marker
-
-**Example:**
-```
-Original: "Hello, World!"
-Carrier:  "This is innocent text."
-Encoded:  "T[invisible data]his is innocent text."
-```
-
-The encoded text looks completely normal but contains your hidden message!
-
----
-
-## 🥚 Easter Egg Challenge
-
-Try decoding this innocent-looking "Hello World" message:
-
-```bash
-# Save this text to a file:
-H​‍‍﻿﻿‍﻿‍‍‍﻿﻿‍﻿﻿﻿﻿‍﻿﻿‍‍‍‍﻿‍﻿‍﻿‍‍﻿‍‍‍﻿﻿‍﻿‍‍‍﻿﻿‍﻿﻿﻿﻿‍﻿﻿‍‍‍‍﻿‍﻿‍﻿‍‍﻿‍‍‍﻿﻿‍﻿‍‍‍﻿﻿‍﻿﻿﻿﻿‍﻿﻿‍‍‍‍﻿‍﻿‍﻿‍﻿‍‍‍‍﻿﻿‍﻿‍‍‍﻿﻿‍﻿﻿﻿﻿‍﻿﻿‍‍‍‍﻿‍﻿‍﻿‍﻿‍‍‍‍﻿﻿‍﻿‍‍‍﻿﻿‍﻿﻿﻿﻿‍﻿﻿‍‍‍‍﻿‍﻿‍﻿‍‍‍﻿‍‍﻿﻿‍﻿‍‍‍﻿﻿‍﻿﻿﻿﻿‍﻿﻿‍‍‍‍﻿‍﻿‍﻿‍‍﻿﻿‍‍﻿﻿‍﻿‍‍‍﻿﻿‍﻿﻿﻿﻿‍﻿﻿‍‍‍‍﻿‍﻿‍﻿‍‍‍﻿‍‍﻿﻿‍﻿‍‍‍﻿﻿‍﻿﻿﻿﻿‍﻿﻿‍‍‍‍﻿‍﻿‍﻿‍‍﻿﻿‍﻿‍﻿‍‍‍﻿‍﻿﻿‍﻿‍﻿﻿‍﻿‍‍‍﻿‍﻿‍‍﻿﻿﻿﻿‍﻿‌ello World
-
-# Then decode it:
-python3 -m whitespace_stego.cli decode --carrier-file your_file.txt
-```
-
-*Hint: It's a classic gaming reference! 🎮*
-
----
-
-## 📚 Documentation
-
-### Getting Started
-- **[📖 Usage Guide](docs/USAGE.md)** - Complete CLI and API examples
-- **[🔧 Installation Guide](docs/INSTALLATION.md)** - Setup for all platforms
-- **[🐳 Docker Guide](docs/DOCKER.md)** - Containerized deployment
-
-### Technical Details
-- **[🏗️ Architecture](docs/ARCHITECTURE.md)** - System design and components
-- **[📋 API Reference](docs/API_REFERENCE.md)** - Complete API documentation
-- **[🔒 Security](docs/SECURITY.md)** - Security considerations
-- **[🦀 Rust Implementation](docs/RUST.md)** - Rust-specific details
-
-### Development
-- **[🧪 Testing](docs/TESTING.md)** - Testing strategy and coverage
-- **[📓 Notebooks](docs/NOTEBOOKS.md)** - Interactive examples
-- **[🤝 Contributing](docs/CONTRIBUTING.md)** - How to contribute
-
-### Advanced Topics
-- **[📈 Coverage Analysis](docs/COVERAGE.md)** - Test coverage metrics
-- **[⚡ Parallel Testing](docs/COVERAGE_PARALLELIZATION.md)** - Performance optimization
-- **[🔍 Test Failure Analysis](docs/PARALLEL_TEST_FAILURE_ANALYSIS.md)** - Debugging guide
-
----
-
-## 🎭 Use Cases
-
-- **👥 Corporate Communication:** Hide sensitive notes in routine messages
-- **💕 Personal Messages:** Send romantic notes that look like ordinary text
-- **🎮 Gaming:** Hide cheat codes or strategies in forum posts
-- **📝 Journaling:** Conceal personal thoughts in public documents
-- **🔐 Secure Communication:** Add an extra layer of message protection
-
----
-
-## 🔧 C Backend (High Performance)
-
-A high-performance C backend is available for Python via ctypes, featuring MISRA C:2012 compliance for safety-critical applications.
-
-### Building the C Backend
-
-```bash
-cd c
-make shared  # Creates lib/libwhitespace_stego.so
-```
-
-### Using the C Backend
-
-```python
-from whitespace_stego.c_backend import encode, decode, is_available
-
-if is_available():
-    encoded = encode("my message", "my carrier", password="secret")
-    decoded = decode(encoded, password="secret")
-    print(decoded)
-else:
-    print("C backend not available!")
-```
-
-Use `--backend c` in the CLI to select the C backend.
-
----
-
-## 🐹 Go Backend (Cross-platform)
-
-A cross-platform Go implementation is available, providing excellent performance and easy deployment across different operating systems.
-
-### Building the Go Backend
-
-```bash
-cd go
-make build  # Creates bin/whitespace-stego-go
-```
-
-### Using the Go Backend
-
-```bash
-# Direct usage
-./go/bin/whitespace-stego-go encode -m "secret message" -c "carrier text"
-./go/bin/whitespace-stego-go decode -c "encoded text"
-
-# Note: Go is a standalone CLI, not integrated with Python CLI backend system
-```
-
-The Go implementation provides:
-- **🚀 Fast Performance:** Efficient string processing and memory management
-- **🌍 Cross-platform:** Single binary for Linux, macOS, and Windows
-- **🔧 Simple Deployment:** No external dependencies required
-- **📦 Easy Distribution:** Self-contained executable
-
-## 🔧 Backend Architecture
-
-The project supports multiple implementation approaches:
-
-- **Python CLI with Backends:** The Python CLI can use Python, Rust, or C backends via `--backend` option
-- **Standalone CLIs:** Python (PyInstaller), Rust, C, and Go each have their own standalone CLI tools
-- **WebAssembly:** Browser-based interface for web applications
-
-All implementations are cross-compatible - you can encode in one language and decode in another.
-
----
-
-## 🐍 Python Standalone CLI (PyInstaller)
-
-A standalone Python executable is available, providing a self-contained version of the Python CLI with all backends included.
-
-### Building the Python Standalone CLI
-
-```bash
-make python-binary  # Creates bin/whitespace-stego-py
-```
-
-### Using the Python Standalone CLI
-
-```bash
-# Direct usage (same as Python CLI but standalone)
-./bin/whitespace-stego-py encode --message "secret" --carrier "text" --backend rust
-./bin/whitespace-stego-py decode --carrier-file encoded.txt --backend c
-
-# All Python CLI features available
-./bin/whitespace-stego-py --help
-```
-
-The Python standalone CLI provides:
-- **📦 Self-contained:** No Python installation required on target system
-- **🔄 All Backends:** Includes Python, Rust, and C backends
-- **🌍 Cross-platform:** Works on Linux, macOS, and Windows
-- **🔧 Same Interface:** Identical to `python -m whitespace_stego.cli`
-
----
-
-## ⚠️ Disclaimer
-
-This tool is for educational and legitimate purposes only. Users are responsible for complying with applicable laws and regulations.
-
----
-
-## 📄 License
-
-MIT License. See [LICENSE](LICENSE).
-
----
-
-## 🌟 Contributing
-
-We welcome contributions! See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines.
-
-*"In a world full of visible secrets, be the invisible one."* ✨
+For issues and questions:
+- Check the main project documentation
+- Review the test files for usage examples
+- Run `make help` for available commands
+- Check Python version compatibility: `make check-python`
+- Generate documentation: `make doc`
