@@ -54,7 +54,7 @@ CMAKE_BUILD_DIR = test/build
 CMAKE_GENERATOR ?= "Unix Makefiles"
 CMAKE_CCACHE_ARG = -DCMAKE_C_COMPILER_LAUNCHER=$(CCACHE)
 
-.PHONY: all clean test test-c test-unity test-coverage coverage-report shared cmake-build cmake-test cmake-clean install-unity help install uninstall dev debug release ccache-setup ccache-stats ccache-clean ccache-show whitespace-stego-static whitespace-stego-static-small whitespace-stego-static-tiny whitespace-stego-static-large test-static test-static-small test-static-tiny test-static-large
+.PHONY: all clean test test-c test-unity test-coverage coverage-report shared cmake-build cmake-test cmake-clean install-unity help install uninstall dev debug release ccache-setup ccache-stats ccache-clean ccache-show whitespace-stego-static whitespace-stego-static-small whitespace-stego-static-tiny whitespace-stego-static-large test-static test-static-small test-static-tiny test-static-large test-cross-static
 
 # Default target builds all implementations
 all: ccache-setup $(TARGET) $(SHARED_LIB) whitespace-stego-static whitespace-stego-static-small whitespace-stego-static-tiny whitespace-stego-static-large
@@ -96,6 +96,7 @@ help:
 	@echo "  test-unity      - Run Unity framework tests"
 	@echo "  test-coverage   - Run coverage tests"
 	@echo "  test-100-coverage - Run 100%% coverage tests"
+	@echo "  test-cross-static - Run cross-tests for static implementations"
 	@echo "  test-all        - Run all tests (including static implementations)"
 	@echo "  test-static     - Test standard static implementation"
 	@echo "  test-static-small - Test small static implementation"
@@ -193,6 +194,14 @@ $(TEST_100_COVERAGE_TARGET): $(CORE_COVERAGE_OBJS) $(TEST_DIR)/test_100_coverage
 	@echo "🔗 Linking test-100-coverage..."
 	$(CC_WRAPPER) $(COVERAGE_CFLAGS) $(TEST_DIR)/test_100_coverage.c $(CORE_COVERAGE_OBJS) -o $@ $(COVERAGE_LDFLAGS)
 
+# Cross-test target
+TEST_CROSS_STATIC_TARGET = $(BIN_DIR)/test-cross-static
+
+$(TEST_CROSS_STATIC_TARGET): $(CORE_OBJS) $(TEST_DIR)/cross_test_static.c
+	@mkdir -p $(BIN_DIR)
+	@echo "🔗 Linking test-cross-static..."
+	$(CC_WRAPPER) $(CFLAGS) $(TEST_DIR)/cross_test_static.c $(CORE_OBJS) -o $@ $(LDFLAGS)
+
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(OBJ_DIR)
 	@echo "🔨 Compiling $<..."
@@ -245,6 +254,10 @@ test-coverage: $(TEST_COVERAGE_TARGET)
 test-100-coverage: $(TEST_100_COVERAGE_TARGET)
 	@echo "Running 100%% coverage tests..."
 	@./$(TEST_100_COVERAGE_TARGET)
+
+test-cross-static: $(TEST_CROSS_STATIC_TARGET)
+	@echo "Running cross-tests for static implementations..."
+	@./$(TEST_CROSS_STATIC_TARGET)
 
 coverage-report: test-100-coverage
 	@echo "Generating coverage report for core library files..."
@@ -368,5 +381,5 @@ test-static-large: bin/whitespace-stego-static-large
 	./bin/whitespace-stego-static-large --help
 
 # Update test-all to include static implementations
-test-all: test test-c test-unity test-coverage test-100-coverage test-static test-static-small test-static-tiny test-static-large
+test-all: test test-c test-unity test-coverage test-100-coverage test-cross-static test-static test-static-small test-static-tiny test-static-large
 	@echo "All tests completed!" 

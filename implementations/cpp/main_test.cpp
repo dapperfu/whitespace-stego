@@ -16,15 +16,13 @@ void write_file(const std::string& path, const std::string& data) {
 }
 
 int main() {
-    std::string message_file = "test_message.txt";
-    std::string carrier_file = "test_carrier.txt";
     std::string output_file = "main_test_output.txt";
     
-    std::cout << "Testing main.cpp logic..." << std::endl;
+    std::cout << "Testing main.cpp logic with hardcoded strings..." << std::endl;
     
-    // Read files
-    std::string message = read_file(message_file);
-    std::string carrier = read_file(carrier_file);
+    // Use hardcoded strings like debug test
+    std::string message = "Secret message for testing";
+    std::string carrier = "This is a test carrier text for steganography.";
     
     std::cout << "Message: '" << message << "'" << std::endl;
     std::cout << "Carrier: '" << carrier << "'" << std::endl;
