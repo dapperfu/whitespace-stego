@@ -38,7 +38,8 @@ fn debug_log(msg: &str) {
 ///
 /// # Examples
 /// ```
-/// let decoded = decode_binary("\u200D\u200D\u200D\u200D\u200D\u200D\u200D\u200D")?;
+/// use whitespace_stego_core::decode::decode_binary;
+/// let decoded = decode_binary("\u{200D}\u{200D}\u{200D}\u{200D}\u{200D}\u{200D}\u{200D}\u{200D}").unwrap();
 /// ```
 pub fn decode_binary(encoded: &str) -> Result<Vec<u8>, StegoError> {
     let mut result = Vec::new();
@@ -91,7 +92,8 @@ pub fn decode_binary(encoded: &str) -> Result<Vec<u8>, StegoError> {
 ///
 /// # Examples
 /// ```
-/// let decoded = decode("carrier\u200Bhidden\u200C", None)?;
+/// use whitespace_stego_core::decode::decode;
+/// let decoded = decode("carrier\u{FEFF}hidden\u{200C}", None).unwrap();
 /// ```
 pub fn decode(carrier: &str, password: Option<&str>) -> Result<String, StegoError> {
     let messages = decode_all(carrier, password)?;
@@ -126,7 +128,8 @@ pub fn decode(carrier: &str, password: Option<&str>) -> Result<String, StegoErro
 ///
 /// # Examples
 /// ```
-/// let messages = decode_all("carrier\u200Bhidden1\u200C\u200Bhidden2\u200C", None)?;
+/// use whitespace_stego_core::decode::decode_all;
+/// let messages = decode_all("carrier\u{FEFF}hidden1\u{200C}\u{FEFF}hidden2\u{200C}", None).unwrap();
 /// ```
 pub fn decode_all(carrier: &str, password: Option<&str>) -> Result<Vec<String>, StegoError> {
     debug_log("[DEBUG] decode_all: function entered");
@@ -286,7 +289,8 @@ pub fn decode_all(carrier: &str, password: Option<&str>) -> Result<Vec<String>, 
 ///
 /// # Examples
 /// ```
-/// let (encoded, remaining) = extract_encoded("text\u200Bhidden\u200Cmore")?;
+/// use whitespace_stego_core::decode::extract_encoded;
+/// let (encoded, remaining) = extract_encoded("text\u{FEFF}hidden\u{200C}more").unwrap();
 /// ```
 pub fn extract_encoded(carrier: &str) -> Result<(String, String), StegoError> {
     let start = carrier
@@ -356,7 +360,8 @@ pub fn extract_encoded(carrier: &str) -> Result<(String, String), StegoError> {
 ///
 /// # Examples
 /// ```
-/// let pos = get_encoded_message_position("text\u200Bhidden\u200Cmore");
+/// use whitespace_stego_core::decode::get_encoded_message_position;
+/// let pos = get_encoded_message_position("text\u{FEFF}hidden\u{200C}more");
 /// ```
 pub fn get_encoded_message_position(carrier: &str) -> Option<(usize, usize)> {
     let start = carrier.find(START_MARKER)?;
@@ -382,7 +387,8 @@ pub fn get_encoded_message_position(carrier: &str) -> Option<(usize, usize)> {
 ///
 /// # Examples
 /// ```
-/// let count = count_messages("text\u200Bhidden1\u200C\u200Bhidden2\u200C");
+/// use whitespace_stego_core::decode::count_messages;
+/// let count = count_messages("text\u{FEFF}hidden1\u{200C}\u{FEFF}hidden2\u{200C}");
 /// assert_eq!(count, 2);
 /// ```
 pub fn count_messages(carrier: &str) -> usize {
@@ -404,6 +410,7 @@ pub fn count_messages(carrier: &str) -> usize {
 ///
 /// # Examples
 /// ```
+/// use whitespace_stego_core::decode::decode_debug_log_only;
 /// let _ = decode_debug_log_only("test input");
 /// ```
 #[allow(dead_code)]

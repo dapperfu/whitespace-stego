@@ -24,6 +24,7 @@ use crate::error::StegoError;
 ///
 /// # Examples
 /// ```
+/// use whitespace_stego_core::encode::encode_binary;
 /// let encoded = encode_binary(b"hi");
 /// ```
 pub fn encode_binary(data: &[u8]) -> String {
@@ -183,8 +184,9 @@ fn insert_message_at_position(carrier: &str, encoded_message: &str, position: us
 ///
 /// # Examples
 /// ```
+/// use whitespace_stego_core::encode::encode;
 /// let carrier = "cover text";
-/// let encoded = encode("secret", carrier, None)?;
+/// let encoded = encode("secret", carrier, None).unwrap();
 /// ```
 pub fn encode(message: &str, carrier: &str, password: Option<&str>) -> Result<String, StegoError> {
     // Check for empty message with humorous error
@@ -233,7 +235,8 @@ pub fn encode(message: &str, carrier: &str, password: Option<&str>) -> Result<St
 ///
 /// # Examples
 /// ```
-/// assert!(has_encoded_message("\u200Bhidden\u200C"));
+/// use whitespace_stego_core::encode::has_encoded_message;
+/// assert!(has_encoded_message("\u{FEFF}hidden\u{200C}"));
 /// ```
 pub fn has_encoded_message(text: &str) -> bool {
     text.contains(START_MARKER) && text.contains(END_MARKER)
@@ -249,7 +252,8 @@ pub fn has_encoded_message(text: &str) -> bool {
 ///
 /// # Examples
 /// ```
-/// let size = get_encoded_message_size("\u200Bhidden\u200C");
+/// use whitespace_stego_core::encode::get_encoded_message_size;
+/// let size = get_encoded_message_size("\u{FEFF}hidden\u{200C}");
 /// ```
 pub fn get_encoded_message_size(text: &str) -> Option<usize> {
     let start = text.find(START_MARKER)?;

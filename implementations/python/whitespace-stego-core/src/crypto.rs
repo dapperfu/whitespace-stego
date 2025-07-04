@@ -27,6 +27,7 @@ type Aes256Cbc = Cbc<Aes256, Pkcs7>;
 ///
 /// # Examples
 /// ```
+/// use whitespace_stego_core::crypto::derive_key;
 /// let key = derive_key("my_password");
 /// assert_eq!(key.len(), 32);
 /// ```
@@ -51,7 +52,8 @@ pub fn derive_key(password: &str) -> [u8; 32] {
 ///
 /// # Examples
 /// ```
-/// let encrypted = encrypt_data(b"secret", "password")?;
+/// use whitespace_stego_core::crypto::encrypt_data;
+/// let encrypted = encrypt_data(b"secret", "password").unwrap();
 /// ```
 pub fn encrypt_data(data: &[u8], password: &str) -> Result<Vec<u8>, StegoError> {
     let key = derive_key(password);
@@ -92,7 +94,9 @@ pub fn encrypt_data(data: &[u8], password: &str) -> Result<Vec<u8>, StegoError> 
 ///
 /// # Examples
 /// ```
-/// let decrypted = decrypt_data(&encrypted_data, "password")?;
+/// use whitespace_stego_core::crypto::{decrypt_data, encrypt_data};
+/// let encrypted = encrypt_data(b"secret", "password").unwrap();
+/// let decrypted = decrypt_data(&encrypted, "password").unwrap();
 /// ```
 pub fn decrypt_data(data: &[u8], password: &str) -> Result<Vec<u8>, StegoError> {
     if data.len() < 16 {
@@ -131,8 +135,10 @@ pub fn decrypt_data(data: &[u8], password: &str) -> Result<Vec<u8>, StegoError> 
 ///
 /// # Examples
 /// ```
+/// use whitespace_stego_core::crypto::{is_encrypted, encrypt_data};
 /// assert!(!is_encrypted(b"plain text"));
-/// assert!(is_encrypted(&encrypted_data));
+/// let encrypted = encrypt_data(b"secret", "password").unwrap();
+/// assert!(is_encrypted(&encrypted));
 /// ```
 pub fn is_encrypted(data: &[u8]) -> bool {
     if data.len() < 16 {

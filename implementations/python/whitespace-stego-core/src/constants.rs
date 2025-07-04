@@ -28,6 +28,7 @@ pub const ZERO_WIDTH_CHARS: [char; 4] = [START_MARKER, END_MARKER, ZERO_BIT, ONE
 ///
 /// # Examples
 /// ```
+/// use whitespace_stego_core::constants::is_zero_width_char;
 /// assert!(is_zero_width_char('\u{FEFF}'));
 /// assert!(!is_zero_width_char('a'));
 /// ```
@@ -45,6 +46,7 @@ pub fn is_zero_width_char(c: char) -> bool {
 ///
 /// # Examples
 /// ```
+/// use whitespace_stego_core::constants::is_data_bit;
 /// assert!(is_data_bit('\u{200B}'));
 /// assert!(is_data_bit('\u{200D}'));
 /// assert!(!is_data_bit('\u{FEFF}'));
@@ -63,6 +65,7 @@ pub fn is_data_bit(c: char) -> bool {
 ///
 /// # Examples
 /// ```
+/// use whitespace_stego_core::constants::is_marker;
 /// assert!(is_marker('\u{FEFF}'));
 /// assert!(is_marker('\u{200C}'));
 /// assert!(!is_marker('\u{200B}'));
