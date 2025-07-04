@@ -398,11 +398,10 @@ int whitespace_stego_decode_all(const char* carrier, size_t carrier_len, const c
     if (message_count == 0) {
         free(messages);
         if (password && password[0]) {
-            // For multi-recipient scenarios, return empty result set instead of error
-            // This matches Python's behavior where wrong passwords return empty results
-            *results = NULL;
-            *result_count = 0;
-            return 1;
+            // For password-protected messages, return error when no messages can be decrypted
+            // This matches Python/Rust behavior where wrong passwords return errors
+            snprintf(last_error, sizeof(last_error), "Invalid password or no valid messages found in carrier text");
+            return 0;
         } else {
             snprintf(last_error, sizeof(last_error), "No valid messages found in carrier text");
             return 0;

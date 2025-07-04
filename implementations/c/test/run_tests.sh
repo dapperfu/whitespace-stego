@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BIN="bin/whitespace-stego"
+BIN="../bin/whitespace-stego-c"
 
 # Test cases
 test_encode_decode() {
