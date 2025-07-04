@@ -51,9 +51,9 @@ c:
 # Remove all build artifacts
 clean:
 	rm -rf ${VENV}
-	rm -rf whitespace-stego-python/target
-	rm -rf whitespace-stego-python/*.egg-info
-	rm -rf whitespace-stego-python/dist
+	rm -rf implementations/python/whitespace-stego-python/target
+	rm -rf implementations/python/whitespace-stego-python/*.egg-info
+	rm -rf implementations/python/whitespace-stego-python/dist
 	rm -rf *.egg-info
 	rm -rf dist
 	rm -rf build
@@ -70,9 +70,9 @@ clean:
 	rm -rf ${BIN_DIR}
 	rm -rf wasi/pkg
 	rm -rf wasi/target
-	rm -rf go/coverage.out go/coverage.html go/coverage.txt
-	rm -rf c/coverage
-	rm -rf rust/target/coverage
+	rm -rf implementations/go/coverage.out implementations/go/coverage.html implementations/go/coverage.txt
+	rm -rf implementations/c/coverage
+	rm -rf implementations/rust/target/coverage
 	rm -rf coverage-reports
 	# Keep spec files for builds
 	cargo clean
@@ -81,9 +81,9 @@ clean:
 coverage: cov-go cov-rust cov-c cov-python
 	@echo "🎉 All coverage reports generated!"
 	@echo "📊 Reports available:"
-	@echo "  Go: go/coverage.html"
-	@echo "  Rust: rust/coverage/tarpaulin-report.html"
-	@echo "  C: c/coverage/html/index.html"
+	@echo "  Go: implementations/go/coverage.html"
+	@echo "  Rust: implementations/rust/coverage/tarpaulin-report.html"
+	@echo "  C: implementations/c/coverage/html/index.html"
 	@echo "  Python: htmlcov/index.html"
 
 # Generate consolidated Cobertura XML coverage report
@@ -94,14 +94,14 @@ coverage-xml: coverage
 	@cp coverage.xml coverage-reports/python-coverage.xml
 	# Convert Go coverage to Cobertura XML
 	@if command -v gocover-cobertura >/dev/null 2>&1; then \
-		gocover-cobertura < go/coverage.out > coverage-reports/go-coverage.xml; \
+		gocover-cobertura < implementations/go/coverage.out > coverage-reports/go-coverage.xml; \
 	else \
 		echo "gocover-cobertura not available, skipping Go XML conversion"; \
 	fi
 	# Rust already generates XML
-	@cp rust/coverage/tarpaulin.xml coverage-reports/rust-coverage.xml
+	@cp implementations/rust/coverage/tarpaulin.xml coverage-reports/rust-coverage.xml
 	# C coverage to XML
-	@cd c && gcovr --xml --output=../coverage-reports/c-coverage.xml
+	@cd implementations/c && gcovr --xml --output=../../coverage-reports/c-coverage.xml
 	@echo "📊 Consolidated coverage reports in coverage-reports/"
 	@echo "  Python: coverage-reports/python-coverage.xml"
 	@echo "  Go: coverage-reports/go-coverage.xml"
@@ -111,30 +111,30 @@ coverage-xml: coverage
 # Coverage targets
 cov-c:
 	@echo "🧪 Running C tests with coverage..."
-	cd c && make install-unity
-	cd c && make clean
-	cd c && make test-coverage
-	cd c && make coverage-report
-	@echo "📊 C coverage report generated: c/coverage/html/index.html"
+	cd implementations/c && make install-unity
+	cd implementations/c && make clean
+	cd implementations/c && make test-coverage
+	cd implementations/c && make coverage-report
+	@echo "📊 C coverage report generated: implementations/c/coverage/html/index.html"
 
 cov-go:
 	@echo "🧪 Running Go tests with coverage..."
-	cd go && go test -coverprofile=coverage.out -covermode=atomic ./src/stego
-	cd go && go tool cover -func=coverage.out > coverage.txt
-	cd go && go tool cover -html=coverage.out -o coverage.html
-	@echo "📊 Go coverage report generated: go/coverage.html"
-	@echo "📋 Go coverage summary: go/coverage.txt"
+	cd implementations/go && go test -coverprofile=coverage.out -covermode=atomic ./src/stego
+	cd implementations/go && go tool cover -func=coverage.out > coverage.txt
+	cd implementations/go && go tool cover -html=coverage.out -o coverage.html
+	@echo "📊 Go coverage report generated: implementations/go/coverage.html"
+	@echo "📋 Go coverage summary: implementations/go/coverage.txt"
 
 cov-python: all
 	@echo "🧪 Running Python tests with coverage..."
-	${VENV}/bin/pytest --cov=whitespace_stego --cov=whitespace_stego_rust --cov-report=html:htmlcov --cov-report=term-missing --cov-report=xml:coverage.xml
+	cd implementations/python && ${VENV}/bin/pytest --cov=whitespace_stego --cov=whitespace_stego_rust --cov-report=html:../htmlcov --cov-report=term-missing --cov-report=xml:../coverage.xml
 	@echo "📊 Python coverage report generated: htmlcov/index.html"
 
 cov-rust:
 	@echo "🧪 Running Rust tests with coverage..."
-	cd rust && cargo tarpaulin --out Html --output-dir coverage
-	cd rust && cargo tarpaulin --out Xml --output-dir coverage
-	@echo "📊 Rust coverage report generated: rust/coverage/tarpaulin-report.html"
+	cd implementations/rust && cargo tarpaulin --out Html --output-dir coverage
+	cd implementations/rust && cargo tarpaulin --out Xml --output-dir coverage
+	@echo "📊 Rust coverage report generated: implementations/rust/coverage/tarpaulin-report.html"
 
 # Build Go CLI binary
 go:
@@ -146,13 +146,13 @@ go:
 
 # Install Python package and dependencies
 install: venv maturin-develop
-	${VENV}/bin/pip install -e .
+	${VENV}/bin/pip install -e implementations/python/
 	${VENV}/bin/pip install -r requirements-dev.txt
 
 # Install Rust extension in development mode
 VENV_ABS:=$(abspath ${VENV})
 maturin-develop: ${VENV}/bin/maturin
-	PATH="${VENV_ABS}/bin:$$PATH" PYTHON_SYS_EXECUTABLE="${VENV_ABS}/bin/python3" cd whitespace-stego-python && ../${VENV}/bin/maturin develop
+	PATH="${VENV_ABS}/bin:$$PATH" PYTHON_SYS_EXECUTABLE="${VENV_ABS}/bin/python3" cd implementations/python/whitespace-stego-python && ../../${VENV}/bin/maturin develop
 
 ${VENV}/bin/maturin: venv
 	${VENV}/bin/pip install maturin
@@ -186,7 +186,7 @@ rust: venv
 # Run Python module tests
 test: venv maturin-develop install all
 	@echo "Running Python module tests..."
-	${VENV}/bin/pytest -v
+	cd implementations/python && ${VENV}/bin/pytest -v
 
 # Create Python virtual environment
 venv:
