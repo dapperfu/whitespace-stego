@@ -1,8 +1,0 @@
-[package]
-name = "test_rust_binary"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-base64.workspace = true
-whitespace-stego-core = { path = "../whitespace-stego-core" } 

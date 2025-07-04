@@ -21,9 +21,39 @@ TEST_C_TARGET = $(BIN_DIR)/test-c
 TEST_UNITY_TARGET = $(BIN_DIR)/test-unity
 TEST_COVERAGE_TARGET = $(BIN_DIR)/test-coverage
 
-.PHONY: all clean test test-c test-unity test-coverage coverage-report shared cmake-build cmake-test cmake-clean
+.PHONY: all clean test test-c test-unity test-coverage coverage-report shared cmake-build cmake-test cmake-clean install-unity help install uninstall dev debug release
 
+# Default target
 all: $(TARGET) $(SHARED_LIB)
+
+help:
+	@echo "Whitespace Steganography - C Implementation"
+	@echo "=========================================="
+	@echo ""
+	@echo "Available targets:"
+	@echo "  all             - Build binary and shared library (default)"
+	@echo "  help            - Show this help message"
+	@echo "  build           - Build binary only"
+	@echo "  shared          - Build shared library only"
+	@echo "  install         - Install to /usr/local/bin"
+	@echo "  uninstall       - Remove from /usr/local/bin"
+	@echo "  test            - Run basic tests"
+	@echo "  test-c          - Run C implementation tests"
+	@echo "  test-unity      - Run Unity framework tests"
+	@echo "  test-coverage   - Run coverage tests"
+	@echo "  test-all        - Run all tests"
+	@echo "  coverage-report - Generate HTML coverage report"
+	@echo "  cmake-build     - Build using CMake"
+	@echo "  cmake-test      - Run CMake tests"
+	@echo "  cmake-clean     - Clean CMake build"
+	@echo "  install-unity   - Install Unity test framework"
+	@echo "  dev             - Build with debug flags"
+	@echo "  debug           - Build with debug flags and symbols"
+	@echo "  release         - Build optimized release version"
+	@echo "  clean           - Remove all build artifacts"
+	@echo "  distclean       - Remove all build artifacts and dependencies"
+
+build: $(TARGET)
 
 shared: $(SHARED_LIB)
 
@@ -55,12 +85,29 @@ $(OBJ_DIR)/%_coverage.o: $(SRC_DIR)/%.c
 	@mkdir -p $(OBJ_DIR)
 	$(CC) $(COVERAGE_CFLAGS) -c $< -o $@
 
-clean:
-	rm -rf $(OBJ_DIR) $(BIN_DIR) $(LIB_DIR) $(COVERAGE_DIR)
-	find . -name "*.gcno" -delete
-	find . -name "*.gcda" -delete
-	find . -name "*.gcov" -delete
+# Development targets
+dev: CFLAGS += -g -DDEBUG
+dev: $(TARGET)
 
+debug: CFLAGS += -g -O0 -DDEBUG
+debug: $(TARGET)
+
+release: CFLAGS += -O3 -DNDEBUG
+release: $(TARGET)
+
+# Installation targets
+install: $(TARGET)
+	@echo "Installing whitespace-stego-c to /usr/local/bin..."
+	@sudo cp $(TARGET) /usr/local/bin/
+	@sudo chmod +x /usr/local/bin/whitespace-stego-c
+	@echo "Installation complete!"
+
+uninstall:
+	@echo "Removing whitespace-stego-c from /usr/local/bin..."
+	@sudo rm -f /usr/local/bin/whitespace-stego-c
+	@echo "Uninstallation complete!"
+
+# Test targets
 test: $(TARGET)
 	@echo "Running basic tests..."
 	@./test/run_tests.sh
@@ -109,4 +156,15 @@ install-unity:
 	@if [ ! -f "test/unity.h" ]; then \
 		wget -O test/unity.h https://raw.githubusercontent.com/ThrowTheSwitch/Unity/master/src/unity.h; \
 		wget -O test/unity.c https://raw.githubusercontent.com/ThrowTheSwitch/Unity/master/src/unity.c; \
-	fi 
+	fi
+
+# Clean targets
+clean:
+	rm -rf $(OBJ_DIR) $(BIN_DIR) $(LIB_DIR) $(COVERAGE_DIR)
+	find . -name "*.gcno" -delete
+	find . -name "*.gcda" -delete
+	find . -name "*.gcov" -delete
+
+distclean: clean
+	rm -f test/unity.h test/unity.c
+	rm -rf test/build 

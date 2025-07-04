@@ -1,0 +1,512 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>stego: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">whitespace-stego-go/src/stego/core.go (97.7%)</option>
+				
+				<option value="file1">whitespace-stego-go/src/stego/crypto.go (93.9%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">no coverage</span>
+				<span class="cov1">low coverage</span>
+				<span class="cov2">*</span>
+				<span class="cov3">*</span>
+				<span class="cov4">*</span>
+				<span class="cov5">*</span>
+				<span class="cov6">*</span>
+				<span class="cov7">*</span>
+				<span class="cov8">*</span>
+				<span class="cov9">*</span>
+				<span class="cov10">high coverage</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package stego
+
+import (
+        "errors"
+        "fmt"
+        "regexp"
+        "strings"
+        "unicode/utf8"
+)
+
+var zeroBitRune = []rune(ZERO_BIT)[0]
+var oneBitRune = []rune(ONE_BIT)[0]
+
+// encodeBinary converts bytes to zero-width characters
+func encodeBinary(data []byte) string <span class="cov3" title="10">{
+        var result strings.Builder
+        for _, b := range data </span><span class="cov7" title="273">{
+                for i := 7; i &gt;= 0; i-- </span><span class="cov9" title="2184">{
+                        if (b&gt;&gt;i)&amp;1 == 1 </span><span class="cov8" title="1056">{
+                                result.WriteRune(oneBitRune)
+                        }</span> else<span class="cov9" title="1128"> {
+                                result.WriteRune(zeroBitRune)
+                        }</span>
+                }
+        }
+        <span class="cov3" title="10">return result.String()</span>
+}
+
+// decodeBinary converts zero-width characters back to bytes
+func decodeBinary(encoded string) ([]byte, error) <span class="cov4" title="17">{
+        // Filter out non-zero-width characters
+        var filtered strings.Builder
+        for _, r := range encoded </span><span class="cov10" title="2634">{
+                if r == oneBitRune || r == zeroBitRune </span><span class="cov9" title="2603">{
+                        filtered.WriteRune(r)
+                }</span>
+        }
+
+        // Convert to bitstring
+        <span class="cov4" title="17">var bitstring strings.Builder
+        for _, r := range filtered.String() </span><span class="cov9" title="2603">{
+                if r == oneBitRune </span><span class="cov9" title="1266">{
+                        bitstring.WriteRune('1')
+                }</span> else<span class="cov9" title="1337"> {
+                        bitstring.WriteRune('0')
+                }</span>
+        }
+
+        // Convert bitstring to bytes
+        <span class="cov4" title="17">bits := bitstring.String()
+        if len(bits)%8 != 0 </span><span class="cov2" title="3">{
+                // Truncate to multiple of 8
+                bits = bits[:len(bits)-(len(bits)%8)]
+        }</span>
+
+        <span class="cov4" title="17">if len(bits) == 0 </span><span class="cov2" title="5">{
+                return nil, errors.New("no valid bits found")
+        }</span>
+
+        <span class="cov3" title="12">result := make([]byte, len(bits)/8)
+        for i := 0; i &lt; len(bits); i += 8 </span><span class="cov7" title="323">{
+                byteStr := bits[i : i+8]
+                b := byte(0)
+                for j, bit := range byteStr </span><span class="cov9" title="2584">{
+                        if bit == '1' </span><span class="cov9" title="1256">{
+                                b |= 1 &lt;&lt; (7 - j)
+                        }</span>
+                }
+                <span class="cov7" title="323">result[i/8] = b</span>
+        }
+
+        <span class="cov3" title="12">return result, nil</span>
+}
+
+// countMessagePairs counts the number of start/end marker pairs
+func countMessagePairs(carrier string) int <span class="cov4" title="20">{
+        startCount := strings.Count(carrier, START_MARKER)
+        endCount := strings.Count(carrier, END_MARKER)
+        if startCount &lt; endCount </span><span class="cov1" title="2">{
+                return startCount
+        }</span>
+        <span class="cov4" title="18">return endCount</span>
+}
+
+// findNextSlot finds the next available slot for encoding a message
+func findNextSlot(carrier string) int <span class="cov3" title="11">{
+        // Remove all encoded messages to get the original carrier
+        pattern := regexp.MustCompile(regexp.QuoteMeta(START_MARKER) + ".*?" + regexp.QuoteMeta(END_MARKER))
+        cleanedCarrier := pattern.ReplaceAllString(carrier, "")
+
+        // Count how many messages are already encoded
+        existingMessages := countMessagePairs(carrier)
+
+        // If no existing messages, place after first character
+        if existingMessages == 0 </span><span class="cov3" title="8">{
+                if utf8.RuneCountInString(cleanedCarrier) &gt; 1 </span><span class="cov3" title="6">{
+                        return 1
+                }</span>
+                <span class="cov1" title="2">return 0</span>
+        }
+
+        // For subsequent messages, place in slots between characters
+        <span class="cov2" title="3">charCount := utf8.RuneCountInString(cleanedCarrier)
+        if existingMessages &lt; charCount-1 </span><span class="cov1" title="1">{
+                return existingMessages + 1
+        }</span>
+        // Place before the last visible character
+        <span class="cov1" title="2">return charCount - 1</span>
+}
+
+// insertMessageAtPosition inserts an encoded message at a specific position
+func insertMessageAtPosition(carrier, encodedMessage string, position int) string <span class="cov3" title="11">{
+        // Remove all encoded messages to get the original carrier
+        pattern := regexp.MustCompile(regexp.QuoteMeta(START_MARKER) + ".*?" + regexp.QuoteMeta(END_MARKER))
+        cleanedCarrier := pattern.ReplaceAllString(carrier, "")
+
+        // Insert the encoded message at the correct position in the cleaned carrier
+        var newCarrier string
+        if position == 0 </span><span class="cov1" title="1">{
+                newCarrier = encodedMessage + cleanedCarrier
+        }</span> else<span class="cov3" title="10"> if position &gt;= utf8.RuneCountInString(cleanedCarrier) </span><span class="cov1" title="1">{
+                newCarrier = cleanedCarrier + encodedMessage
+        }</span> else<span class="cov3" title="9"> {
+                // Convert to rune slice for proper insertion
+                runes := []rune(cleanedCarrier)
+                var result strings.Builder
+                for i, r := range runes </span><span class="cov6" title="119">{
+                        if i == position </span><span class="cov3" title="9">{
+                                result.WriteString(encodedMessage)
+                        }</span>
+                        <span class="cov6" title="119">result.WriteRune(r)</span>
+                }
+                <span class="cov3" title="9">newCarrier = result.String()</span>
+        }
+
+        // Now, re-insert all previously encoded messages at their original positions
+        <span class="cov3" title="11">result := newCarrier
+        matches := pattern.FindAllStringIndex(carrier, -1)
+        offset := 0
+
+        for _, match := range matches </span><span class="cov1" title="2">{
+                // Find the position in the cleaned carrier where this encoded message was originally
+                pre := carrier[:match[0]]
+                cleanedPre := pattern.ReplaceAllString(pre, "")
+                insertPos := utf8.RuneCountInString(cleanedPre) + offset
+
+                // Insert at the correct character position
+                runes := []rune(result)
+                var newResult strings.Builder
+                for i, r := range runes </span><span class="cov6" title="184">{
+                        if i == insertPos </span><span class="cov1" title="2">{
+                                newResult.WriteString(carrier[match[0]:match[1]])
+                        }</span>
+                        <span class="cov6" title="184">newResult.WriteRune(r)</span>
+                }
+                <span class="cov1" title="2">if insertPos &gt;= len(runes) </span><span class="cov0" title="0">{
+                        newResult.WriteString(carrier[match[0]:match[1]])
+                }</span>
+                <span class="cov1" title="2">result = newResult.String()
+                offset += utf8.RuneCountInString(carrier[match[0]:match[1]])</span>
+        }
+
+        <span class="cov3" title="11">return result</span>
+}
+
+// Encode encodes a message into carrier text using zero-width characters
+func Encode(message, carrier, password string) (string, error) <span class="cov3" title="9">{
+        // Check for empty message
+        if message == "" </span><span class="cov1" title="1">{
+                return "", errors.New("message must not be empty")
+        }</span>
+
+        <span class="cov3" title="8">var data []byte
+
+        // Encrypt if password provided, then base64 encode
+        if password != "" </span><span class="cov2" title="4">{
+                // Encrypt the original message first
+                encrypted, err := encryptData([]byte(message), password)
+                if err != nil </span><span class="cov1" title="1">{
+                        return "", fmt.Errorf("encryption failed: %w", err)
+                }</span>
+                // Base64 encode the encrypted data to convert random bytes to safe ASCII
+                <span class="cov2" title="3">data = []byte(base64Encode(encrypted))</span>
+        } else<span class="cov2" title="4"> {
+                // For non-password messages, base64 encode the original message
+                data = []byte(base64Encode([]byte(message)))
+        }</span>
+
+        // Convert to zero-width characters
+        <span class="cov3" title="7">zeroWidth := encodeBinary(data)
+        encodedMessage := START_MARKER + zeroWidth + END_MARKER
+
+        // Handle carrier embedding
+        if carrier == "" </span><span class="cov1" title="1">{
+                return encodedMessage, nil
+        }</span>
+
+        <span class="cov3" title="6">pos := findNextSlot(carrier)
+        return insertMessageAtPosition(carrier, encodedMessage, pos), nil</span>
+}
+
+// Decode decodes messages from carrier text using zero-width characters
+func Decode(carrier, password string) ([]string, error) <span class="cov3" title="12">{
+        // Find all start/end marker pairs
+        pattern := regexp.MustCompile("(?s)" + regexp.QuoteMeta(START_MARKER) + "(.*?)" + regexp.QuoteMeta(END_MARKER))
+        matches := pattern.FindAllStringSubmatch(carrier, -1)
+
+        if len(matches) == 0 </span><span class="cov1" title="1">{
+                return nil, errors.New("no valid messages found in carrier text")
+        }</span>
+
+        <span class="cov3" title="11">var results []string
+        passwordErrors := 0
+
+        for _, match := range matches </span><span class="cov3" title="12">{
+                zw := match[1]
+
+                // Decode binary data
+                data, err := decodeBinary(zw)
+                if err != nil </span><span class="cov1" title="2">{
+                        continue</span>
+                }
+
+                <span class="cov3" title="10">if password != "" </span><span class="cov2" title="5">{
+                        // Try to base64 decode and decrypt
+                        encrypted, err := base64Decode(string(data))
+                        if err != nil </span><span class="cov1" title="1">{
+                                passwordErrors++
+                                continue</span>
+                        }
+
+                        <span class="cov2" title="4">decoded, err := decryptData(encrypted, password)
+                        if err != nil </span><span class="cov1" title="2">{
+                                passwordErrors++
+                                continue</span>
+                        }
+
+                        // Ensure the result is valid UTF-8
+                        <span class="cov1" title="2">if !utf8.Valid(decoded) </span><span class="cov0" title="0">{
+                                passwordErrors++
+                                continue</span>
+                        }
+
+                        <span class="cov1" title="2">results = append(results, string(decoded))</span>
+                } else<span class="cov2" title="5"> {
+                        // Base64 decode the data directly
+                        decoded, _ := base64Decode(string(data))
+                        if !utf8.Valid(decoded) </span><span class="cov1" title="2">{
+                                continue</span>
+                        }
+                        <span class="cov2" title="3">results = append(results, string(decoded))</span>
+                }
+        }
+
+        <span class="cov3" title="11">if len(results) == 0 </span><span class="cov3" title="7">{
+                if password != "" &amp;&amp; passwordErrors &gt; 0 </span><span class="cov2" title="3">{
+                        return nil, errors.New("invalid password or no valid messages found in carrier text")
+                }</span>
+                <span class="cov2" title="4">return nil, errors.New("no valid messages found in carrier text")</span>
+        }
+
+        <span class="cov2" title="4">return results, nil</span>
+}
+
+// HasEncodedMessage checks if the text contains encoded messages
+func HasEncodedMessage(text string) bool <span class="cov2" title="5">{
+        return strings.Contains(text, START_MARKER) &amp;&amp; strings.Contains(text, END_MARKER)
+}</span>
+
+// CountMessages counts the number of encoded messages in the text
+func CountMessages(carrier string) int <span class="cov2" title="4">{
+        return countMessagePairs(carrier)
+}</span>
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package stego
+
+import (
+        "crypto/aes"
+        "crypto/cipher"
+        "crypto/rand"
+        "crypto/sha256"
+        "encoding/base64"
+        "errors"
+        "fmt"
+)
+
+// deriveKey derives a 32-byte key from password using SHA-256
+func deriveKey(password string) []byte <span class="cov6" title="7">{
+        hash := sha256.Sum256([]byte(password))
+        return hash[:]
+}</span>
+
+// encryptData encrypts data using AES-256-CBC with PKCS7 padding
+var encryptData = func(data []byte, password string) ([]byte, error) <span class="cov4" title="3">{
+        key := deriveKey(password)
+
+        // Create AES cipher
+        block, err := aes.NewCipher(key)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to create cipher: %w", err)
+        }</span>
+
+        // Generate random IV
+        <span class="cov4" title="3">iv := make([]byte, aes.BlockSize)
+        if _, err := rand.Read(iv); err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to generate IV: %w", err)
+        }</span>
+
+        // Pad data to block size
+        <span class="cov4" title="3">paddedData := pkcs7Pad(data, aes.BlockSize)
+
+        // Encrypt
+        ciphertext := make([]byte, len(paddedData))
+        mode := cipher.NewCBCEncrypter(block, iv)
+        mode.CryptBlocks(ciphertext, paddedData)
+
+        // Return IV + ciphertext
+        result := make([]byte, 0, len(iv)+len(ciphertext))
+        result = append(result, iv...)
+        result = append(result, ciphertext...)
+
+        return result, nil</span>
+}
+
+// decryptData decrypts data using AES-256-CBC with PKCS7 padding
+var decryptData = func(data []byte, password string) ([]byte, error) <span class="cov5" title="5">{
+        if len(data) &lt; aes.BlockSize </span><span class="cov1" title="1">{
+                return nil, errors.New("invalid encrypted data: too short")
+        }</span>
+
+        <span class="cov5" title="4">key := deriveKey(password)
+
+        // Create AES cipher
+        block, err := aes.NewCipher(key)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to create cipher: %w", err)
+        }</span>
+
+        // Extract IV and ciphertext
+        <span class="cov5" title="4">iv := data[:aes.BlockSize]
+        ciphertext := data[aes.BlockSize:]
+
+        // Decrypt
+        plaintext := make([]byte, len(ciphertext))
+        mode := cipher.NewCBCDecrypter(block, iv)
+        mode.CryptBlocks(plaintext, ciphertext)
+
+        // Remove padding
+        unpadded, err := pkcs7Unpad(plaintext)
+        if err != nil </span><span class="cov3" title="2">{
+                return nil, fmt.Errorf("failed to remove padding: %w", err)
+        }</span>
+
+        <span class="cov3" title="2">return unpadded, nil</span>
+}
+
+// pkcs7Pad adds PKCS7 padding to data
+func pkcs7Pad(data []byte, blockSize int) []byte <span class="cov4" title="3">{
+        padding := blockSize - (len(data) % blockSize)
+        padtext := make([]byte, padding)
+        for i := range padtext </span><span class="cov10" title="21">{
+                padtext[i] = byte(padding)
+        }</span>
+        <span class="cov4" title="3">return append(data, padtext...)</span>
+}
+
+// pkcs7Unpad removes PKCS7 padding from data
+func pkcs7Unpad(data []byte) ([]byte, error) <span class="cov6" title="7">{
+        length := len(data)
+        if length == 0 </span><span class="cov1" title="1">{
+                return nil, errors.New("invalid padding: empty data")
+        }</span>
+
+        <span class="cov6" title="6">padding := int(data[length-1])
+        if padding &gt; length </span><span class="cov3" title="2">{
+                return nil, errors.New("invalid padding: padding too large")
+        }</span>
+
+        // Verify padding
+        <span class="cov5" title="4">for i := length - padding; i &lt; length; i++ </span><span class="cov10" title="21">{
+                if data[i] != byte(padding) </span><span class="cov3" title="2">{
+                        return nil, errors.New("invalid padding: incorrect padding bytes")
+                }</span>
+        }
+
+        <span class="cov3" title="2">return data[:length-padding], nil</span>
+}
+
+// base64Encode encodes data to base64 string
+func base64Encode(data []byte) string <span class="cov7" title="8">{
+        return base64.StdEncoding.EncodeToString(data)
+}</span>
+
+// base64Decode decodes base64 string to bytes
+func base64Decode(s string) ([]byte, error) <span class="cov8" title="11">{
+        return base64.StdEncoding.DecodeString(s)
+}</span>
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

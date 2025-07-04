@@ -10,7 +10,7 @@ VENV?=.venv
 BIN_DIR=bin
 MAKEFILE_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
-.PHONY: all c clean coverage coverage-xml cov-c cov-go cov-python go help install maturin-develop python-binary python-binary-docker rust test venv wasi wasi-web
+.PHONY: all c clean coverage coverage-xml cov-c cov-go cov-python go help install maturin-develop rust test venv wasi wasi-web
 
 # Default target
 help:
@@ -28,8 +28,7 @@ help:
 	@echo "  help            - Show this help message"
 	@echo "  install         - Install Python package and dependencies"
 	@echo "  maturin-develop - Install Rust extension in development mode"
-	@echo "  python-binary   - Build Python CLI binary (local)"
-	@echo "  python-binary-docker - Build portable Python CLI binary (Docker)"
+
 	@echo "  rust            - Build Rust CLI binary"
 	@echo "  test            - Run Python module tests"
 	@echo "  venv            - Create Python virtual environment"
@@ -44,10 +43,10 @@ all: rust c go python-binary-docker
 # Build C CLI binary
 c:
 	@echo "Building C CLI binary..."
-	cd c && make clean && make
-	cd ..
+	cd implementations/c && make clean && make
+	cd ../..
 	mkdir -p ${BIN_DIR}
-	cp ${MAKEFILE_DIR}/c/bin/whitespace-stego-c ${BIN_DIR}/
+	cp ${MAKEFILE_DIR}/implementations/c/bin/whitespace-stego-c ${BIN_DIR}/
 
 # Remove all build artifacts
 clean:
@@ -140,10 +139,10 @@ cov-rust:
 # Build Go CLI binary
 go:
 	@echo "Building Go CLI binary..."
-	cd go && make clean && make build
-	cd ..
+	cd implementations/go && make clean && make build
+	cd ../..
 	mkdir -p ${BIN_DIR}
-	cp ${MAKEFILE_DIR}/go/bin/whitespace-stego-go ${BIN_DIR}/
+	cp ${MAKEFILE_DIR}/implementations/go/bin/whitespace-stego-go ${BIN_DIR}/
 
 # Install Python package and dependencies
 install: venv maturin-develop
@@ -179,10 +178,10 @@ python-binary-docker:
 # Build Rust CLI binary and Python extension
 rust: venv
 	@echo "Building Rust CLI binary and Python extension..."
-	cargo build --release --manifest-path rust/Cargo.toml --target-dir rust/target
-	cargo build --release --manifest-path whitespace-stego-python/Cargo.toml --target-dir whitespace-stego-python/target
+	cargo build --release --manifest-path implementations/rust/Cargo.toml --target-dir implementations/rust/target
+	cargo build --release --manifest-path implementations/python/whitespace-stego-python/Cargo.toml --target-dir implementations/python/whitespace-stego-python/target
 	mkdir -p ${BIN_DIR}
-	cp rust/target/release/whitespace-stego-rs ${BIN_DIR}/
+	cp implementations/rust/target/release/whitespace-stego-rs ${BIN_DIR}/
 
 # Run Python module tests
 test: venv maturin-develop install all
