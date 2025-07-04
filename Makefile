@@ -126,7 +126,7 @@ cov-go:
 	@echo "📊 Go coverage report generated: go/coverage.html"
 	@echo "📋 Go coverage summary: go/coverage.txt"
 
-cov-python:
+cov-python: all
 	@echo "🧪 Running Python tests with coverage..."
 	${VENV}/bin/pytest --cov=whitespace_stego --cov=whitespace_stego_rust --cov-report=html:htmlcov --cov-report=term-missing --cov-report=xml:coverage.xml
 	@echo "📊 Python coverage report generated: htmlcov/index.html"
@@ -185,7 +185,7 @@ rust: venv
 	cp rust/target/release/whitespace-stego-rs ${BIN_DIR}/
 
 # Run Python module tests
-test: venv maturin-develop install
+test: venv maturin-develop install all
 	@echo "Running Python module tests..."
 	${VENV}/bin/pytest -v
 
