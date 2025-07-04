@@ -160,6 +160,65 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
+# C/C++ Build Artifacts
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+*.exe
+*.gcda
+*.gcno
+*.gcov
+*.gch
+*.pch
+
+# C/C++ Build Directories
+bin/
+obj/
+build/
+target/
+lib/
+lib64/
+
+# C/C++ Cache and Coverage
+.ccache/
+coverage/
+*.info
+*.prof
+*.profraw
+
+# C/C++ IDE and Tools
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# C/C++ Generated Files
+*.gch
+*.pch
+*.dSYM/
+*.app/
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+!CMakeLists.txt
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
 #  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
