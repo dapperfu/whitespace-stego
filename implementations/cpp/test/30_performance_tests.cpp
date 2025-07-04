@@ -141,8 +141,9 @@ void test_06_memory_usage() {
     std::cout << "30_performance_tests: Testing memory usage..." << std::endl;
     
     // Simple memory usage test - in a real implementation you'd use platform-specific APIs
-    std::string large_message(1000000, 'A'); // 1MB
-    std::string large_carrier(500000, 'B');  // 500KB
+    // Reduced sizes to stay within security limits
+    std::string large_message(500000, 'A'); // 500KB (reduced from 1MB)
+    std::string large_carrier(250000, 'B');  // 250KB (reduced from 500KB)
     
     Message msg(large_message);
     std::string encoded = msg.encode(large_carrier, "");

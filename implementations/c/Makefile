@@ -33,7 +33,39 @@ TEST_DIR = test
 LIB_DIR = lib
 COVERAGE_DIR = coverage
 
-<<<<<<< HEAD
+# Buffer size configuration
+BUFFER_CONFIG_SCRIPT = ./configure_buffer_sizes.sh
+BUFFER_CONFIG_DIR = config
+BUFFER_CONFIG_HEADER = $(BUFFER_CONFIG_DIR)/buffer_sizes.h
+BUFFER_CONFIG_CMAKE = $(BUFFER_CONFIG_DIR)/buffer_sizes.cmake
+
+# Check if buffer configuration exists
+ifeq ($(wildcard $(BUFFER_CONFIG_HEADER)),)
+    $(warning Buffer size configuration not found. Run 'make configure-buffers' first.)
+    # Default buffer sizes (fallback)
+    TINY_BUFFER_SIZE := 4096
+    SMALL_BUFFER_SIZE := 1048576
+    STANDARD_BUFFER_SIZE := 16777216
+    LARGE_BUFFER_SIZE := 16777216
+else
+    # Load buffer sizes from generated header (using shell to extract values)
+    TINY_BUFFER_SIZE := $(shell grep "TINY_BUFFER_SIZE" $(BUFFER_CONFIG_HEADER) | sed 's/.*TINY_BUFFER_SIZE \([0-9]*\).*/\1/')
+    SMALL_BUFFER_SIZE := $(shell grep "SMALL_BUFFER_SIZE" $(BUFFER_CONFIG_HEADER) | sed 's/.*SMALL_BUFFER_SIZE \([0-9]*\).*/\1/')
+    STANDARD_BUFFER_SIZE := $(shell grep "STANDARD_BUFFER_SIZE" $(BUFFER_CONFIG_HEADER) | sed 's/.*STANDARD_BUFFER_SIZE \([0-9]*\).*/\1/')
+    LARGE_BUFFER_SIZE := $(shell grep "LARGE_BUFFER_SIZE" $(BUFFER_CONFIG_HEADER) | sed 's/.*LARGE_BUFFER_SIZE \([0-9]*\).*/\1/')
+endif
+
+# Buffer configuration target
+configure-buffers:
+	@echo "Configuring buffer sizes..."
+	@$(BUFFER_CONFIG_SCRIPT)
+	@echo "Buffer configuration complete!"
+
+# Ensure buffer configuration exists before building
+$(BUFFER_CONFIG_HEADER): $(BUFFER_CONFIG_SCRIPT)
+	@echo "Buffer configuration missing. Running configuration..."
+	@$(BUFFER_CONFIG_SCRIPT)
+
 # Core library source files (for coverage and shared library)
 CORE_SRCS = $(SRC_DIR)/whitespace_stego.c $(SRC_DIR)/crypto.c $(SRC_DIR)/utils.c
 CORE_OBJS = $(CORE_SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
@@ -44,11 +76,6 @@ SRCS = $(wildcard $(SRC_DIR)/*.c)
 OBJS = $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 COVERAGE_OBJS = $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%_coverage.o)
 
-=======
-SRCS = $(wildcard $(SRC_DIR)/*.c)
-OBJS = $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
-COVERAGE_OBJS = $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%_coverage.o)
->>>>>>> 92b3c39d6dc84306d706a192eafe0a81e720e625
 TARGET = $(BIN_DIR)/whitespace-stego-c
 SHARED_LIB = $(LIB_DIR)/libwhitespace_stego.so
 TEST_C_TARGET = $(BIN_DIR)/test-c
@@ -60,17 +87,10 @@ CMAKE_BUILD_DIR = test/build
 CMAKE_GENERATOR ?= "Unix Makefiles"
 CMAKE_CCACHE_ARG = -DCMAKE_C_COMPILER_LAUNCHER=$(CCACHE)
 
-<<<<<<< HEAD
 .PHONY: all clean test test-c test-unity test-coverage coverage-report shared cmake-build cmake-test cmake-clean install-unity help install uninstall dev debug release ccache-setup ccache-stats ccache-clean ccache-show whitespace-stego-static whitespace-stego-static-small whitespace-stego-static-tiny whitespace-stego-static-large test-static test-static-small test-static-tiny test-static-large test-cross-static
 
 # Default target builds all implementations
-all: ccache-setup $(TARGET) $(SHARED_LIB) whitespace-stego-static whitespace-stego-static-small whitespace-stego-static-tiny whitespace-stego-static-large
-=======
-.PHONY: all clean test test-c test-unity test-coverage coverage-report shared cmake-build cmake-test cmake-clean install-unity help install uninstall dev debug release ccache-setup ccache-stats ccache-clean ccache-show
-
-# Default target
-all: ccache-setup $(TARGET) $(SHARED_LIB)
->>>>>>> 92b3c39d6dc84306d706a192eafe0a81e720e625
+all: $(BUFFER_CONFIG_HEADER) cmake-build $(TARGET) $(SHARED_LIB) whitespace-stego-static whitespace-stego-static-small whitespace-stego-static-tiny whitespace-stego-static-large
 
 help:
 	@echo "Whitespace Steganography - C Implementation"
@@ -90,17 +110,12 @@ help:
 	@echo "  cmake-clean     - Clean CMake build artifacts"
 	@echo ""
 	@echo "Available targets:"
-<<<<<<< HEAD
 	@echo "  all             - Build all implementations (default)"
-=======
-	@echo "  all             - Build binary and shared library (default)"
->>>>>>> 92b3c39d6dc84306d706a192eafe0a81e720e625
 	@echo "  help            - Show this help message"
 	@echo "  build           - Build binary only"
 	@echo "  shared          - Build shared library only"
 	@echo "  install         - Install to /usr/local/bin"
 	@echo "  uninstall       - Remove from /usr/local/bin"
-<<<<<<< HEAD
 	@echo ""
 	@echo "Static Implementations:"
 	@echo "  whitespace-stego-static        - Standard static implementation (4 GiB buffers)"
@@ -109,14 +124,11 @@ help:
 	@echo "  whitespace-stego-static-large  - Large static implementation (4 GiB, optimized)"
 	@echo ""
 	@echo "Testing:"
-=======
->>>>>>> 92b3c39d6dc84306d706a192eafe0a81e720e625
 	@echo "  test            - Run basic tests"
 	@echo "  test-c          - Run C implementation tests"
 	@echo "  test-unity      - Run Unity framework tests"
 	@echo "  test-coverage   - Run coverage tests"
 	@echo "  test-100-coverage - Run 100%% coverage tests"
-<<<<<<< HEAD
 	@echo "  test-cross-static - Run cross-tests for static implementations"
 	@echo "  test-all        - Run all tests (including static implementations)"
 	@echo "  test-static     - Test standard static implementation"
@@ -129,10 +141,6 @@ help:
 	@echo "  coverage-summary - Show core library coverage summary"
 	@echo ""
 	@echo "Development:"
-=======
-	@echo "  test-all        - Run all tests"
-	@echo "  coverage-report - Generate HTML coverage report"
->>>>>>> 92b3c39d6dc84306d706a192eafe0a81e720e625
 	@echo "  cmake-build     - Build using CMake"
 	@echo "  cmake-test      - Run CMake tests"
 	@echo "  cmake-clean     - Clean CMake build"
@@ -185,11 +193,7 @@ ccache-show:
 		echo "❌ ccache not available"; \
 	fi
 
-<<<<<<< HEAD
 build: ccache-setup $(TARGET) $(SHARED_LIB)
-=======
-build: ccache-setup $(TARGET)
->>>>>>> 92b3c39d6dc84306d706a192eafe0a81e720e625
 
 shared: ccache-setup $(SHARED_LIB)
 
@@ -198,7 +202,6 @@ $(TARGET): $(OBJS)
 	@echo "🔗 Linking $(TARGET)..."
 	$(CC_WRAPPER) $(OBJS) -o $@ $(LDFLAGS)
 
-<<<<<<< HEAD
 $(SHARED_LIB): $(CORE_OBJS)
 	@mkdir -p $(LIB_DIR)
 	@echo "🔗 Linking shared library $(SHARED_LIB)..."
@@ -231,32 +234,6 @@ $(TEST_CROSS_STATIC_TARGET): $(CORE_OBJS) $(TEST_DIR)/cross_test_static.c
 	@mkdir -p $(BIN_DIR)
 	@echo "🔗 Linking test-cross-static..."
 	$(CC_WRAPPER) $(CFLAGS) $(TEST_DIR)/cross_test_static.c $(CORE_OBJS) -o $@ $(LDFLAGS)
-=======
-$(SHARED_LIB): $(filter-out $(OBJ_DIR)/main.o, $(OBJS))
-	@mkdir -p $(LIB_DIR)
-	@echo "🔗 Linking shared library $(SHARED_LIB)..."
-	$(CC_WRAPPER) $(filter-out $(OBJ_DIR)/main.o, $(OBJS)) -o $@ $(SHARED_LDFLAGS)
-
-$(TEST_C_TARGET): $(filter-out $(OBJ_DIR)/main.o, $(OBJS)) $(TEST_DIR)/test-c.c
-	@mkdir -p $(BIN_DIR)
-	@echo "🔗 Linking test-c..."
-	$(CC_WRAPPER) $(CFLAGS) $(TEST_DIR)/test-c.c $(filter-out $(OBJ_DIR)/main.o, $(OBJS)) -o $@ $(LDFLAGS)
-
-$(TEST_UNITY_TARGET): $(filter-out $(OBJ_DIR)/main.o, $(OBJS)) $(TEST_DIR)/test_unity.c
-	@mkdir -p $(BIN_DIR)
-	@echo "🔗 Linking test-unity..."
-	$(CC_WRAPPER) $(CFLAGS) $(TEST_DIR)/test_unity.c $(filter-out $(OBJ_DIR)/main.o, $(OBJS)) -o $@ $(LDFLAGS)
-
-$(TEST_COVERAGE_TARGET): $(filter-out $(OBJ_DIR)/main_coverage.o, $(COVERAGE_OBJS)) $(TEST_DIR)/test_gcov.c
-	@mkdir -p $(BIN_DIR)
-	@echo "🔗 Linking test-coverage..."
-	$(CC_WRAPPER) $(COVERAGE_CFLAGS) $(TEST_DIR)/test_gcov.c $(filter-out $(OBJ_DIR)/main_coverage.o, $(COVERAGE_OBJS)) -o $@ $(COVERAGE_LDFLAGS)
-
-$(TEST_100_COVERAGE_TARGET): $(filter-out $(OBJ_DIR)/main_coverage.o, $(COVERAGE_OBJS)) $(TEST_DIR)/test_100_coverage.c
-	@mkdir -p $(BIN_DIR)
-	@echo "🔗 Linking test-100-coverage..."
-	$(CC_WRAPPER) $(COVERAGE_CFLAGS) $(TEST_DIR)/test_100_coverage.c $(filter-out $(OBJ_DIR)/main_coverage.o, $(COVERAGE_OBJS)) -o $@ $(COVERAGE_LDFLAGS)
->>>>>>> 92b3c39d6dc84306d706a192eafe0a81e720e625
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(OBJ_DIR)
@@ -311,23 +288,17 @@ test-100-coverage: $(TEST_100_COVERAGE_TARGET)
 	@echo "Running 100%% coverage tests..."
 	@./$(TEST_100_COVERAGE_TARGET)
 
-<<<<<<< HEAD
 test-cross-static: $(TEST_CROSS_STATIC_TARGET)
 	@echo "Running cross-tests for static implementations..."
 	@./$(TEST_CROSS_STATIC_TARGET)
 
 coverage-report: test-100-coverage
 	@echo "Generating coverage report for core library files..."
-=======
-coverage-report: test-100-coverage
-	@echo "Generating coverage report..."
->>>>>>> 92b3c39d6dc84306d706a192eafe0a81e720e625
 	@mkdir -p $(COVERAGE_DIR)
 	@gcov -r obj/crypto_coverage.gcda obj/utils_coverage.gcda obj/whitespace_stego_coverage.gcda
 	@lcov --capture --directory . --output-file $(COVERAGE_DIR)/coverage.info
 	@genhtml $(COVERAGE_DIR)/coverage.info --output-directory $(COVERAGE_DIR)/html
 	@echo "Coverage report generated in $(COVERAGE_DIR)/html/index.html"
-<<<<<<< HEAD
 	@echo "📊 Core library coverage summary:"
 	@gcov -r obj/crypto_coverage.gcda obj/utils_coverage.gcda obj/whitespace_stego_coverage.gcda | grep -E "(File|Lines|Branches)" | head -9
 
@@ -343,16 +314,15 @@ coverage-summary: test-100-coverage
 
 # Run all tests (original)
 test-all-original: test test-c test-unity test-coverage test-100-coverage
-=======
+	@echo "All tests completed!"
 
 # Run all tests
-test-all: test test-c test-unity test-coverage test-100-coverage
->>>>>>> 92b3c39d6dc84306d706a192eafe0a81e720e625
+test-all: test test-c test-unity test-coverage test-100-coverage test-cross-static test-static test-static-small test-static-tiny test-static-large
 	@echo "All tests completed!"
 
 # CMake integration targets
-cmake-build:
-	@echo "Building with CMake (Release)..."
+cmake-build: $(BUFFER_CONFIG_HEADER)
+	@echo "Building with CMake (Release) using configured buffer sizes..."
 	@mkdir -p $(CMAKE_BUILD_DIR)
 	cd $(CMAKE_BUILD_DIR) && \
 		cmake -G $(CMAKE_GENERATOR) -DCMAKE_BUILD_TYPE=Release $(if $(shell which $(CCACHE) 2>/dev/null),$(CMAKE_CCACHE_ARG),) ../.. && \
@@ -398,7 +368,6 @@ clean:
 distclean: clean ccache-clean
 	rm -f test/unity.h test/unity.c
 	rm -rf test/build
-<<<<<<< HEAD
 	rm -rf $(CCACHE_DIR_NAME)
 
 # Static implementation targets
@@ -450,7 +419,4 @@ test-static-large: bin/whitespace-stego-static-large
 
 # Update test-all to include static implementations
 test-all: test test-c test-unity test-coverage test-100-coverage test-cross-static test-static test-static-small test-static-tiny test-static-large
-	@echo "All tests completed!" 
-=======
-	rm -rf $(CCACHE_DIR_NAME) 
->>>>>>> 92b3c39d6dc84306d706a192eafe0a81e720e625
+	@echo "All tests completed!"

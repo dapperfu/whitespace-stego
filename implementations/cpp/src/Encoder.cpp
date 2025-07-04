@@ -2,7 +2,6 @@
 #include "Constants.hpp"
 #include "Utils.hpp"
 #include "Crypto.hpp"
-#include <regex>
 #include <stdexcept>
 
 std::string Encoder::encode(const std::string& message, const std::string& carrier, const std::string& password) {
