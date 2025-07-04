@@ -10,60 +10,36 @@ VENV?=.venv
 BIN_DIR=bin
 MAKEFILE_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
-.PHONY: help venv test all clean rust c go python-binary python-binary-docker install maturin-develop wasi wasi-web cov-go cov-rust cov-c cov-python coverage coverage-xml
+.PHONY: all c clean coverage coverage-xml cov-c cov-go cov-python go help install maturin-develop python-binary python-binary-docker rust test venv wasi wasi-web
 
 # Default target
 help:
 	@echo "Available targets:"
-	@echo "  help            - Show this help message"
-	@echo "  venv            - Create Python virtual environment"
-	@echo "  install         - Install Python package and dependencies"
-	@echo "  test            - Run Python module tests"
 	@echo "  all             - Build all binaries and place in bin/ folder"
-	@echo "  rust            - Build Rust CLI binary"
 	@echo "  c               - Build C CLI binary"
-	@echo "  go              - Build Go CLI binary"
-	@echo "  python-binary   - Build Python CLI binary (local)"
-	@echo "  python-binary-docker - Build portable Python CLI binary (Docker)"
-	@echo "  wasi            - Build WASM web interface"
-	@echo "  wasi-web        - Build and serve WASM web interface"
-	@echo "  cov-go          - Run Go tests with coverage"
-	@echo "  cov-rust        - Run Rust tests with coverage"
-	@echo "  cov-c           - Run C tests with coverage"
-	@echo "  cov-python      - Run Python tests with coverage"
+	@echo "  clean           - Remove all build artifacts"
 	@echo "  coverage        - Run coverage tests for all languages"
 	@echo "  coverage-xml    - Generate consolidated Cobertura XML reports"
-	@echo "  clean           - Remove all build artifacts"
+	@echo "  cov-c           - Run C tests with coverage"
+	@echo "  cov-go          - Run Go tests with coverage"
+	@echo "  cov-python      - Run Python tests with coverage"
+	@echo "  cov-rust        - Run Rust tests with coverage"
+	@echo "  go              - Build Go CLI binary"
+	@echo "  help            - Show this help message"
+	@echo "  install         - Install Python package and dependencies"
+	@echo "  maturin-develop - Install Rust extension in development mode"
+	@echo "  python-binary   - Build Python CLI binary (local)"
+	@echo "  python-binary-docker - Build portable Python CLI binary (Docker)"
+	@echo "  rust            - Build Rust CLI binary"
+	@echo "  test            - Run Python module tests"
+	@echo "  venv            - Create Python virtual environment"
+	@echo "  wasi            - Build WASM web interface"
+	@echo "  wasi-web        - Build and serve WASM web interface"
 
-# Create Python virtual environment
-venv:
-	python3 -m venv ${VENV}
-
-# Install Python package and dependencies
-install: venv maturin-develop
-	${VENV}/bin/pip install -e .
-	${VENV}/bin/pip install -r requirements-dev.txt
-
-# Install Rust extension in development mode
-VENV_ABS:=$(abspath ${VENV})
-maturin-develop: ${VENV}/bin/maturin
-	PATH="${VENV_ABS}/bin:$$PATH" PYTHON_SYS_EXECUTABLE="${VENV_ABS}/bin/python3" cd whitespace-stego-python && ../${VENV}/bin/maturin develop
-
-${VENV}/bin/maturin: venv
-	${VENV}/bin/pip install maturin
-
-# Run Python module tests
-test: venv maturin-develop install
-	@echo "Running Python module tests..."
-	${VENV}/bin/pytest -v
-
-# Build Rust CLI binary and Python extension
-rust: venv
-	@echo "Building Rust CLI binary and Python extension..."
-	cargo build --release --manifest-path rust/Cargo.toml --target-dir rust/target
-	cargo build --release --manifest-path whitespace-stego-python/Cargo.toml --target-dir whitespace-stego-python/target
-	mkdir -p ${BIN_DIR}
-	cp rust/target/release/whitespace-stego-rs ${BIN_DIR}/
+# Build all binaries and place in bin/ folder
+all: rust c go python-binary-docker
+	@echo "All binaries built and placed in ${BIN_DIR}/ folder:"
+	@ls -la ${BIN_DIR}/
 
 # Build C CLI binary
 c:
@@ -72,49 +48,6 @@ c:
 	cd ..
 	mkdir -p ${BIN_DIR}
 	cp ${MAKEFILE_DIR}/c/bin/whitespace-stego-c ${BIN_DIR}/
-
-# Build Go CLI binary
-go:
-	@echo "Building Go CLI binary..."
-	cd go && make clean && make build
-	cd ..
-	mkdir -p ${BIN_DIR}
-	cp ${MAKEFILE_DIR}/go/bin/whitespace-stego-go ${BIN_DIR}/
-
-# Build Python CLI binary using PyInstaller (local build)
-python-binary: venv install maturin-develop rust c
-	@echo "Building Python CLI binary with PyInstaller..."
-	${VENV}/bin/pip install pyinstaller
-	${VENV}/bin/pyinstaller --clean ${MAKEFILE_DIR}/../whitespace_stego.spec
-	mkdir -p ${BIN_DIR}
-	cp ${MAKEFILE_DIR}/dist/whitespace-stego-py ${BIN_DIR}/
-
-# Build portable Python CLI binary using Docker
-python-binary-docker:
-	@echo "Building portable Python CLI binary using Docker..."
-	docker build -t whitespace-stego-py-builder .
-	mkdir -p dist ${BIN_DIR}
-	docker run --rm --entrypoint cp -v "$(PWD)/dist:/out" whitespace-stego-py-builder /build/dist/whitespace-stego-py /out/
-	cp ${MAKEFILE_DIR}/dist/whitespace-stego-py ${BIN_DIR}/
-	@echo "Testing the binary..."
-	${BIN_DIR}/whitespace-stego-py --help
-
-# Build all binaries and place in bin/ folder
-all: rust c go python-binary-docker
-	@echo "All binaries built and placed in ${BIN_DIR}/ folder:"
-	@ls -la ${BIN_DIR}/
-
-# Build WASM web interface
-wasi:
-	@echo "Building WASM web interface..."
-	cd wasi && ./build.sh
-	@echo "WASM build completed. Run 'make wasi-web' to serve it."
-
-# Build and serve WASM web interface
-wasi-web: wasi
-	@echo "Starting web server on http://localhost:8000"
-	@echo "Press Ctrl+C to stop the server"
-	cd wasi/pkg && python3 -m http.server 8000
 
 # Remove all build artifacts
 clean:
@@ -145,34 +78,6 @@ clean:
 	# Keep spec files for builds
 	cargo clean
 
-# Coverage targets
-cov-go:
-	@echo "🧪 Running Go tests with coverage..."
-	cd go && go test -coverprofile=coverage.out -covermode=atomic ./src/stego
-	cd go && go tool cover -func=coverage.out > coverage.txt
-	cd go && go tool cover -html=coverage.out -o coverage.html
-	@echo "📊 Go coverage report generated: go/coverage.html"
-	@echo "📋 Go coverage summary: go/coverage.txt"
-
-cov-rust:
-	@echo "🧪 Running Rust tests with coverage..."
-	cd rust && cargo tarpaulin --out Html --output-dir coverage
-	cd rust && cargo tarpaulin --out Xml --output-dir coverage
-	@echo "📊 Rust coverage report generated: rust/coverage/tarpaulin-report.html"
-
-cov-c:
-	@echo "🧪 Running C tests with coverage..."
-	cd c && make install-unity
-	cd c && make clean
-	cd c && make test-coverage
-	cd c && make coverage-report
-	@echo "📊 C coverage report generated: c/coverage/html/index.html"
-
-cov-python:
-	@echo "🧪 Running Python tests with coverage..."
-	${VENV}/bin/pytest --cov=whitespace_stego --cov=whitespace_stego_rust --cov-report=html:htmlcov --cov-report=term-missing --cov-report=xml:coverage.xml
-	@echo "📊 Python coverage report generated: htmlcov/index.html"
-
 # Run coverage for all languages
 coverage: cov-go cov-rust cov-c cov-python
 	@echo "🎉 All coverage reports generated!"
@@ -202,4 +107,100 @@ coverage-xml: coverage
 	@echo "  Python: coverage-reports/python-coverage.xml"
 	@echo "  Go: coverage-reports/go-coverage.xml"
 	@echo "  Rust: coverage-reports/rust-coverage.xml"
-	@echo "  C: coverage-reports/c-coverage.xml" 
+	@echo "  C: coverage-reports/c-coverage.xml"
+
+# Coverage targets
+cov-c:
+	@echo "🧪 Running C tests with coverage..."
+	cd c && make install-unity
+	cd c && make clean
+	cd c && make test-coverage
+	cd c && make coverage-report
+	@echo "📊 C coverage report generated: c/coverage/html/index.html"
+
+cov-go:
+	@echo "🧪 Running Go tests with coverage..."
+	cd go && go test -coverprofile=coverage.out -covermode=atomic ./src/stego
+	cd go && go tool cover -func=coverage.out > coverage.txt
+	cd go && go tool cover -html=coverage.out -o coverage.html
+	@echo "📊 Go coverage report generated: go/coverage.html"
+	@echo "📋 Go coverage summary: go/coverage.txt"
+
+cov-python:
+	@echo "🧪 Running Python tests with coverage..."
+	${VENV}/bin/pytest --cov=whitespace_stego --cov=whitespace_stego_rust --cov-report=html:htmlcov --cov-report=term-missing --cov-report=xml:coverage.xml
+	@echo "📊 Python coverage report generated: htmlcov/index.html"
+
+cov-rust:
+	@echo "🧪 Running Rust tests with coverage..."
+	cd rust && cargo tarpaulin --out Html --output-dir coverage
+	cd rust && cargo tarpaulin --out Xml --output-dir coverage
+	@echo "📊 Rust coverage report generated: rust/coverage/tarpaulin-report.html"
+
+# Build Go CLI binary
+go:
+	@echo "Building Go CLI binary..."
+	cd go && make clean && make build
+	cd ..
+	mkdir -p ${BIN_DIR}
+	cp ${MAKEFILE_DIR}/go/bin/whitespace-stego-go ${BIN_DIR}/
+
+# Install Python package and dependencies
+install: venv maturin-develop
+	${VENV}/bin/pip install -e .
+	${VENV}/bin/pip install -r requirements-dev.txt
+
+# Install Rust extension in development mode
+VENV_ABS:=$(abspath ${VENV})
+maturin-develop: ${VENV}/bin/maturin
+	PATH="${VENV_ABS}/bin:$$PATH" PYTHON_SYS_EXECUTABLE="${VENV_ABS}/bin/python3" cd whitespace-stego-python && ../${VENV}/bin/maturin develop
+
+${VENV}/bin/maturin: venv
+	${VENV}/bin/pip install maturin
+
+# Build Python CLI binary using PyInstaller (local build)
+python-binary: venv install maturin-develop rust c
+	@echo "Building Python CLI binary with PyInstaller..."
+	${VENV}/bin/pip install pyinstaller
+	${VENV}/bin/pyinstaller --clean ${MAKEFILE_DIR}/../whitespace_stego.spec
+	mkdir -p ${BIN_DIR}
+	cp ${MAKEFILE_DIR}/dist/whitespace-stego-py ${BIN_DIR}/
+
+# Build portable Python CLI binary using Docker
+python-binary-docker:
+	@echo "Building portable Python CLI binary using Docker..."
+	docker build -t whitespace-stego-py-builder .
+	mkdir -p dist ${BIN_DIR}
+	docker run --rm --entrypoint cp -v "$(PWD)/dist:/out" whitespace-stego-py-builder /build/dist/whitespace-stego-py /out/
+	cp ${MAKEFILE_DIR}/dist/whitespace-stego-py ${BIN_DIR}/
+	@echo "Testing the binary..."
+	${BIN_DIR}/whitespace-stego-py --help
+
+# Build Rust CLI binary and Python extension
+rust: venv
+	@echo "Building Rust CLI binary and Python extension..."
+	cargo build --release --manifest-path rust/Cargo.toml --target-dir rust/target
+	cargo build --release --manifest-path whitespace-stego-python/Cargo.toml --target-dir whitespace-stego-python/target
+	mkdir -p ${BIN_DIR}
+	cp rust/target/release/whitespace-stego-rs ${BIN_DIR}/
+
+# Run Python module tests
+test: venv maturin-develop install
+	@echo "Running Python module tests..."
+	${VENV}/bin/pytest -v
+
+# Create Python virtual environment
+venv:
+	python3 -m venv ${VENV}
+
+# Build WASM web interface
+wasi:
+	@echo "Building WASM web interface..."
+	cd wasi && ./build.sh
+	@echo "WASM build completed. Run 'make wasi-web' to serve it."
+
+# Build and serve WASM web interface
+wasi-web: wasi
+	@echo "Starting web server on http://localhost:8000"
+	@echo "Press Ctrl+C to stop the server"
+	cd wasi/pkg && python3 -m http.server 8000 
