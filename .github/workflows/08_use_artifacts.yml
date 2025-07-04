@@ -35,11 +35,11 @@ jobs:
 
       - name: Copy binaries to bin directory
         run: |
-          # Copy Python binary
-          if [ -f "artifacts/python-binary/whitespace-stego-py" ]; then
-            cp artifacts/python-binary/whitespace-stego-py bin/
+          # Copy Python binary (Docker version)
+          if [ -f "artifacts/python-binary-docker/whitespace-stego-py" ]; then
+            cp artifacts/python-binary-docker/whitespace-stego-py bin/
             chmod +x bin/whitespace-stego-py
-            echo "✅ Copied Python binary"
+            echo "✅ Copied Python binary (Docker)"
           fi
           
           # Copy Rust binary

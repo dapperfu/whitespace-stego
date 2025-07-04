@@ -2,7 +2,7 @@ name: 10 Test Standalone Binaries
 
 on:
   workflow_run:
-    workflows: ["09 Make Python Binary Local", "05 Make Rust", "06 Make C", "07 Make Go"]
+    workflows: ["04 Make Python Binary Docker", "05 Make Rust", "06 Make C", "07 Make Go"]
     types:
       - completed
   workflow_dispatch:
@@ -26,7 +26,7 @@ jobs:
       - name: Download Python binary artifact
         uses: actions/download-artifact@v4
         with:
-          name: python-binary-local
+          name: python-binary-docker
           path: bin/
         continue-on-error: true
 
