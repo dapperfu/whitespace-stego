@@ -24,11 +24,11 @@ DECODED_FILE="${PROJECT_ROOT}/test_decoded.txt"
 
 # Implementation binaries
 declare -A BINARIES=(
-    ["c-static"]="${PROJECT_ROOT}/implementations/c/build/whitespace-stego-static"
-    ["c-dynamic"]="${PROJECT_ROOT}/implementations/c/build/whitespace-stego-c"
+    ["c-static"]="${PROJECT_ROOT}/implementations/c/bin/whitespace-stego-static"
+    ["c-dynamic"]="${PROJECT_ROOT}/implementations/c/bin/whitespace-stego-c"
     ["cpp"]="${PROJECT_ROOT}/implementations/cpp/bin/whitespace-stego-cpp"
-    ["rust"]="${PROJECT_ROOT}/implementations/rust/target/release/whitespace-stego-rs"
     ["go"]="${PROJECT_ROOT}/implementations/go/bin/whitespace-stego-go"
+    ["rust"]="${PROJECT_ROOT}/implementations/rust/target/release/whitespace-stego-rs"
     ["python"]="python3 -m whitespace_stego.cli"
 )
 

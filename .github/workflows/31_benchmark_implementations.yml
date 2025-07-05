@@ -34,7 +34,7 @@ jobs:
           
           # Setup C
           sudo apt-get update
-          sudo apt-get install -y build-essential gcc make libssl-dev bc
+          sudo apt-get install -y build-essential gcc make libssl-dev bc cmake
           
           # Setup Python
           sudo apt-get install -y python3 python3-pip
@@ -47,8 +47,8 @@ jobs:
           cd implementations/rust && cargo build --release
           cd ../python/whitespace-stego-core && cargo build --release
           
-          # Build C
-          cd ../c && make clean && make all
+          # Build C (with proper CMake setup)
+          cd ../c && make clean && make configure-buffers && make all
           
           # Build Go
           cd ../go && make build
@@ -61,6 +61,21 @@ jobs:
           echo "🐍 Installing Python dependencies..."
           cd implementations/python
           pip3 install -e .
+          
+      - name: Verify C binary
+        run: |
+          echo "🔍 Verifying C binary..."
+          if [ -f implementations/c/bin/whitespace-stego-c ]; then
+            echo "✅ C binary found: implementations/c/bin/whitespace-stego-c"
+            ls -la implementations/c/bin/
+          else
+            echo "❌ C binary not found!"
+            echo "Contents of implementations/c/bin/:"
+            ls -la implementations/c/bin/ || echo "Directory doesn't exist"
+            echo "Contents of implementations/c/:"
+            ls -la implementations/c/
+            exit 1
+          fi
           
       - name: Run full benchmark (3X)
         run: |
