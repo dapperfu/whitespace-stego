@@ -155,13 +155,25 @@ benchmark_impl() {
            "$impl_name" "$(echo "$message" | cut -c1-12)" "$(echo "$password" | cut -c1-8)" "$runs" "$encode_ms" "$decode_ms" "$total_ms"
 }
 
-# Get encode command for implementation
+# Command generation functions
 get_encode_cmd() {
     local impl=$1
     local message=$2
     local password=$3
     
     case $impl in
+        static-c)
+            echo "${PROJECT_ROOT}/implementations/c/bin/whitespace-stego-static encode -m '$message' -cf '$TEST_CARRIER_FILE' -o '$TEST_ENCODED_FILE' ${password:+-p '$password'}"
+            ;;
+        static-c-small)
+            echo "${PROJECT_ROOT}/implementations/c/bin/whitespace-stego-static-small encode -m '$message' -cf '$TEST_CARRIER_FILE' -o '$TEST_ENCODED_FILE' ${password:+-p '$password'}"
+            ;;
+        static-c-tiny)
+            echo "${PROJECT_ROOT}/implementations/c/bin/whitespace-stego-static-tiny encode -m '$message' -cf '$TEST_CARRIER_FILE' -o '$TEST_ENCODED_FILE' ${password:+-p '$password'}"
+            ;;
+        dynamic-c)
+            echo "${PROJECT_ROOT}/implementations/c/bin/whitespace-stego-c encode -m '$message' -cf '$TEST_CARRIER_FILE' -o '$TEST_ENCODED_FILE' ${password:+-p '$password'}"
+            ;;
         rust)
             echo "${PROJECT_ROOT}/implementations/rust/target/release/whitespace-stego-rs encode -m '$message' --cf '$TEST_CARRIER_FILE' -o '$TEST_ENCODED_FILE' ${password:+-p '$password'}"
             ;;
@@ -169,13 +181,13 @@ get_encode_cmd() {
             echo "${PROJECT_ROOT}/implementations/go/bin/whitespace-stego-go encode -m '$message' -cf '$TEST_CARRIER_FILE' -o '$TEST_ENCODED_FILE' ${password:+-p '$password'}"
             ;;
         python-pure)
-            echo "cd ${PROJECT_ROOT}/implementations/python && python3 -c \"from whitespace_stego.cli import main; main()\" encode -m '$message' -cf '${PROJECT_ROOT}/test_carrier.txt' -o '${PROJECT_ROOT}/test_encoded.txt' ${password:+-p '$password'}"
+            echo "cd ${PROJECT_ROOT}/implementations/python && python3 -c \"from whitespace_stego.cli import main; main()\" encode -m '$message' -cf '$TEST_CARRIER_FILE' -o '$TEST_ENCODED_FILE' ${password:+-p '$password'}"
             ;;
         python-rust)
-            echo "cd ${PROJECT_ROOT}/implementations/python && python3 -c \"from whitespace_stego.cli import main; main()\" encode -m '$message' -cf '${PROJECT_ROOT}/test_carrier.txt' -o '${PROJECT_ROOT}/test_encoded.txt' ${password:+-p '$password'}"
+            echo "cd ${PROJECT_ROOT}/implementations/python && python3 -c \"from whitespace_stego.cli import main; main()\" encode -m '$message' -cf '$TEST_CARRIER_FILE' -o '$TEST_ENCODED_FILE' ${password:+-p '$password'}"
             ;;
         python-c)
-            echo "cd ${PROJECT_ROOT}/implementations/python && python3 -c \"from whitespace_stego.cli import main; main()\" encode -m '$message' -cf '${PROJECT_ROOT}/test_carrier.txt' -o '${PROJECT_ROOT}/test_encoded.txt' ${password:+-p '$password'}"
+            echo "cd ${PROJECT_ROOT}/implementations/python && python3 -c \"from whitespace_stego.cli import main; main()\" encode -m '$message' -cf '$TEST_CARRIER_FILE' -o '$TEST_ENCODED_FILE' ${password:+-p '$password'}"
             ;;
         *)
             echo "echo 'Unknown implementation: $impl'"
@@ -183,12 +195,23 @@ get_encode_cmd() {
     esac
 }
 
-# Get decode command for implementation
 get_decode_cmd() {
     local impl=$1
     local password=$2
     
     case $impl in
+        static-c)
+            echo "${PROJECT_ROOT}/implementations/c/bin/whitespace-stego-static decode -cf '$TEST_ENCODED_FILE' -o '$TEST_DECODED_FILE' ${password:+-p '$password'}"
+            ;;
+        static-c-small)
+            echo "${PROJECT_ROOT}/implementations/c/bin/whitespace-stego-static-small decode -cf '$TEST_ENCODED_FILE' -o '$TEST_DECODED_FILE' ${password:+-p '$password'}"
+            ;;
+        static-c-tiny)
+            echo "${PROJECT_ROOT}/implementations/c/bin/whitespace-stego-static-tiny decode -cf '$TEST_ENCODED_FILE' -o '$TEST_DECODED_FILE' ${password:+-p '$password'}"
+            ;;
+        dynamic-c)
+            echo "${PROJECT_ROOT}/implementations/c/bin/whitespace-stego-c decode -cf '$TEST_ENCODED_FILE' -o '$TEST_DECODED_FILE' ${password:+-p '$password'}"
+            ;;
         rust)
             echo "${PROJECT_ROOT}/implementations/rust/target/release/whitespace-stego-rs decode --cf '$TEST_ENCODED_FILE' -o '$TEST_DECODED_FILE' ${password:+-p '$password'}"
             ;;
@@ -196,13 +219,13 @@ get_decode_cmd() {
             echo "${PROJECT_ROOT}/implementations/go/bin/whitespace-stego-go decode -cf '$TEST_ENCODED_FILE' -o '$TEST_DECODED_FILE' ${password:+-p '$password'}"
             ;;
         python-pure)
-            echo "cd ${PROJECT_ROOT}/implementations/python && python3 -c \"from whitespace_stego.cli import main; main()\" decode -cf '${PROJECT_ROOT}/test_encoded.txt' -o '${PROJECT_ROOT}/test_decoded.txt' ${password:+-p '$password'}"
+            echo "cd ${PROJECT_ROOT}/implementations/python && python3 -c \"from whitespace_stego.cli import main; main()\" decode -cf '$TEST_ENCODED_FILE' -o '$TEST_DECODED_FILE' ${password:+-p '$password'}"
             ;;
         python-rust)
-            echo "cd ${PROJECT_ROOT}/implementations/python && python3 -c \"from whitespace_stego.cli import main; main()\" decode -cf '${PROJECT_ROOT}/test_encoded.txt' -o '${PROJECT_ROOT}/test_decoded.txt' ${password:+-p '$password'}"
+            echo "cd ${PROJECT_ROOT}/implementations/python && python3 -c \"from whitespace_stego.cli import main; main()\" decode -cf '$TEST_ENCODED_FILE' -o '$TEST_DECODED_FILE' ${password:+-p '$password'}"
             ;;
         python-c)
-            echo "cd ${PROJECT_ROOT}/implementations/python && python3 -c \"from whitespace_stego.cli import main; main()\" decode -cf '${PROJECT_ROOT}/test_encoded.txt' -o '${PROJECT_ROOT}/test_decoded.txt' ${password:+-p '$password'}"
+            echo "cd ${PROJECT_ROOT}/implementations/python && python3 -c \"from whitespace_stego.cli import main; main()\" decode -cf '$TEST_ENCODED_FILE' -o '$TEST_DECODED_FILE' ${password:+-p '$password'}"
             ;;
         *)
             echo "echo 'Unknown implementation: $impl'"
@@ -224,8 +247,22 @@ run_benchmarks() {
     # Check available implementations
     local implementations=()
     
+    # C implementations (now working)
+    if check_implementation "whitespace-stego-static" "${PROJECT_ROOT}/implementations/c/bin/whitespace-stego-static"; then
+        implementations+=("static-c")
+    fi
+    if check_implementation "whitespace-stego-static-small" "${PROJECT_ROOT}/implementations/c/bin/whitespace-stego-static-small"; then
+        implementations+=("static-c-small")
+    fi
+    if check_implementation "whitespace-stego-static-tiny" "${PROJECT_ROOT}/implementations/c/bin/whitespace-stego-static-tiny"; then
+        implementations+=("static-c-tiny")
+    fi
+    if check_implementation "whitespace-stego-c" "${PROJECT_ROOT}/implementations/c/bin/whitespace-stego-c"; then
+        implementations+=("dynamic-c")
+    fi
+    
     # Rust implementation
-    if check_implementation "whitespace-stego-rs" "${PROJECT_ROOT}/implementations/rust/target/release/whitespace-stego-rs"; then
+    if check_implementation "whitespace-stego-rust" "${PROJECT_ROOT}/implementations/rust/target/release/whitespace-stego-rs"; then
         implementations+=("rust")
     fi
     
@@ -235,9 +272,13 @@ run_benchmarks() {
     fi
     
     # Python implementations
-    if command -v python3 >/dev/null 2>&1; then
+    if check_implementation "python-pure" "python3 -c \"from whitespace_stego.cli import main; main()\""; then
         implementations+=("python-pure")
+    fi
+    if check_implementation "python-rust" "python3 -c \"from whitespace_stego.cli import main; main()\""; then
         implementations+=("python-rust")
+    fi
+    if check_implementation "python-c" "python3 -c \"from whitespace_stego.cli import main; main()\""; then
         implementations+=("python-c")
     fi
     
