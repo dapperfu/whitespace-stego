@@ -1,520 +1,421 @@
-[0;34m[2025-07-04 20:10:22][0m Benchmarking rust with message: 'Hello, World!'
-{"impl":"rust","message":"Hello, World!","password":"","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:22][0m Benchmarking rust with message: 'Hello, World!'
-{"impl":"rust","message":"Hello, World!","password":"simple_password","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:23][0m Benchmarking rust with message: 'Hello, World!'
-{"impl":"rust","message":"Hello, World!","password":"complex_password_123!@#","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:23][0m Benchmarking rust with message: 'Hello, World!'
-{"impl":"rust","message":"Hello, World!","password":"🚀🌟🎉","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:23][0m Benchmarking rust with message: 'This is a longer test message with spaces and punctuation!'
-{"impl":"rust","message":"This is a longer test message with spaces and punctuation!","password":"","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:24][0m Benchmarking rust with message: 'This is a longer test message with spaces and punctuation!'
-{"impl":"rust","message":"This is a longer test message with spaces and punctuation!","password":"simple_password","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:24][0m Benchmarking rust with message: 'This is a longer test message with spaces and punctuation!'
-{"impl":"rust","message":"This is a longer test message with spaces and punctuation!","password":"complex_password_123!@#","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:24][0m Benchmarking rust with message: 'This is a longer test message with spaces and punctuation!'
-{"impl":"rust","message":"This is a longer test message with spaces and punctuation!","password":"🚀🌟🎉","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:25][0m Benchmarking rust with message: 'Unicode: 🚀🌟🎉'
-{"impl":"rust","message":"Unicode: 🚀🌟🎉","password":"","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:25][0m Benchmarking rust with message: 'Unicode: 🚀🌟🎉'
-{"impl":"rust","message":"Unicode: 🚀🌟🎉","password":"simple_password","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:25][0m Benchmarking rust with message: 'Unicode: 🚀🌟🎉'
-{"impl":"rust","message":"Unicode: 🚀🌟🎉","password":"complex_password_123!@#","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:26][0m Benchmarking rust with message: 'Unicode: 🚀🌟🎉'
-{"impl":"rust","message":"Unicode: 🚀🌟🎉","password":"🚀🌟🎉","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:26][0m Benchmarking rust with message: 'A'
-{"impl":"rust","message":"A","password":"","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:26][0m Benchmarking rust with message: 'A'
-{"impl":"rust","message":"A","password":"simple_password","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:27][0m Benchmarking rust with message: 'A'
-{"impl":"rust","message":"A","password":"complex_password_123!@#","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:27][0m Benchmarking rust with message: 'A'
-{"impl":"rust","message":"A","password":"🚀🌟🎉","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:27][0m Benchmarking rust with message: 'B'
-{"impl":"rust","message":"B","password":"","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:28][0m Benchmarking rust with message: 'B'
-{"impl":"rust","message":"B","password":"simple_password","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:28][0m Benchmarking rust with message: 'B'
-{"impl":"rust","message":"B","password":"complex_password_123!@#","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:28][0m Benchmarking rust with message: 'B'
-{"impl":"rust","message":"B","password":"🚀🌟🎉","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:28][0m Benchmarking rust with message: 'C'
-{"impl":"rust","message":"C","password":"","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:29][0m Benchmarking rust with message: 'C'
-{"impl":"rust","message":"C","password":"simple_password","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:29][0m Benchmarking rust with message: 'C'
-{"impl":"rust","message":"C","password":"complex_password_123!@#","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:29][0m Benchmarking rust with message: 'C'
-{"impl":"rust","message":"C","password":"🚀🌟🎉","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:30][0m Benchmarking rust with message: 'D'
-{"impl":"rust","message":"D","password":"","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:30][0m Benchmarking rust with message: 'D'
-{"impl":"rust","message":"D","password":"simple_password","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:30][0m Benchmarking rust with message: 'D'
-{"impl":"rust","message":"D","password":"complex_password_123!@#","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:31][0m Benchmarking rust with message: 'D'
-{"impl":"rust","message":"D","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:31][0m Benchmarking rust with message: 'E'
-{"impl":"rust","message":"E","password":"","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:32][0m Benchmarking rust with message: 'E'
-{"impl":"rust","message":"E","password":"simple_password","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:32][0m Benchmarking rust with message: 'E'
-{"impl":"rust","message":"E","password":"complex_password_123!@#","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:32][0m Benchmarking rust with message: 'E'
-{"impl":"rust","message":"E","password":"🚀🌟🎉","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:33][0m Benchmarking rust with message: 'F'
-{"impl":"rust","message":"F","password":"","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:33][0m Benchmarking rust with message: 'F'
-{"impl":"rust","message":"F","password":"simple_password","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:33][0m Benchmarking rust with message: 'F'
-{"impl":"rust","message":"F","password":"complex_password_123!@#","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:34][0m Benchmarking rust with message: 'F'
-{"impl":"rust","message":"F","password":"🚀🌟🎉","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:34][0m Benchmarking rust with message: 'G'
-{"impl":"rust","message":"G","password":"","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:34][0m Benchmarking rust with message: 'G'
-{"impl":"rust","message":"G","password":"simple_password","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:34][0m Benchmarking rust with message: 'G'
-{"impl":"rust","message":"G","password":"complex_password_123!@#","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:35][0m Benchmarking rust with message: 'G'
-{"impl":"rust","message":"G","password":"🚀🌟🎉","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:35][0m Benchmarking rust with message: 'H'
-{"impl":"rust","message":"H","password":"","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:35][0m Benchmarking rust with message: 'H'
-{"impl":"rust","message":"H","password":"simple_password","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:36][0m Benchmarking rust with message: 'H'
-{"impl":"rust","message":"H","password":"complex_password_123!@#","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:36][0m Benchmarking rust with message: 'H'
-{"impl":"rust","message":"H","password":"🚀🌟🎉","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:36][0m Benchmarking rust with message: 'I'
-{"impl":"rust","message":"I","password":"","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:37][0m Benchmarking rust with message: 'I'
-{"impl":"rust","message":"I","password":"simple_password","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:37][0m Benchmarking rust with message: 'I'
-{"impl":"rust","message":"I","password":"complex_password_123!@#","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:37][0m Benchmarking rust with message: 'I'
-{"impl":"rust","message":"I","password":"🚀🌟🎉","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:38][0m Benchmarking rust with message: 'J'
-{"impl":"rust","message":"J","password":"","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:38][0m Benchmarking rust with message: 'J'
-{"impl":"rust","message":"J","password":"simple_password","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:38][0m Benchmarking rust with message: 'J'
-{"impl":"rust","message":"J","password":"complex_password_123!@#","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:39][0m Benchmarking rust with message: 'J'
-{"impl":"rust","message":"J","password":"🚀🌟🎉","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:39][0m Benchmarking go with message: 'Hello, World!'
-{"impl":"go","message":"Hello, World!","password":"","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:39][0m Benchmarking go with message: 'Hello, World!'
-{"impl":"go","message":"Hello, World!","password":"simple_password","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:39][0m Benchmarking go with message: 'Hello, World!'
-{"impl":"go","message":"Hello, World!","password":"complex_password_123!@#","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:40][0m Benchmarking go with message: 'Hello, World!'
-{"impl":"go","message":"Hello, World!","password":"🚀🌟🎉","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:40][0m Benchmarking go with message: 'This is a longer test message with spaces and punctuation!'
-{"impl":"go","message":"This is a longer test message with spaces and punctuation!","password":"","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:40][0m Benchmarking go with message: 'This is a longer test message with spaces and punctuation!'
-{"impl":"go","message":"This is a longer test message with spaces and punctuation!","password":"simple_password","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:41][0m Benchmarking go with message: 'This is a longer test message with spaces and punctuation!'
-{"impl":"go","message":"This is a longer test message with spaces and punctuation!","password":"complex_password_123!@#","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:41][0m Benchmarking go with message: 'This is a longer test message with spaces and punctuation!'
-{"impl":"go","message":"This is a longer test message with spaces and punctuation!","password":"🚀🌟🎉","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:41][0m Benchmarking go with message: 'Unicode: 🚀🌟🎉'
-{"impl":"go","message":"Unicode: 🚀🌟🎉","password":"","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:42][0m Benchmarking go with message: 'Unicode: 🚀🌟🎉'
-{"impl":"go","message":"Unicode: 🚀🌟🎉","password":"simple_password","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:42][0m Benchmarking go with message: 'Unicode: 🚀🌟🎉'
-{"impl":"go","message":"Unicode: 🚀🌟🎉","password":"complex_password_123!@#","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:42][0m Benchmarking go with message: 'Unicode: 🚀🌟🎉'
-{"impl":"go","message":"Unicode: 🚀🌟🎉","password":"🚀🌟🎉","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:43][0m Benchmarking go with message: 'A'
-{"impl":"go","message":"A","password":"","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:43][0m Benchmarking go with message: 'A'
-{"impl":"go","message":"A","password":"simple_password","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:43][0m Benchmarking go with message: 'A'
-{"impl":"go","message":"A","password":"complex_password_123!@#","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:43][0m Benchmarking go with message: 'A'
-{"impl":"go","message":"A","password":"🚀🌟🎉","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:44][0m Benchmarking go with message: 'B'
-{"impl":"go","message":"B","password":"","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:44][0m Benchmarking go with message: 'B'
-{"impl":"go","message":"B","password":"simple_password","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:44][0m Benchmarking go with message: 'B'
-{"impl":"go","message":"B","password":"complex_password_123!@#","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:45][0m Benchmarking go with message: 'B'
-{"impl":"go","message":"B","password":"🚀🌟🎉","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:45][0m Benchmarking go with message: 'C'
-{"impl":"go","message":"C","password":"","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:45][0m Benchmarking go with message: 'C'
-{"impl":"go","message":"C","password":"simple_password","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:46][0m Benchmarking go with message: 'C'
-{"impl":"go","message":"C","password":"complex_password_123!@#","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:46][0m Benchmarking go with message: 'C'
-{"impl":"go","message":"C","password":"🚀🌟🎉","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:46][0m Benchmarking go with message: 'D'
-{"impl":"go","message":"D","password":"","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:46][0m Benchmarking go with message: 'D'
-{"impl":"go","message":"D","password":"simple_password","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:47][0m Benchmarking go with message: 'D'
-{"impl":"go","message":"D","password":"complex_password_123!@#","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:47][0m Benchmarking go with message: 'D'
-{"impl":"go","message":"D","password":"🚀🌟🎉","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:47][0m Benchmarking go with message: 'E'
-{"impl":"go","message":"E","password":"","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:48][0m Benchmarking go with message: 'E'
-{"impl":"go","message":"E","password":"simple_password","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:48][0m Benchmarking go with message: 'E'
-{"impl":"go","message":"E","password":"complex_password_123!@#","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:48][0m Benchmarking go with message: 'E'
-{"impl":"go","message":"E","password":"🚀🌟🎉","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:49][0m Benchmarking go with message: 'F'
-{"impl":"go","message":"F","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:49][0m Benchmarking go with message: 'F'
-{"impl":"go","message":"F","password":"simple_password","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:49][0m Benchmarking go with message: 'F'
-{"impl":"go","message":"F","password":"complex_password_123!@#","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:50][0m Benchmarking go with message: 'F'
-{"impl":"go","message":"F","password":"🚀🌟🎉","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:50][0m Benchmarking go with message: 'G'
-{"impl":"go","message":"G","password":"","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:50][0m Benchmarking go with message: 'G'
-{"impl":"go","message":"G","password":"simple_password","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:51][0m Benchmarking go with message: 'G'
-{"impl":"go","message":"G","password":"complex_password_123!@#","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:51][0m Benchmarking go with message: 'G'
-{"impl":"go","message":"G","password":"🚀🌟🎉","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:51][0m Benchmarking go with message: 'H'
-{"impl":"go","message":"H","password":"","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:52][0m Benchmarking go with message: 'H'
-{"impl":"go","message":"H","password":"simple_password","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:52][0m Benchmarking go with message: 'H'
-{"impl":"go","message":"H","password":"complex_password_123!@#","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:52][0m Benchmarking go with message: 'H'
-{"impl":"go","message":"H","password":"🚀🌟🎉","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:52][0m Benchmarking go with message: 'I'
-{"impl":"go","message":"I","password":"","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:53][0m Benchmarking go with message: 'I'
-{"impl":"go","message":"I","password":"simple_password","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:53][0m Benchmarking go with message: 'I'
-{"impl":"go","message":"I","password":"complex_password_123!@#","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:53][0m Benchmarking go with message: 'I'
-{"impl":"go","message":"I","password":"🚀🌟🎉","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:54][0m Benchmarking go with message: 'J'
-{"impl":"go","message":"J","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:55][0m Benchmarking go with message: 'J'
-{"impl":"go","message":"J","password":"simple_password","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:55][0m Benchmarking go with message: 'J'
-{"impl":"go","message":"J","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:55][0m Benchmarking go with message: 'J'
-{"impl":"go","message":"J","password":"🚀🌟🎉","runs":[0;32m✓[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:56][0m Benchmarking python-pure with message: 'Hello, World!'
-{"impl":"python-pure","message":"Hello, World!","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:56][0m Benchmarking python-pure with message: 'Hello, World!'
-{"impl":"python-pure","message":"Hello, World!","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:56][0m Benchmarking python-pure with message: 'Hello, World!'
-{"impl":"python-pure","message":"Hello, World!","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:56][0m Benchmarking python-pure with message: 'Hello, World!'
-{"impl":"python-pure","message":"Hello, World!","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:56][0m Benchmarking python-pure with message: 'This is a longer test message with spaces and punctuation!'
-{"impl":"python-pure","message":"This is a longer test message with spaces and punctuation!","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:56][0m Benchmarking python-pure with message: 'This is a longer test message with spaces and punctuation!'
-{"impl":"python-pure","message":"This is a longer test message with spaces and punctuation!","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:56][0m Benchmarking python-pure with message: 'This is a longer test message with spaces and punctuation!'
-{"impl":"python-pure","message":"This is a longer test message with spaces and punctuation!","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:57][0m Benchmarking python-pure with message: 'This is a longer test message with spaces and punctuation!'
-{"impl":"python-pure","message":"This is a longer test message with spaces and punctuation!","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:57][0m Benchmarking python-pure with message: 'Unicode: 🚀🌟🎉'
-{"impl":"python-pure","message":"Unicode: 🚀🌟🎉","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:57][0m Benchmarking python-pure with message: 'Unicode: 🚀🌟🎉'
-{"impl":"python-pure","message":"Unicode: 🚀🌟🎉","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:57][0m Benchmarking python-pure with message: 'Unicode: 🚀🌟🎉'
-{"impl":"python-pure","message":"Unicode: 🚀🌟🎉","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:57][0m Benchmarking python-pure with message: 'Unicode: 🚀🌟🎉'
-{"impl":"python-pure","message":"Unicode: 🚀🌟🎉","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:57][0m Benchmarking python-pure with message: 'A'
-{"impl":"python-pure","message":"A","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:58][0m Benchmarking python-pure with message: 'A'
-{"impl":"python-pure","message":"A","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:58][0m Benchmarking python-pure with message: 'A'
-{"impl":"python-pure","message":"A","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:58][0m Benchmarking python-pure with message: 'A'
-{"impl":"python-pure","message":"A","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:58][0m Benchmarking python-pure with message: 'B'
-{"impl":"python-pure","message":"B","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:58][0m Benchmarking python-pure with message: 'B'
-{"impl":"python-pure","message":"B","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:58][0m Benchmarking python-pure with message: 'B'
-{"impl":"python-pure","message":"B","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:58][0m Benchmarking python-pure with message: 'B'
-{"impl":"python-pure","message":"B","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:59][0m Benchmarking python-pure with message: 'C'
-{"impl":"python-pure","message":"C","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:59][0m Benchmarking python-pure with message: 'C'
-{"impl":"python-pure","message":"C","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:59][0m Benchmarking python-pure with message: 'C'
-{"impl":"python-pure","message":"C","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:59][0m Benchmarking python-pure with message: 'C'
-{"impl":"python-pure","message":"C","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:59][0m Benchmarking python-pure with message: 'D'
-{"impl":"python-pure","message":"D","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:10:59][0m Benchmarking python-pure with message: 'D'
-{"impl":"python-pure","message":"D","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:00][0m Benchmarking python-pure with message: 'D'
-{"impl":"python-pure","message":"D","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:00][0m Benchmarking python-pure with message: 'D'
-{"impl":"python-pure","message":"D","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:00][0m Benchmarking python-pure with message: 'E'
-{"impl":"python-pure","message":"E","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:00][0m Benchmarking python-pure with message: 'E'
-{"impl":"python-pure","message":"E","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:00][0m Benchmarking python-pure with message: 'E'
-{"impl":"python-pure","message":"E","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:00][0m Benchmarking python-pure with message: 'E'
-{"impl":"python-pure","message":"E","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:00][0m Benchmarking python-pure with message: 'F'
-{"impl":"python-pure","message":"F","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:01][0m Benchmarking python-pure with message: 'F'
-{"impl":"python-pure","message":"F","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:01][0m Benchmarking python-pure with message: 'F'
-{"impl":"python-pure","message":"F","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:01][0m Benchmarking python-pure with message: 'F'
-{"impl":"python-pure","message":"F","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:01][0m Benchmarking python-pure with message: 'G'
-{"impl":"python-pure","message":"G","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:01][0m Benchmarking python-pure with message: 'G'
-{"impl":"python-pure","message":"G","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:01][0m Benchmarking python-pure with message: 'G'
-{"impl":"python-pure","message":"G","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:01][0m Benchmarking python-pure with message: 'G'
-{"impl":"python-pure","message":"G","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:02][0m Benchmarking python-pure with message: 'H'
-{"impl":"python-pure","message":"H","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:02][0m Benchmarking python-pure with message: 'H'
-{"impl":"python-pure","message":"H","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:02][0m Benchmarking python-pure with message: 'H'
-{"impl":"python-pure","message":"H","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:02][0m Benchmarking python-pure with message: 'H'
-{"impl":"python-pure","message":"H","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:02][0m Benchmarking python-pure with message: 'I'
-{"impl":"python-pure","message":"I","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:02][0m Benchmarking python-pure with message: 'I'
-{"impl":"python-pure","message":"I","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:02][0m Benchmarking python-pure with message: 'I'
-{"impl":"python-pure","message":"I","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:03][0m Benchmarking python-pure with message: 'I'
-{"impl":"python-pure","message":"I","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:03][0m Benchmarking python-pure with message: 'J'
-{"impl":"python-pure","message":"J","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:03][0m Benchmarking python-pure with message: 'J'
-{"impl":"python-pure","message":"J","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:03][0m Benchmarking python-pure with message: 'J'
-{"impl":"python-pure","message":"J","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:03][0m Benchmarking python-pure with message: 'J'
-{"impl":"python-pure","message":"J","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:03][0m Benchmarking python-rust with message: 'Hello, World!'
-{"impl":"python-rust","message":"Hello, World!","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:04][0m Benchmarking python-rust with message: 'Hello, World!'
-{"impl":"python-rust","message":"Hello, World!","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:04][0m Benchmarking python-rust with message: 'Hello, World!'
-{"impl":"python-rust","message":"Hello, World!","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:04][0m Benchmarking python-rust with message: 'Hello, World!'
-{"impl":"python-rust","message":"Hello, World!","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:04][0m Benchmarking python-rust with message: 'This is a longer test message with spaces and punctuation!'
-{"impl":"python-rust","message":"This is a longer test message with spaces and punctuation!","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:04][0m Benchmarking python-rust with message: 'This is a longer test message with spaces and punctuation!'
-{"impl":"python-rust","message":"This is a longer test message with spaces and punctuation!","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:04][0m Benchmarking python-rust with message: 'This is a longer test message with spaces and punctuation!'
-{"impl":"python-rust","message":"This is a longer test message with spaces and punctuation!","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:04][0m Benchmarking python-rust with message: 'This is a longer test message with spaces and punctuation!'
-{"impl":"python-rust","message":"This is a longer test message with spaces and punctuation!","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:05][0m Benchmarking python-rust with message: 'Unicode: 🚀🌟🎉'
-{"impl":"python-rust","message":"Unicode: 🚀🌟🎉","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:05][0m Benchmarking python-rust with message: 'Unicode: 🚀🌟🎉'
-{"impl":"python-rust","message":"Unicode: 🚀🌟🎉","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:05][0m Benchmarking python-rust with message: 'Unicode: 🚀🌟🎉'
-{"impl":"python-rust","message":"Unicode: 🚀🌟🎉","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:05][0m Benchmarking python-rust with message: 'Unicode: 🚀🌟🎉'
-{"impl":"python-rust","message":"Unicode: 🚀🌟🎉","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:05][0m Benchmarking python-rust with message: 'A'
-{"impl":"python-rust","message":"A","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:05][0m Benchmarking python-rust with message: 'A'
-{"impl":"python-rust","message":"A","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:06][0m Benchmarking python-rust with message: 'A'
-{"impl":"python-rust","message":"A","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:06][0m Benchmarking python-rust with message: 'A'
-{"impl":"python-rust","message":"A","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:06][0m Benchmarking python-rust with message: 'B'
-{"impl":"python-rust","message":"B","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:06][0m Benchmarking python-rust with message: 'B'
-{"impl":"python-rust","message":"B","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:06][0m Benchmarking python-rust with message: 'B'
-{"impl":"python-rust","message":"B","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:06][0m Benchmarking python-rust with message: 'B'
-{"impl":"python-rust","message":"B","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:07][0m Benchmarking python-rust with message: 'C'
-{"impl":"python-rust","message":"C","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:07][0m Benchmarking python-rust with message: 'C'
-{"impl":"python-rust","message":"C","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:07][0m Benchmarking python-rust with message: 'C'
-{"impl":"python-rust","message":"C","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:07][0m Benchmarking python-rust with message: 'C'
-{"impl":"python-rust","message":"C","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:07][0m Benchmarking python-rust with message: 'D'
-{"impl":"python-rust","message":"D","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:07][0m Benchmarking python-rust with message: 'D'
-{"impl":"python-rust","message":"D","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:08][0m Benchmarking python-rust with message: 'D'
-{"impl":"python-rust","message":"D","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:08][0m Benchmarking python-rust with message: 'D'
-{"impl":"python-rust","message":"D","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:08][0m Benchmarking python-rust with message: 'E'
-{"impl":"python-rust","message":"E","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:08][0m Benchmarking python-rust with message: 'E'
-{"impl":"python-rust","message":"E","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:08][0m Benchmarking python-rust with message: 'E'
-{"impl":"python-rust","message":"E","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:08][0m Benchmarking python-rust with message: 'E'
-{"impl":"python-rust","message":"E","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:08][0m Benchmarking python-rust with message: 'F'
-{"impl":"python-rust","message":"F","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:09][0m Benchmarking python-rust with message: 'F'
-{"impl":"python-rust","message":"F","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:09][0m Benchmarking python-rust with message: 'F'
-{"impl":"python-rust","message":"F","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:09][0m Benchmarking python-rust with message: 'F'
-{"impl":"python-rust","message":"F","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:09][0m Benchmarking python-rust with message: 'G'
-{"impl":"python-rust","message":"G","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:09][0m Benchmarking python-rust with message: 'G'
-{"impl":"python-rust","message":"G","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:09][0m Benchmarking python-rust with message: 'G'
-{"impl":"python-rust","message":"G","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:09][0m Benchmarking python-rust with message: 'G'
-{"impl":"python-rust","message":"G","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:10][0m Benchmarking python-rust with message: 'H'
-{"impl":"python-rust","message":"H","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:10][0m Benchmarking python-rust with message: 'H'
-{"impl":"python-rust","message":"H","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:10][0m Benchmarking python-rust with message: 'H'
-{"impl":"python-rust","message":"H","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:10][0m Benchmarking python-rust with message: 'H'
-{"impl":"python-rust","message":"H","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:10][0m Benchmarking python-rust with message: 'I'
-{"impl":"python-rust","message":"I","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:10][0m Benchmarking python-rust with message: 'I'
-{"impl":"python-rust","message":"I","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:11][0m Benchmarking python-rust with message: 'I'
-{"impl":"python-rust","message":"I","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:11][0m Benchmarking python-rust with message: 'I'
-{"impl":"python-rust","message":"I","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:11][0m Benchmarking python-rust with message: 'J'
-{"impl":"python-rust","message":"J","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:11][0m Benchmarking python-rust with message: 'J'
-{"impl":"python-rust","message":"J","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:11][0m Benchmarking python-rust with message: 'J'
-{"impl":"python-rust","message":"J","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:11][0m Benchmarking python-rust with message: 'J'
-{"impl":"python-rust","message":"J","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:11][0m Benchmarking python-c with message: 'Hello, World!'
-{"impl":"python-c","message":"Hello, World!","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:12][0m Benchmarking python-c with message: 'Hello, World!'
-{"impl":"python-c","message":"Hello, World!","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:12][0m Benchmarking python-c with message: 'Hello, World!'
-{"impl":"python-c","message":"Hello, World!","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:12][0m Benchmarking python-c with message: 'Hello, World!'
-{"impl":"python-c","message":"Hello, World!","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:12][0m Benchmarking python-c with message: 'This is a longer test message with spaces and punctuation!'
-{"impl":"python-c","message":"This is a longer test message with spaces and punctuation!","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:12][0m Benchmarking python-c with message: 'This is a longer test message with spaces and punctuation!'
-{"impl":"python-c","message":"This is a longer test message with spaces and punctuation!","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:12][0m Benchmarking python-c with message: 'This is a longer test message with spaces and punctuation!'
-{"impl":"python-c","message":"This is a longer test message with spaces and punctuation!","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:12][0m Benchmarking python-c with message: 'This is a longer test message with spaces and punctuation!'
-{"impl":"python-c","message":"This is a longer test message with spaces and punctuation!","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:13][0m Benchmarking python-c with message: 'Unicode: 🚀🌟🎉'
-{"impl":"python-c","message":"Unicode: 🚀🌟🎉","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:13][0m Benchmarking python-c with message: 'Unicode: 🚀🌟🎉'
-{"impl":"python-c","message":"Unicode: 🚀🌟🎉","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:13][0m Benchmarking python-c with message: 'Unicode: 🚀🌟🎉'
-{"impl":"python-c","message":"Unicode: 🚀🌟🎉","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:13][0m Benchmarking python-c with message: 'Unicode: 🚀🌟🎉'
-{"impl":"python-c","message":"Unicode: 🚀🌟🎉","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:13][0m Benchmarking python-c with message: 'A'
-{"impl":"python-c","message":"A","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:13][0m Benchmarking python-c with message: 'A'
-{"impl":"python-c","message":"A","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:13][0m Benchmarking python-c with message: 'A'
-{"impl":"python-c","message":"A","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:14][0m Benchmarking python-c with message: 'A'
-{"impl":"python-c","message":"A","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:14][0m Benchmarking python-c with message: 'B'
-{"impl":"python-c","message":"B","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:14][0m Benchmarking python-c with message: 'B'
-{"impl":"python-c","message":"B","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:14][0m Benchmarking python-c with message: 'B'
-{"impl":"python-c","message":"B","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:14][0m Benchmarking python-c with message: 'B'
-{"impl":"python-c","message":"B","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:14][0m Benchmarking python-c with message: 'C'
-{"impl":"python-c","message":"C","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:15][0m Benchmarking python-c with message: 'C'
-{"impl":"python-c","message":"C","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:15][0m Benchmarking python-c with message: 'C'
-{"impl":"python-c","message":"C","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:15][0m Benchmarking python-c with message: 'C'
-{"impl":"python-c","message":"C","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:15][0m Benchmarking python-c with message: 'D'
-{"impl":"python-c","message":"D","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:15][0m Benchmarking python-c with message: 'D'
-{"impl":"python-c","message":"D","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:15][0m Benchmarking python-c with message: 'D'
-{"impl":"python-c","message":"D","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:15][0m Benchmarking python-c with message: 'D'
-{"impl":"python-c","message":"D","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:16][0m Benchmarking python-c with message: 'E'
-{"impl":"python-c","message":"E","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:16][0m Benchmarking python-c with message: 'E'
-{"impl":"python-c","message":"E","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:16][0m Benchmarking python-c with message: 'E'
-{"impl":"python-c","message":"E","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:16][0m Benchmarking python-c with message: 'E'
-{"impl":"python-c","message":"E","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:16][0m Benchmarking python-c with message: 'F'
-{"impl":"python-c","message":"F","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:16][0m Benchmarking python-c with message: 'F'
-{"impl":"python-c","message":"F","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:16][0m Benchmarking python-c with message: 'F'
-{"impl":"python-c","message":"F","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:17][0m Benchmarking python-c with message: 'F'
-{"impl":"python-c","message":"F","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:17][0m Benchmarking python-c with message: 'G'
-{"impl":"python-c","message":"G","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:17][0m Benchmarking python-c with message: 'G'
-{"impl":"python-c","message":"G","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:17][0m Benchmarking python-c with message: 'G'
-{"impl":"python-c","message":"G","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:17][0m Benchmarking python-c with message: 'G'
-{"impl":"python-c","message":"G","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:17][0m Benchmarking python-c with message: 'H'
-{"impl":"python-c","message":"H","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:18][0m Benchmarking python-c with message: 'H'
-{"impl":"python-c","message":"H","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:18][0m Benchmarking python-c with message: 'H'
-{"impl":"python-c","message":"H","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:18][0m Benchmarking python-c with message: 'H'
-{"impl":"python-c","message":"H","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:18][0m Benchmarking python-c with message: 'I'
-{"impl":"python-c","message":"I","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:18][0m Benchmarking python-c with message: 'I'
-{"impl":"python-c","message":"I","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:18][0m Benchmarking python-c with message: 'I'
-{"impl":"python-c","message":"I","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:18][0m Benchmarking python-c with message: 'I'
-{"impl":"python-c","message":"I","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:19][0m Benchmarking python-c with message: 'J'
-{"impl":"python-c","message":"J","password":"","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:19][0m Benchmarking python-c with message: 'J'
-{"impl":"python-c","message":"J","password":"simple_password","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:19][0m Benchmarking python-c with message: 'J'
-{"impl":"python-c","message":"J","password":"complex_password_123!@#","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
-[0;34m[2025-07-04 20:11:19][0m Benchmarking python-c with message: 'J'
-{"impl":"python-c","message":"J","password":"🚀🌟🎉","runs":[1;33m⚠[0m,"encode_mean":,"encode_std":,"encode_cv":0,"decode_mean":,"decode_std":,"decode_cv":0,"total_mean":,"total_std":,"total_cv":0}
+[0;34m[2025-07-05 09:10:24][0m Benchmarking rust with message: 'Hello, World!'
+  Run 1: encode=.006062560s, decode=.008066116s, total=.014128676s
+  Run 2: encode=.005778582s, decode=.008362036s, total=.014140618s
+{"impl":"rust","message":"Hello, World!","password":"","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.008,"decode_std":0,"decode_cv":0,"total_mean":.014,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:24][0m Benchmarking rust with message: 'Hello, World!'
+  Run 1: encode=.005833059s, decode=.010063386s, total=.015896445s
+  Run 2: encode=.005300375s, decode=.010719063s, total=.016019438s
+{"impl":"rust","message":"Hello, World!","password":"simple_password","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.010,"decode_std":0,"decode_cv":0,"total_mean":.015,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:25][0m Benchmarking rust with message: 'Hello, World!'
+  Run 1: encode=.006715233s, decode=.011141257s, total=.017856490s
+  Run 2: encode=.005843815s, decode=.010229889s, total=.016073704s
+{"impl":"rust","message":"Hello, World!","password":"complex_password_123!@#","runs":2,"encode_mean":.006,"encode_std":0,"encode_cv":0,"decode_mean":.010,"decode_std":0,"decode_cv":0,"total_mean":.016,"total_std":.001000,"total_cv":.062}
+[0;34m[2025-07-05 09:10:25][0m Benchmarking rust with message: 'Hello, World!'
+  Run 1: encode=.005267968s, decode=.010073164s, total=.015341132s
+  Run 2: encode=.005606004s, decode=.009271238s, total=.014877242s
+{"impl":"rust","message":"Hello, World!","password":"🚀🌟🎉","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.009,"decode_std":0,"decode_cv":0,"total_mean":.015,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:26][0m Benchmarking rust with message: 'This is a longer test message with spaces and punctuation!'
+  Run 1: encode=.005820069s, decode=.012954563s, total=.018774632s
+  Run 2: encode=.005925670s, decode=.012741126s, total=.018666796s
+{"impl":"rust","message":"This is a longer test message with spaces and punctuation!","password":"","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.012,"decode_std":0,"decode_cv":0,"total_mean":.018,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:26][0m Benchmarking rust with message: 'This is a longer test message with spaces and punctuation!'
+  Run 1: encode=.006555435s, decode=.014431580s, total=.020987015s
+  Run 2: encode=.005857784s, decode=.014675678s, total=.020533462s
+{"impl":"rust","message":"This is a longer test message with spaces and punctuation!","password":"simple_password","runs":2,"encode_mean":.006,"encode_std":0,"encode_cv":0,"decode_mean":.014,"decode_std":0,"decode_cv":0,"total_mean":.020,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:27][0m Benchmarking rust with message: 'This is a longer test message with spaces and punctuation!'
+  Run 1: encode=.006911419s, decode=.014319903s, total=.021231322s
+  Run 2: encode=.005771040s, decode=.013601998s, total=.019373038s
+{"impl":"rust","message":"This is a longer test message with spaces and punctuation!","password":"complex_password_123!@#","runs":2,"encode_mean":.006,"encode_std":0,"encode_cv":0,"decode_mean":.013,"decode_std":.001000,"decode_cv":.076,"total_mean":.020,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:27][0m Benchmarking rust with message: 'This is a longer test message with spaces and punctuation!'
+  Run 1: encode=.006572337s, decode=.014964544s, total=.021536881s
+  Run 2: encode=.006077506s, decode=.013484942s, total=.019562448s
+{"impl":"rust","message":"This is a longer test message with spaces and punctuation!","password":"🚀🌟🎉","runs":2,"encode_mean":.006,"encode_std":0,"encode_cv":0,"decode_mean":.014,"decode_std":0,"decode_cv":0,"total_mean":.020,"total_std":.001000,"total_cv":.050}
+[0;34m[2025-07-05 09:10:28][0m Benchmarking rust with message: 'Unicode: 🚀🌟🎉'
+  Run 1: encode=.005829707s, decode=.008425313s, total=.014255020s
+  Run 2: encode=.006452487s, decode=.008466869s, total=.014919356s
+{"impl":"rust","message":"Unicode: 🚀🌟🎉","password":"","runs":2,"encode_mean":.006,"encode_std":0,"encode_cv":0,"decode_mean":.008,"decode_std":0,"decode_cv":0,"total_mean":.014,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:28][0m Benchmarking rust with message: 'Unicode: 🚀🌟🎉'
+  Run 1: encode=.005559838s, decode=.011657179s, total=.017217017s
+  Run 2: encode=.006467504s, decode=.010979573s, total=.017447077s
+{"impl":"rust","message":"Unicode: 🚀🌟🎉","password":"simple_password","runs":2,"encode_mean":.006,"encode_std":0,"encode_cv":0,"decode_mean":.011,"decode_std":0,"decode_cv":0,"total_mean":.017,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:29][0m Benchmarking rust with message: 'Unicode: 🚀🌟🎉'
+  Run 1: encode=.006247710s, decode=.011218711s, total=.017466421s
+  Run 2: encode=.005574854s, decode=.012197127s, total=.017771981s
+{"impl":"rust","message":"Unicode: 🚀🌟🎉","password":"complex_password_123!@#","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.011,"decode_std":0,"decode_cv":0,"total_mean":.017,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:29][0m Benchmarking rust with message: 'Unicode: 🚀🌟🎉'
+  Run 1: encode=.006162225s, decode=.011405609s, total=.017567834s
+  Run 2: encode=.005758119s, decode=.011218013s, total=.016976132s
+{"impl":"rust","message":"Unicode: 🚀🌟🎉","password":"🚀🌟🎉","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.011,"decode_std":0,"decode_cv":0,"total_mean":.017,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:30][0m Benchmarking rust with message: 'A'
+  Run 1: encode=.006026242s, decode=.007504167s, total=.013530409s
+  Run 2: encode=.005940057s, decode=.007604740s, total=.013544797s
+{"impl":"rust","message":"A","password":"","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.007,"decode_std":0,"decode_cv":0,"total_mean":.013,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:30][0m Benchmarking rust with message: 'A'
+  Run 1: encode=.006466386s, decode=.010680300s, total=.017146686s
+  Run 2: encode=.005963733s, decode=.010998080s, total=.016961813s
+{"impl":"rust","message":"A","password":"simple_password","runs":2,"encode_mean":.006,"encode_std":0,"encode_cv":0,"decode_mean":.010,"decode_std":0,"decode_cv":0,"total_mean":.017,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:31][0m Benchmarking rust with message: 'A'
+  Run 1: encode=.005559489s, decode=.009659210s, total=.015218699s
+  Run 2: encode=.006242682s, decode=.011109129s, total=.017351811s
+{"impl":"rust","message":"A","password":"complex_password_123!@#","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.010,"decode_std":0,"decode_cv":0,"total_mean":.016,"total_std":.001000,"total_cv":.062}
+[0;34m[2025-07-05 09:10:31][0m Benchmarking rust with message: 'A'
+  Run 1: encode=.005697007s, decode=.010445212s, total=.016142219s
+  Run 2: encode=.007110258s, decode=.010536774s, total=.017647032s
+{"impl":"rust","message":"A","password":"🚀🌟🎉","runs":2,"encode_mean":.006,"encode_std":0,"encode_cv":0,"decode_mean":.010,"decode_std":0,"decode_cv":0,"total_mean":.016,"total_std":.001000,"total_cv":.062}
+[0;34m[2025-07-05 09:10:31][0m Benchmarking rust with message: 'B'
+  Run 1: encode=.006121996s, decode=.007835916s, total=.013957912s
+  Run 2: encode=.005754697s, decode=.007007172s, total=.012761869s
+{"impl":"rust","message":"B","password":"","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.007,"decode_std":0,"decode_cv":0,"total_mean":.013,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:32][0m Benchmarking rust with message: 'B'
+  Run 1: encode=.005456262s, decode=.009935784s, total=.015392046s
+  Run 2: encode=.005736678s, decode=.010445560s, total=.016182238s
+{"impl":"rust","message":"B","password":"simple_password","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.010,"decode_std":0,"decode_cv":0,"total_mean":.015,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:32][0m Benchmarking rust with message: 'B'
+  Run 1: encode=.006852752s, decode=.010429008s, total=.017281760s
+  Run 2: encode=.006304143s, decode=.010071976s, total=.016376119s
+{"impl":"rust","message":"B","password":"complex_password_123!@#","runs":2,"encode_mean":.006,"encode_std":0,"encode_cv":0,"decode_mean":.010,"decode_std":0,"decode_cv":0,"total_mean":.016,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:33][0m Benchmarking rust with message: 'B'
+  Run 1: encode=.005920012s, decode=.037488081s, total=.043408093s
+  Run 2: encode=.005841371s, decode=.010365662s, total=.016207033s
+{"impl":"rust","message":"B","password":"🚀🌟🎉","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.023,"decode_std":.013564,"decode_cv":.589,"total_mean":.029,"total_std":.013601,"total_cv":.469}
+[0;34m[2025-07-05 09:10:33][0m Benchmarking rust with message: 'C'
+  Run 1: encode=.005998933s, decode=.007418471s, total=.013417404s
+  Run 2: encode=.005979658s, decode=.007256578s, total=.013236236s
+{"impl":"rust","message":"C","password":"","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.007,"decode_std":0,"decode_cv":0,"total_mean":.013,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:34][0m Benchmarking rust with message: 'C'
+  Run 1: encode=.005303937s, decode=.009838983s, total=.015142920s
+  Run 2: encode=.005567311s, decode=.010081055s, total=.015648366s
+{"impl":"rust","message":"C","password":"simple_password","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.009,"decode_std":0,"decode_cv":0,"total_mean":.015,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:34][0m Benchmarking rust with message: 'C'
+  Run 1: encode=.006141132s, decode=.009648873s, total=.015790005s
+  Run 2: encode=.006308403s, decode=.010383121s, total=.016691524s
+{"impl":"rust","message":"C","password":"complex_password_123!@#","runs":2,"encode_mean":.006,"encode_std":0,"encode_cv":0,"decode_mean":.010,"decode_std":0,"decode_cv":0,"total_mean":.016,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:35][0m Benchmarking rust with message: 'C'
+  Run 1: encode=.006325584s, decode=.010231425s, total=.016557009s
+  Run 2: encode=.006334105s, decode=.010629594s, total=.016963699s
+{"impl":"rust","message":"C","password":"🚀🌟🎉","runs":2,"encode_mean":.006,"encode_std":0,"encode_cv":0,"decode_mean":.010,"decode_std":0,"decode_cv":0,"total_mean":.016,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:35][0m Benchmarking rust with message: 'D'
+  Run 1: encode=.005640505s, decode=.007127510s, total=.012768015s
+  Run 2: encode=.005883765s, decode=.007665711s, total=.013549476s
+{"impl":"rust","message":"D","password":"","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.007,"decode_std":0,"decode_cv":0,"total_mean":.013,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:36][0m Benchmarking rust with message: 'D'
+  Run 1: encode=.005785217s, decode=.010544876s, total=.016330093s
+  Run 2: encode=.005805402s, decode=.010830738s, total=.016636140s
+{"impl":"rust","message":"D","password":"simple_password","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.010,"decode_std":0,"decode_cv":0,"total_mean":.016,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:36][0m Benchmarking rust with message: 'D'
+  Run 1: encode=.011955124s, decode=.016653880s, total=.028609004s
+  Run 2: encode=.009961556s, decode=.019857878s, total=.029819434s
+{"impl":"rust","message":"D","password":"complex_password_123!@#","runs":2,"encode_mean":.010,"encode_std":.001000,"encode_cv":.100,"decode_mean":.018,"decode_std":.001414,"decode_cv":.078,"total_mean":.029,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:37][0m Benchmarking rust with message: 'D'
+  Run 1: encode=.006230809s, decode=.009778011s, total=.016008820s
+  Run 2: encode=.005671165s, decode=.010177018s, total=.015848183s
+{"impl":"rust","message":"D","password":"🚀🌟🎉","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.009,"decode_std":0,"decode_cv":0,"total_mean":.015,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:38][0m Benchmarking rust with message: 'E'
+  Run 1: encode=.005771389s, decode=.007854983s, total=.013626372s
+  Run 2: encode=.006024915s, decode=.007134494s, total=.013159409s
+  Run 3: encode=.005464434s, decode=.007302883s, total=.012767317s
+{"impl":"rust","message":"E","password":"","runs":3,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.007,"decode_std":0,"decode_cv":0,"total_mean":.013,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:38][0m Benchmarking rust with message: 'E'
+  Run 1: encode=.005719706s, decode=.010168986s, total=.015888692s
+  Run 2: encode=.005753439s, decode=.009968680s, total=.015722119s
+{"impl":"rust","message":"E","password":"simple_password","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.010,"decode_std":0,"decode_cv":0,"total_mean":.015,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:39][0m Benchmarking rust with message: 'E'
+  Run 1: encode=.006980842s, decode=.010509117s, total=.017489959s
+  Run 2: encode=.007404432s, decode=.010541104s, total=.017945536s
+{"impl":"rust","message":"E","password":"complex_password_123!@#","runs":2,"encode_mean":.007,"encode_std":0,"encode_cv":0,"decode_mean":.010,"decode_std":0,"decode_cv":0,"total_mean":.017,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:40][0m Benchmarking rust with message: 'E'
+  Run 1: encode=.006047823s, decode=.010587269s, total=.016635092s
+  Run 2: encode=.007337664s, decode=.012079931s, total=.019417595s
+{"impl":"rust","message":"E","password":"🚀🌟🎉","runs":2,"encode_mean":.006,"encode_std":0,"encode_cv":0,"decode_mean":.011,"decode_std":0,"decode_cv":0,"total_mean":.018,"total_std":.001000,"total_cv":.055}
+[0;34m[2025-07-05 09:10:40][0m Benchmarking rust with message: 'F'
+  Run 1: encode=.008486005s, decode=.010192452s, total=.018678457s
+  Run 2: encode=.007916024s, decode=.011421461s, total=.019337485s
+{"impl":"rust","message":"F","password":"","runs":2,"encode_mean":.008,"encode_std":0,"encode_cv":0,"decode_mean":.010,"decode_std":.001000,"decode_cv":.100,"total_mean":.019,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:41][0m Benchmarking rust with message: 'F'
+  Run 1: encode=.006849608s, decode=.012338905s, total=.019188513s
+  Run 2: encode=.007025191s, decode=.011906653s, total=.018931844s
+{"impl":"rust","message":"F","password":"simple_password","runs":2,"encode_mean":.006,"encode_std":0,"encode_cv":0,"decode_mean":.012,"decode_std":0,"decode_cv":0,"total_mean":.019,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:41][0m Benchmarking rust with message: 'F'
+  Run 1: encode=.007503817s, decode=.013965035s, total=.021468852s
+  Run 2: encode=.007299320s, decode=.014192091s, total=.021491411s
+{"impl":"rust","message":"F","password":"complex_password_123!@#","runs":2,"encode_mean":.007,"encode_std":0,"encode_cv":0,"decode_mean":.014,"decode_std":0,"decode_cv":0,"total_mean":.021,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:42][0m Benchmarking rust with message: 'F'
+  Run 1: encode=.006953254s, decode=.012005759s, total=.018959013s
+  Run 2: encode=.006923641s, decode=.010687423s, total=.017611064s
+{"impl":"rust","message":"F","password":"🚀🌟🎉","runs":2,"encode_mean":.006,"encode_std":0,"encode_cv":0,"decode_mean":.011,"decode_std":0,"decode_cv":0,"total_mean":.018,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:42][0m Benchmarking rust with message: 'G'
+  Run 1: encode=.005376083s, decode=.007080505s, total=.012456588s
+  Run 2: encode=.006855754s, decode=.006902898s, total=.013758652s
+{"impl":"rust","message":"G","password":"","runs":2,"encode_mean":.006,"encode_std":0,"encode_cv":0,"decode_mean":.006,"decode_std":0,"decode_cv":0,"total_mean":.013,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:43][0m Benchmarking rust with message: 'G'
+  Run 1: encode=.005579463s, decode=.010183792s, total=.015763255s
+  Run 2: encode=.005219986s, decode=.009625616s, total=.014845602s
+{"impl":"rust","message":"G","password":"simple_password","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.009,"decode_std":0,"decode_cv":0,"total_mean":.015,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:43][0m Benchmarking rust with message: 'G'
+  Run 1: encode=.006356175s, decode=.010030489s, total=.016386664s
+  Run 2: encode=.005553831s, decode=.009870202s, total=.015424033s
+{"impl":"rust","message":"G","password":"complex_password_123!@#","runs":2,"encode_mean":.005,"encode_std":.001000,"encode_cv":.200,"decode_mean":.009,"decode_std":0,"decode_cv":0,"total_mean":.015,"total_std":.001000,"total_cv":.066}
+[0;34m[2025-07-05 09:10:44][0m Benchmarking rust with message: 'G'
+  Run 1: encode=.006256441s, decode=.011526014s, total=.017782455s
+  Run 2: encode=.006275577s, decode=.011430400s, total=.017705977s
+{"impl":"rust","message":"G","password":"🚀🌟🎉","runs":2,"encode_mean":.006,"encode_std":0,"encode_cv":0,"decode_mean":.011,"decode_std":0,"decode_cv":0,"total_mean":.017,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:44][0m Benchmarking rust with message: 'H'
+  Run 1: encode=.005767826s, decode=.006877754s, total=.012645580s
+  Run 2: encode=.006148116s, decode=.007579806s, total=.013727922s
+{"impl":"rust","message":"H","password":"","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.007,"decode_std":0,"decode_cv":0,"total_mean":.013,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:45][0m Benchmarking rust with message: 'H'
+  Run 1: encode=.006248548s, decode=.009359238s, total=.015607786s
+  Run 2: encode=.006194910s, decode=.010127849s, total=.016322759s
+{"impl":"rust","message":"H","password":"simple_password","runs":2,"encode_mean":.006,"encode_std":0,"encode_cv":0,"decode_mean":.009,"decode_std":0,"decode_cv":0,"total_mean":.015,"total_std":.001000,"total_cv":.066}
+[0;34m[2025-07-05 09:10:45][0m Benchmarking rust with message: 'H'
+  Run 1: encode=.005689114s, decode=.011115553s, total=.016804667s
+  Run 2: encode=.005614174s, decode=.011718569s, total=.017332743s
+{"impl":"rust","message":"H","password":"complex_password_123!@#","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.011,"decode_std":0,"decode_cv":0,"total_mean":.017,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:46][0m Benchmarking rust with message: 'H'
+  Run 1: encode=.006340810s, decode=.010384308s, total=.016725118s
+  Run 2: encode=.005125560s, decode=.010109760s, total=.015235320s
+{"impl":"rust","message":"H","password":"🚀🌟🎉","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.010,"decode_std":0,"decode_cv":0,"total_mean":.015,"total_std":.001000,"total_cv":.066}
+[0;34m[2025-07-05 09:10:46][0m Benchmarking rust with message: 'I'
+  Run 1: encode=.005741915s, decode=.007508915s, total=.013250830s
+  Run 2: encode=.006338016s, decode=.007775153s, total=.014113169s
+{"impl":"rust","message":"I","password":"","runs":2,"encode_mean":.006,"encode_std":0,"encode_cv":0,"decode_mean":.007,"decode_std":0,"decode_cv":0,"total_mean":.013,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:47][0m Benchmarking rust with message: 'I'
+  Run 1: encode=.005318533s, decode=.009480344s, total=.014798877s
+  Run 2: encode=.005827681s, decode=.009641050s, total=.015468731s
+{"impl":"rust","message":"I","password":"simple_password","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.009,"decode_std":0,"decode_cv":0,"total_mean":.015,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:47][0m Benchmarking rust with message: 'I'
+  Run 1: encode=.005728296s, decode=.009922373s, total=.015650669s
+  Run 2: encode=.006035461s, decode=.009571837s, total=.015607298s
+{"impl":"rust","message":"I","password":"complex_password_123!@#","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.009,"decode_std":0,"decode_cv":0,"total_mean":.015,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:48][0m Benchmarking rust with message: 'I'
+  Run 1: encode=.005883973s, decode=.009544109s, total=.015428082s
+  Run 2: encode=.005986851s, decode=.009337866s, total=.015324717s
+{"impl":"rust","message":"I","password":"🚀🌟🎉","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.009,"decode_std":0,"decode_cv":0,"total_mean":.015,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:48][0m Benchmarking rust with message: 'J'
+  Run 1: encode=.006488874s, decode=.007257904s, total=.013746778s
+  Run 2: encode=.005874894s, decode=.008125550s, total=.014000444s
+{"impl":"rust","message":"J","password":"","runs":2,"encode_mean":.006,"encode_std":0,"encode_cv":0,"decode_mean":.007,"decode_std":0,"decode_cv":0,"total_mean":.013,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:49][0m Benchmarking rust with message: 'J'
+  Run 1: encode=.006471414s, decode=.010226675s, total=.016698089s
+  Run 2: encode=.006954720s, decode=.011160321s, total=.018115041s
+{"impl":"rust","message":"J","password":"simple_password","runs":2,"encode_mean":.006,"encode_std":0,"encode_cv":0,"decode_mean":.010,"decode_std":0,"decode_cv":0,"total_mean":.017,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:49][0m Benchmarking rust with message: 'J'
+  Run 1: encode=.005767337s, decode=.011248323s, total=.017015660s
+  Run 2: encode=.006677797s, decode=.009112347s, total=.015790144s
+{"impl":"rust","message":"J","password":"complex_password_123!@#","runs":2,"encode_mean":.006,"encode_std":0,"encode_cv":0,"decode_mean":.010,"decode_std":.001000,"decode_cv":.100,"total_mean":.016,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:50][0m Benchmarking rust with message: 'J'
+  Run 1: encode=.005992438s, decode=.010622538s, total=.016614976s
+  Run 2: encode=.005756652s, decode=.010200065s, total=.015956717s
+{"impl":"rust","message":"J","password":"🚀🌟🎉","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.010,"decode_std":0,"decode_cv":0,"total_mean":.016,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:50][0m Benchmarking go with message: 'Hello, World!'
+  Run 1: encode=.004721385s, decode=.004069760s, total=.008791145s
+  Run 2: encode=.004758610s, decode=.004900459s, total=.009659069s
+{"impl":"go","message":"Hello, World!","password":"","runs":2,"encode_mean":.004,"encode_std":0,"encode_cv":0,"decode_mean":.004,"decode_std":0,"decode_cv":0,"total_mean":.009,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:51][0m Benchmarking go with message: 'Hello, World!'
+  Run 1: encode=.004766293s, decode=.004812807s, total=.009579100s
+  Run 2: encode=.004598114s, decode=.004669911s, total=.009268025s
+{"impl":"go","message":"Hello, World!","password":"simple_password","runs":2,"encode_mean":.004,"encode_std":0,"encode_cv":0,"decode_mean":.004,"decode_std":0,"decode_cv":0,"total_mean":.009,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:51][0m Benchmarking go with message: 'Hello, World!'
+  Run 1: encode=.005482801s, decode=.007066188s, total=.012548989s
+  Run 2: encode=.007238487s, decode=.007561925s, total=.014800412s
+  Run 3: encode=.005772994s, decode=.005716772s, total=.011489766s
+{"impl":"go","message":"Hello, World!","password":"complex_password_123!@#","runs":3,"encode_mean":.006,"encode_std":0,"encode_cv":0,"decode_mean":.006,"decode_std":.001000,"decode_cv":.166,"total_mean":.012,"total_std":.001414,"total_cv":.117}
+[0;34m[2025-07-05 09:10:52][0m Benchmarking go with message: 'Hello, World!'
+  Run 1: encode=.004756934s, decode=.005903948s, total=.010660882s
+  Run 2: encode=.004983711s, decode=.005819858s, total=.010803569s
+{"impl":"go","message":"Hello, World!","password":"🚀🌟🎉","runs":2,"encode_mean":.004,"encode_std":0,"encode_cv":0,"decode_mean":.005,"decode_std":0,"decode_cv":0,"total_mean":.010,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:52][0m Benchmarking go with message: 'This is a longer test message with spaces and punctuation!'
+  Run 1: encode=.005137782s, decode=.005319091s, total=.010456873s
+  Run 2: encode=.005193237s, decode=.005110823s, total=.010304060s
+{"impl":"go","message":"This is a longer test message with spaces and punctuation!","password":"","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.005,"decode_std":0,"decode_cv":0,"total_mean":.010,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:53][0m Benchmarking go with message: 'This is a longer test message with spaces and punctuation!'
+  Run 1: encode=.005130798s, decode=.005963313s, total=.011094111s
+  Run 2: encode=.005217122s, decode=.004927069s, total=.010144191s
+{"impl":"go","message":"This is a longer test message with spaces and punctuation!","password":"simple_password","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.005,"decode_std":0,"decode_cv":0,"total_mean":.010,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:53][0m Benchmarking go with message: 'This is a longer test message with spaces and punctuation!'
+  Run 1: encode=.005919523s, decode=.004975609s, total=.010895132s
+  Run 2: encode=.005180316s, decode=.004998866s, total=.010179182s
+{"impl":"go","message":"This is a longer test message with spaces and punctuation!","password":"complex_password_123!@#","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.004,"decode_std":0,"decode_cv":0,"total_mean":.010,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:54][0m Benchmarking go with message: 'This is a longer test message with spaces and punctuation!'
+  Run 1: encode=.005990272s, decode=.006912605s, total=.012902877s
+  Run 2: encode=.006931532s, decode=.006493065s, total=.013424597s
+{"impl":"go","message":"This is a longer test message with spaces and punctuation!","password":"🚀🌟🎉","runs":2,"encode_mean":.006,"encode_std":0,"encode_cv":0,"decode_mean":.006,"decode_std":0,"decode_cv":0,"total_mean":.013,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:54][0m Benchmarking go with message: 'Unicode: 🚀🌟🎉'
+  Run 1: encode=.005375175s, decode=.004955634s, total=.010330809s
+  Run 2: encode=.005652168s, decode=.004881252s, total=.010533420s
+{"impl":"go","message":"Unicode: 🚀🌟🎉","password":"","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.004,"decode_std":0,"decode_cv":0,"total_mean":.010,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:55][0m Benchmarking go with message: 'Unicode: 🚀🌟🎉'
+  Run 1: encode=.006097131s, decode=.005782003s, total=.011879134s
+  Run 2: encode=.005923573s, decode=.005998304s, total=.011921877s
+{"impl":"go","message":"Unicode: 🚀🌟🎉","password":"simple_password","runs":2,"encode_mean":.006,"encode_std":0,"encode_cv":0,"decode_mean":.005,"decode_std":0,"decode_cv":0,"total_mean":.011,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:55][0m Benchmarking go with message: 'Unicode: 🚀🌟🎉'
+  Run 1: encode=.004878459s, decode=.006012552s, total=.010891011s
+  Run 2: encode=.004816928s, decode=.004836064s, total=.009652992s
+{"impl":"go","message":"Unicode: 🚀🌟🎉","password":"complex_password_123!@#","runs":2,"encode_mean":.004,"encode_std":0,"encode_cv":0,"decode_mean":.005,"decode_std":0,"decode_cv":0,"total_mean":.010,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:56][0m Benchmarking go with message: 'Unicode: 🚀🌟🎉'
+  Run 1: encode=.005229693s, decode=.004609707s, total=.009839400s
+  Run 2: encode=.005294856s, decode=.004569548s, total=.009864404s
+{"impl":"go","message":"Unicode: 🚀🌟🎉","password":"🚀🌟🎉","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.004,"decode_std":0,"decode_cv":0,"total_mean":.009,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:57][0m Benchmarking go with message: 'A'
+  Run 1: encode=.004577649s, decode=.004464156s, total=.009041805s
+  Run 2: encode=.004986993s, decode=.005175007s, total=.010162000s
+  Run 3: encode=.005152239s, decode=.004329571s, total=.009481810s
+{"impl":"go","message":"A","password":"","runs":3,"encode_mean":.004,"encode_std":0,"encode_cv":0,"decode_mean":.004,"decode_std":0,"decode_cv":0,"total_mean":.009,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:57][0m Benchmarking go with message: 'A'
+  Run 1: encode=.004717822s, decode=.005219986s, total=.009937808s
+  Run 2: encode=.004764058s, decode=.005198824s, total=.009962882s
+{"impl":"go","message":"A","password":"simple_password","runs":2,"encode_mean":.004,"encode_std":0,"encode_cv":0,"decode_mean":.005,"decode_std":0,"decode_cv":0,"total_mean":.009,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:58][0m Benchmarking go with message: 'A'
+  Run 1: encode=.004472607s, decode=.005027571s, total=.009500178s
+  Run 2: encode=.004577300s, decode=.005100696s, total=.009677996s
+  Run 3: encode=.004985387s, decode=.004672774s, total=.009658161s
+{"impl":"go","message":"A","password":"complex_password_123!@#","runs":3,"encode_mean":.004,"encode_std":0,"encode_cv":0,"decode_mean":.004,"decode_std":0,"decode_cv":0,"total_mean":.009,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:59][0m Benchmarking go with message: 'A'
+  Run 1: encode=.005148537s, decode=.005196309s, total=.010344846s
+  Run 2: encode=.004260218s, decode=.004519192s, total=.008779410s
+{"impl":"go","message":"A","password":"🚀🌟🎉","runs":2,"encode_mean":.004,"encode_std":0,"encode_cv":0,"decode_mean":.004,"decode_std":0,"decode_cv":0,"total_mean":.009,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:10:59][0m Benchmarking go with message: 'B'
+  Run 1: encode=.004789131s, decode=.005028759s, total=.009817890s
+  Run 2: encode=.004590709s, decode=.004694076s, total=.009284785s
+{"impl":"go","message":"B","password":"","runs":2,"encode_mean":.004,"encode_std":0,"encode_cv":0,"decode_mean":.004,"decode_std":0,"decode_cv":0,"total_mean":.009,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:11:00][0m Benchmarking go with message: 'B'
+  Run 1: encode=.005529455s, decode=.005406393s, total=.010935848s
+  Run 2: encode=.004752114s, decode=.005297719s, total=.010049833s
+{"impl":"go","message":"B","password":"simple_password","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.005,"decode_std":0,"decode_cv":0,"total_mean":.010,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:11:00][0m Benchmarking go with message: 'B'
+  Run 1: encode=.005080581s, decode=.005441664s, total=.010522245s
+  Run 2: encode=.004563891s, decode=.004840255s, total=.009404146s
+{"impl":"go","message":"B","password":"complex_password_123!@#","runs":2,"encode_mean":.004,"encode_std":0,"encode_cv":0,"decode_mean":.005,"decode_std":0,"decode_cv":0,"total_mean":.009,"total_std":.001000,"total_cv":.111}
+[0;34m[2025-07-05 09:11:01][0m Benchmarking go with message: 'B'
+  Run 1: encode=.005311059s, decode=.005076391s, total=.010387450s
+  Run 2: encode=.004910167s, decode=.004157270s, total=.009067437s
+{"impl":"go","message":"B","password":"🚀🌟🎉","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.004,"decode_std":0,"decode_cv":0,"total_mean":.009,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:11:01][0m Benchmarking go with message: 'C'
+  Run 1: encode=.004158039s, decode=.004830198s, total=.008988237s
+  Run 2: encode=.004531205s, decode=.005505988s, total=.010037193s
+{"impl":"go","message":"C","password":"","runs":2,"encode_mean":.004,"encode_std":0,"encode_cv":0,"decode_mean":.005,"decode_std":0,"decode_cv":0,"total_mean":.009,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:11:02][0m Benchmarking go with message: 'C'
+  Run 1: encode=.004864560s, decode=.005348704s, total=.010213264s
+  Run 2: encode=.005164182s, decode=.005134918s, total=.010299100s
+{"impl":"go","message":"C","password":"simple_password","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.005,"decode_std":0,"decode_cv":0,"total_mean":.010,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:11:02][0m Benchmarking go with message: 'C'
+  Run 1: encode=.004571154s, decode=.004764966s, total=.009336120s
+  Run 2: encode=.004420854s, decode=.004246738s, total=.008667592s
+{"impl":"go","message":"C","password":"complex_password_123!@#","runs":2,"encode_mean":.004,"encode_std":0,"encode_cv":0,"decode_mean":.004,"decode_std":0,"decode_cv":0,"total_mean":.009,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:11:02][0m Benchmarking go with message: 'C'
+  Run 1: encode=.003989580s, decode=.004135619s, total=.008125199s
+  Run 2: encode=.004787873s, decode=.004896967s, total=.009684840s
+{"impl":"go","message":"C","password":"🚀🌟🎉","runs":2,"encode_mean":.004,"encode_std":0,"encode_cv":0,"decode_mean":.004,"decode_std":0,"decode_cv":0,"total_mean":.008,"total_std":.001000,"total_cv":.125}
+[0;34m[2025-07-05 09:11:03][0m Benchmarking go with message: 'D'
+  Run 1: encode=.004947392s, decode=.005179547s, total=.010126939s
+  Run 2: encode=.004869728s, decode=.004775791s, total=.009645519s
+{"impl":"go","message":"D","password":"","runs":2,"encode_mean":.004,"encode_std":0,"encode_cv":0,"decode_mean":.004,"decode_std":0,"decode_cv":0,"total_mean":.009,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:11:03][0m Benchmarking go with message: 'D'
+  Run 1: encode=.004881741s, decode=.005081489s, total=.009963230s
+  Run 2: encode=.004958497s, decode=.005585538s, total=.010544035s
+{"impl":"go","message":"D","password":"simple_password","runs":2,"encode_mean":.004,"encode_std":0,"encode_cv":0,"decode_mean":.005,"decode_std":0,"decode_cv":0,"total_mean":.010,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:11:04][0m Benchmarking go with message: 'D'
+  Run 1: encode=.004524360s, decode=.005066054s, total=.009590414s
+  Run 2: encode=.004894522s, decode=.004829150s, total=.009723672s
+{"impl":"go","message":"D","password":"complex_password_123!@#","runs":2,"encode_mean":.004,"encode_std":0,"encode_cv":0,"decode_mean":.004,"decode_std":0,"decode_cv":0,"total_mean":.009,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:11:04][0m Benchmarking go with message: 'D'
+  Run 1: encode=.005386419s, decode=.004765245s, total=.010151664s
+  Run 2: encode=.004370987s, decode=.004998516s, total=.009369503s
+{"impl":"go","message":"D","password":"🚀🌟🎉","runs":2,"encode_mean":.004,"encode_std":.001000,"encode_cv":.250,"decode_mean":.004,"decode_std":0,"decode_cv":0,"total_mean":.009,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:11:05][0m Benchmarking go with message: 'E'
+  Run 1: encode=.004812108s, decode=.005450464s, total=.010262572s
+  Run 2: encode=.005145674s, decode=.005209649s, total=.010355323s
+{"impl":"go","message":"E","password":"","runs":2,"encode_mean":.004,"encode_std":0,"encode_cv":0,"decode_mean":.005,"decode_std":0,"decode_cv":0,"total_mean":.010,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:11:05][0m Benchmarking go with message: 'E'
+  Run 1: encode=.004880274s, decode=.004615644s, total=.009495918s
+  Run 2: encode=.006047892s, decode=.005762726s, total=.011810618s
+{"impl":"go","message":"E","password":"simple_password","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.005,"decode_std":0,"decode_cv":0,"total_mean":.010,"total_std":.001000,"total_cv":.100}
+[0;34m[2025-07-05 09:11:06][0m Benchmarking go with message: 'E'
+  Run 1: encode=.004393895s, decode=.004492023s, total=.008885918s
+  Run 2: encode=.004203506s, decode=.005797229s, total=.010000735s
+{"impl":"go","message":"E","password":"complex_password_123!@#","runs":2,"encode_mean":.004,"encode_std":0,"encode_cv":0,"decode_mean":.005,"decode_std":0,"decode_cv":0,"total_mean":.009,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:11:06][0m Benchmarking go with message: 'E'
+  Run 1: encode=.004409679s, decode=.005241497s, total=.009651176s
+  Run 2: encode=.004506690s, decode=.004281310s, total=.008788000s
+{"impl":"go","message":"E","password":"🚀🌟🎉","runs":2,"encode_mean":.004,"encode_std":0,"encode_cv":0,"decode_mean":.004,"decode_std":0,"decode_cv":0,"total_mean":.009,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:11:07][0m Benchmarking go with message: 'F'
+  Run 1: encode=.004528270s, decode=.005109495s, total=.009637765s
+  Run 2: encode=.005664599s, decode=.004876363s, total=.010540962s
+{"impl":"go","message":"F","password":"","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.004,"decode_std":0,"decode_cv":0,"total_mean":.010,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:11:07][0m Benchmarking go with message: 'F'
+  Run 1: encode=.005394381s, decode=.005011717s, total=.010406098s
+  Run 2: encode=.004602024s, decode=.004331386s, total=.008933410s
+{"impl":"go","message":"F","password":"simple_password","runs":2,"encode_mean":.004,"encode_std":.001000,"encode_cv":.250,"decode_mean":.004,"decode_std":0,"decode_cv":0,"total_mean":.009,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:11:08][0m Benchmarking go with message: 'F'
+  Run 1: encode=.005351916s, decode=.004778165s, total=.010130081s
+  Run 2: encode=.005390050s, decode=.004558094s, total=.009948144s
+{"impl":"go","message":"F","password":"complex_password_123!@#","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.004,"decode_std":0,"decode_cv":0,"total_mean":.010,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:11:08][0m Benchmarking go with message: 'F'
+  Run 1: encode=.004514092s, decode=.005288500s, total=.009802592s
+  Run 2: encode=.005427067s, decode=.005104537s, total=.010531604s
+{"impl":"go","message":"F","password":"🚀🌟🎉","runs":2,"encode_mean":.004,"encode_std":.001000,"encode_cv":.250,"decode_mean":.005,"decode_std":0,"decode_cv":0,"total_mean":.010,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:11:09][0m Benchmarking go with message: 'G'
+  Run 1: encode=.004234166s, decode=.004429235s, total=.008663401s
+  Run 2: encode=.004915055s, decode=.004014513s, total=.008929568s
+{"impl":"go","message":"G","password":"","runs":2,"encode_mean":.004,"encode_std":0,"encode_cv":0,"decode_mean":.004,"decode_std":0,"decode_cv":0,"total_mean":.008,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:11:09][0m Benchmarking go with message: 'G'
+  Run 1: encode=.004775511s, decode=.004508645s, total=.009284156s
+  Run 2: encode=.004965970s, decode=.004201061s, total=.009167031s
+{"impl":"go","message":"G","password":"simple_password","runs":2,"encode_mean":.004,"encode_std":0,"encode_cv":0,"decode_mean":.004,"decode_std":0,"decode_cv":0,"total_mean":.009,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:11:10][0m Benchmarking go with message: 'G'
+  Run 1: encode=.005477492s, decode=.004634640s, total=.010112132s
+  Run 2: encode=.005537905s, decode=.005209089s, total=.010746994s
+{"impl":"go","message":"G","password":"complex_password_123!@#","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.004,"decode_std":0,"decode_cv":0,"total_mean":.010,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:11:10][0m Benchmarking go with message: 'G'
+  Run 1: encode=.005535741s, decode=.004958986s, total=.010494727s
+  Run 2: encode=.005574642s, decode=.004478823s, total=.010053465s
+{"impl":"go","message":"G","password":"🚀🌟🎉","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.004,"decode_std":0,"decode_cv":0,"total_mean":.010,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:11:11][0m Benchmarking go with message: 'H'
+  Run 1: encode=.004803657s, decode=.005831102s, total=.010634759s
+  Run 2: encode=.005815318s, decode=.006101320s, total=.011916638s
+{"impl":"go","message":"H","password":"","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.005,"decode_std":0,"decode_cv":0,"total_mean":.011,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:11:11][0m Benchmarking go with message: 'H'
+  Run 1: encode=.005417568s, decode=.005648675s, total=.011066243s
+  Run 2: encode=.006100203s, decode=.005718517s, total=.011818720s
+{"impl":"go","message":"H","password":"simple_password","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.005,"decode_std":0,"decode_cv":0,"total_mean":.011,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:11:12][0m Benchmarking go with message: 'H'
+  Run 1: encode=.004906744s, decode=.004987621s, total=.009894365s
+  Run 2: encode=.004988599s, decode=.004776209s, total=.009764808s
+  Run 3: encode=.004727390s, decode=.005256652s, total=.009984042s
+{"impl":"go","message":"H","password":"complex_password_123!@#","runs":3,"encode_mean":.004,"encode_std":0,"encode_cv":0,"decode_mean":.005,"decode_std":0,"decode_cv":0,"total_mean":.009,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:11:13][0m Benchmarking go with message: 'H'
+  Run 1: encode=.004700082s, decode=.004271392s, total=.008971474s
+  Run 2: encode=.004652240s, decode=.004998587s, total=.009650827s
+{"impl":"go","message":"H","password":"🚀🌟🎉","runs":2,"encode_mean":.004,"encode_std":0,"encode_cv":0,"decode_mean":.004,"decode_std":0,"decode_cv":0,"total_mean":.009,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:11:13][0m Benchmarking go with message: 'I'
+  Run 1: encode=.005616967s, decode=.005641551s, total=.011258518s
+  Run 2: encode=.005606420s, decode=.004852547s, total=.010458967s
+{"impl":"go","message":"I","password":"","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.005,"decode_std":0,"decode_cv":0,"total_mean":.010,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:11:13][0m Benchmarking go with message: 'I'
+  Run 1: encode=.004958567s, decode=.005131286s, total=.010089853s
+  Run 2: encode=.005023380s, decode=.004913659s, total=.009937039s
+{"impl":"go","message":"I","password":"simple_password","runs":2,"encode_mean":.004,"encode_std":0,"encode_cv":0,"decode_mean":.005,"decode_std":0,"decode_cv":0,"total_mean":.010,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:11:14][0m Benchmarking go with message: 'I'
+  Run 1: encode=.005110543s, decode=.004650075s, total=.009760618s
+  Run 2: encode=.005293249s, decode=.004695053s, total=.009988302s
+{"impl":"go","message":"I","password":"complex_password_123!@#","runs":2,"encode_mean":.005,"encode_std":0,"encode_cv":0,"decode_mean":.004,"decode_std":0,"decode_cv":0,"total_mean":.009,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:11:14][0m Benchmarking go with message: 'I'
+  Run 1: encode=.004448023s, decode=.004951443s, total=.009399466s
+  Run 2: encode=.004973303s, decode=.004520798s, total=.009494101s
+{"impl":"go","message":"I","password":"🚀🌟🎉","runs":2,"encode_mean":.004,"encode_std":0,"encode_cv":0,"decode_mean":.004,"decode_std":0,"decode_cv":0,"total_mean":.009,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:11:15][0m Benchmarking go with message: 'J'
+  Run 1: encode=.005176194s, decode=.005102650s, total=.010278844s
+  Run 2: encode=.004599509s, decode=.005593360s, total=.010192869s
+{"impl":"go","message":"J","password":"","runs":2,"encode_mean":.004,"encode_std":0,"encode_cv":0,"decode_mean":.005,"decode_std":0,"decode_cv":0,"total_mean":.010,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:11:15][0m Benchmarking go with message: 'J'
+  Run 1: encode=.004972954s, decode=.005115152s, total=.010088106s
+  Run 2: encode=.004658456s, decode=.004369520s, total=.009027976s
+{"impl":"go","message":"J","password":"simple_password","runs":2,"encode_mean":.004,"encode_std":0,"encode_cv":0,"decode_mean":.004,"decode_std":0,"decode_cv":0,"total_mean":.009,"total_std":0,"total_cv":0}
+[0;34m[2025-07-05 09:11:16][0m Benchmarking go with message: 'J'
+  Run 1: encode=.004566124s, decode=.005052714s, total=.009618838s
+  Run 2: encode=.005315808s, decode=.005025266s, total=.010341074s
+{"impl":"go","message":"J","password":"complex_password_123!@#","runs":2,"encode_mean":.004,"encode_std":.001000,"encode_cv":.250,"decode_mean":.005,"decode_std":0,"decode_cv":0,"total_mean":.009,"total_std":.001000,"total_cv":.111}
+[0;34m[2025-07-05 09:11:16][0m Benchmarking go with message: 'J'
+  Run 1: encode=.005280049s, decode=.005396895s, total=.010676944s
+  Run 2: encode=.004666418s, decode=.005259934s, total=.009926352s
+{"impl":"go","message":"J","password":"🚀🌟🎉","runs":2,"encode_mean":.004,"encode_std":.001000,"encode_cv":.250,"decode_mean":.005,"decode_std":0,"decode_cv":0,"total_mean":.010,"total_std":0,"total_cv":0}
