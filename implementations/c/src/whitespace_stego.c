@@ -30,18 +30,47 @@ const char* whitespace_stego_last_error(void) {
 
 // Helper: encode bytes to zero-width string
 static char* encode_binary(const unsigned char* data, size_t data_len) {
-    size_t out_len = data_len * BITS_PER_CHAR * strlen(ZERO_BIT); // Each bit is a multi-byte char
+    // Calculate exact output size: each byte becomes 8 bits, each bit becomes a 3-byte UTF-8 character
+    size_t zero_bit_len = strlen(ZERO_BIT);
+    size_t one_bit_len = strlen(ONE_BIT);
+    size_t max_bit_len = (zero_bit_len > one_bit_len) ? zero_bit_len : one_bit_len;
+    size_t out_len = data_len * BITS_PER_CHAR * max_bit_len;
+    
+    // Add security check to prevent excessive memory allocation
+    if (out_len > 1024 * 1024 * 1024) { // 1GB limit
+        snprintf(last_error, sizeof(last_error), "Output would be too large: potential memory exhaustion attack");
+        return NULL;
+    }
+    
     char* out = malloc(out_len + 1);
-    if (!out) return NULL;
+    if (!out) {
+        snprintf(last_error, sizeof(last_error), "Memory allocation failed");
+        return NULL;
+    }
+    
     char* p = out;
+    size_t remaining_space = out_len;
+    
     for (size_t i = 0; i < data_len; i++) {
         for (int bit = 7; bit >= 0; bit--) {
             if ((data[i] >> bit) & 1) {
-                memcpy(p, ONE_BIT, strlen(ONE_BIT));
-                p += strlen(ONE_BIT);
+                if (remaining_space < one_bit_len) {
+                    free(out);
+                    snprintf(last_error, sizeof(last_error), "Buffer overflow prevented");
+                    return NULL;
+                }
+                memcpy(p, ONE_BIT, one_bit_len);
+                p += one_bit_len;
+                remaining_space -= one_bit_len;
             } else {
-                memcpy(p, ZERO_BIT, strlen(ZERO_BIT));
-                p += strlen(ZERO_BIT);
+                if (remaining_space < zero_bit_len) {
+                    free(out);
+                    snprintf(last_error, sizeof(last_error), "Buffer overflow prevented");
+                    return NULL;
+                }
+                memcpy(p, ZERO_BIT, zero_bit_len);
+                p += zero_bit_len;
+                remaining_space -= zero_bit_len;
             }
         }
     }
@@ -51,28 +80,76 @@ static char* encode_binary(const unsigned char* data, size_t data_len) {
 
 // Helper: decode zero-width string to bytes
 static unsigned char* decode_binary(const char* encoded, size_t* out_len) {
+    if (!encoded || !out_len) {
+        return NULL;
+    }
+    
     size_t encoded_len = strlen(encoded);
-    size_t bit_char_len = strlen(ZERO_BIT); // All are 3 bytes except ONE_BIT (which is 3 bytes too)
-    size_t bits = encoded_len / bit_char_len;
+    size_t zero_bit_len = strlen(ZERO_BIT);
+    size_t one_bit_len = strlen(ONE_BIT);
+    
+    // Security check: prevent excessive input
+    if (encoded_len > 1024 * 1024 * 1024) { // 1GB limit
+        snprintf(last_error, sizeof(last_error), "Input too large: potential memory exhaustion attack");
+        return NULL;
+    }
+    
+    // Calculate expected bytes: each byte is 8 bits, each bit is a 3-byte UTF-8 character
+    size_t bits = encoded_len / 3; // Each bit character is 3 bytes
     size_t bytes = bits / 8;
+    
+    // Security check: prevent excessive output
+    if (bytes > 1024 * 1024) { // 1MB limit
+        snprintf(last_error, sizeof(last_error), "Output would be too large: potential buffer overflow attack");
+        return NULL;
+    }
+    
     unsigned char* out = malloc(bytes + 1);
-    if (!out) return NULL;
+    if (!out) {
+        snprintf(last_error, sizeof(last_error), "Memory allocation failed");
+        return NULL;
+    }
+    
     size_t i = 0, j = 0;
     unsigned char byte = 0;
     int bit_count = 0;
-    while (encoded[i]) {
-        int is_one = (strncmp(&encoded[i], ONE_BIT, strlen(ONE_BIT)) == 0);
-        int is_zero = (strncmp(&encoded[i], ZERO_BIT, strlen(ZERO_BIT)) == 0);
-        if (!is_one && !is_zero) break;
+    
+    while (i < encoded_len && j < bytes) {
+        // Check bounds before accessing
+        if (i + 2 >= encoded_len) {
+            break; // Incomplete UTF-8 sequence at end
+        }
+        
+        int is_one = (strncmp(&encoded[i], ONE_BIT, one_bit_len) == 0);
+        int is_zero = (strncmp(&encoded[i], ZERO_BIT, zero_bit_len) == 0);
+        
+        if (!is_one && !is_zero) {
+            break; // Invalid character sequence
+        }
+        
         byte = (byte << 1) | (is_one ? 1 : 0);
         bit_count++;
-        i += bit_char_len;
+        i += 3; // Each bit character is 3 bytes
+        
         if (bit_count == 8) {
             out[j++] = byte;
             byte = 0;
             bit_count = 0;
         }
     }
+    
+    // Handle incomplete byte at end
+    if (bit_count > 0 && bit_count < 8) {
+        // Pad with zeros for incomplete byte
+        while (bit_count < 8) {
+            byte = (byte << 1) | 0;
+            bit_count++;
+        }
+        if (j < bytes) {
+            out[j++] = byte;
+        }
+    }
+    
     *out_len = j;
     return out;
 }

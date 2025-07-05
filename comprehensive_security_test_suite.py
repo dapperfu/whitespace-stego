@@ -74,9 +74,22 @@ class SecurityTestSuite:
     def create_temp_file(self, content: str, suffix: str = ".txt") -> str:
         """Create a temporary file with content and return the path"""
         fd, path = tempfile.mkstemp(suffix=suffix)
-        with os.fdopen(fd, 'w') as f:
+        with os.fdopen(fd, 'w', encoding='utf-8') as f:
             f.write(content)
         return path
+
+    def create_binary_temp_file(self, content: str, suffix: str = ".txt") -> str:
+        """Create a temporary file with binary content and return the path"""
+        fd, path = tempfile.mkstemp(suffix=suffix)
+        with os.fdopen(fd, 'wb') as f:
+            f.write(content.encode('utf-8'))
+        return path
+
+    def read_binary_file(self, path: str) -> str:
+        """Read a file as binary and decode as UTF-8"""
+        with open(path, 'rb') as f:
+            content = f.read()
+        return content.decode('utf-8', errors='replace')
 
     def cleanup_temp_file(self, path: str):
         """Clean up a temporary file"""
@@ -89,9 +102,9 @@ class SecurityTestSuite:
         """Test C++ implementation"""
         print(f"    Testing C++...")
         
-        # Create temporary files
-        message_file = self.create_temp_file(test_case.message)
-        carrier_file = self.create_temp_file(test_case.carrier)
+        # Create temporary files - use binary mode for C++ to avoid UTF-8 issues
+        message_file = self.create_binary_temp_file(test_case.message)
+        carrier_file = self.create_binary_temp_file(test_case.carrier)
         output_file = self.create_temp_file("")
         decoded_file = self.create_temp_file("")
         
@@ -115,9 +128,8 @@ class SecurityTestSuite:
                     "return_code": ret_code
                 }
             
-            # Read encoded output
-            with open(output_file, 'r') as f:
-                encoded = f.read()
+            # Read encoded output as binary
+            encoded = self.read_binary_file(output_file)
             
             # Decode
             decode_cmd = [
@@ -137,9 +149,8 @@ class SecurityTestSuite:
                     "return_code": ret_code
                 }
             
-            # Read decoded output
-            with open(decoded_file, 'r') as f:
-                decoded = f.read().strip()
+            # Read decoded output as binary
+            decoded = self.read_binary_file(decoded_file).strip()
             
             success = decoded == test_case.message
             return {
@@ -233,6 +244,10 @@ class SecurityTestSuite:
         """Test Go implementation"""
         print(f"    Testing Go...")
         
+        # For large data, use file-based testing to avoid command line length limits
+        if len(test_case.message) > 10000:
+            return self._test_go_file_based(test_case)
+        
         # Create temporary files
         carrier_file = self.create_temp_file(test_case.carrier)
         output_file = self.create_temp_file("")
@@ -299,6 +314,77 @@ class SecurityTestSuite:
             self.cleanup_temp_file(output_file)
             self.cleanup_temp_file(decoded_file)
 
+    def _test_go_file_based(self, test_case: TestCase) -> Dict[str, Any]:
+        """Test Go implementation using file-based approach for large data"""
+        
+        # Create temporary files
+        message_file = self.create_temp_file(test_case.message)
+        carrier_file = self.create_temp_file(test_case.carrier)
+        output_file = self.create_temp_file("")
+        decoded_file = self.create_temp_file("")
+        
+        try:
+            # Encode using file-based approach
+            encode_cmd = [
+                "./implementations/go/bin/whitespace-stego-go",
+                "encode",
+                "-message-file", message_file,
+                "-carrier-file", carrier_file,
+                "-output", output_file
+            ]
+            if test_case.password:
+                encode_cmd.extend(["-password", test_case.password])
+            
+            ret_code, stdout, stderr = self.run_command(encode_cmd, timeout=test_case.timeout)
+            if ret_code != 0:
+                return {
+                    "success": False,
+                    "error": f"Encode failed: {stderr}",
+                    "return_code": ret_code
+                }
+            
+            # Read encoded output
+            with open(output_file, 'r') as f:
+                encoded = f.read()
+            
+            # Decode
+            decode_cmd = [
+                "./implementations/go/bin/whitespace-stego-go",
+                "decode",
+                "-carrier-file", output_file,
+                "-output", decoded_file
+            ]
+            if test_case.password:
+                decode_cmd.extend(["-password", test_case.password])
+            
+            ret_code, stdout, stderr = self.run_command(decode_cmd, timeout=test_case.timeout)
+            if ret_code != 0:
+                return {
+                    "success": False,
+                    "error": f"Decode failed: {stderr}",
+                    "return_code": ret_code
+                }
+            
+            # Read decoded output
+            with open(decoded_file, 'r') as f:
+                decoded = f.read().strip()
+            
+            success = decoded == test_case.message
+            return {
+                "success": success,
+                "encoded_size": len(encoded),
+                "decoded": decoded,
+                "expected": test_case.message
+            }
+            
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+        finally:
+            self.cleanup_temp_file(message_file)
+            self.cleanup_temp_file(carrier_file)
+            self.cleanup_temp_file(output_file)
+            self.cleanup_temp_file(decoded_file)
+
     def test_python_core(self, test_case: TestCase) -> Dict[str, Any]:
         """Test Python core implementation"""
         print(f"    Testing Python (core)...")
@@ -316,6 +402,12 @@ class SecurityTestSuite:
 
     def _test_python(self, test_case: TestCase, backend: str) -> Dict[str, Any]:
         """Test Python implementation with specified backend"""
+        
+        # For large data, use file-based testing to avoid command line length limits
+        if len(test_case.message) > 10000 or len(test_case.carrier) > 10000:
+            return self._test_python_file_based(test_case, backend)
+        
+        # For small data, use the original method
         test_script = f"""
 import sys
 sys.path.insert(0, 'implementations/python')
@@ -375,6 +467,103 @@ except Exception as e:
             "decoded": decoded,
             "expected": test_case.message
         }
+
+    def _test_python_file_based(self, test_case: TestCase, backend: str) -> Dict[str, Any]:
+        """Test Python implementation using file-based approach for large data"""
+        
+        # Create temporary files
+        message_file = self.create_temp_file(test_case.message)
+        carrier_file = self.create_temp_file(test_case.carrier)
+        output_file = self.create_temp_file("")
+        decoded_file = self.create_temp_file("")
+        
+        try:
+            # Create Python script for file-based testing
+            test_script = f"""
+import sys
+import os
+sys.path.insert(0, 'implementations/python')
+
+try:
+    import whitespace_stego
+    
+    # Read input files
+    with open('{message_file}', 'r', encoding='utf-8') as f:
+        message = f.read()
+    with open('{carrier_file}', 'r', encoding='utf-8') as f:
+        carrier = f.read()
+    
+    # Test encoding
+    if '{backend}' == 'rust' and whitespace_stego.rust_available:
+        encoded = whitespace_stego.rust_encode(message, carrier, '{test_case.password}')
+    elif '{backend}' == 'c' and whitespace_stego.c_available:
+        encoded = whitespace_stego.c_encode(message, carrier, '{test_case.password}')
+    else:
+        encoded = whitespace_stego.encode(message, carrier, '{test_case.password}')
+    
+    # Write encoded output
+    with open('{output_file}', 'w', encoding='utf-8') as f:
+        f.write(encoded)
+    
+    # Test decoding
+    if '{backend}' == 'rust' and whitespace_stego.rust_available:
+        decoded = whitespace_stego.rust_decode(encoded, '{test_case.password}')
+    elif '{backend}' == 'c' and whitespace_stego.c_available:
+        decoded = whitespace_stego.c_decode(encoded, '{test_case.password}')
+    else:
+        decoded = whitespace_stego.decode(encoded, '{test_case.password}')
+    
+    # Write decoded output
+    with open('{decoded_file}', 'w', encoding='utf-8') as f:
+        f.write(decoded)
+    
+    print(f"ENCODED_SIZE:{{len(encoded)}}")
+    print(f"SUCCESS:{{decoded == message}}")
+    
+except Exception as e:
+    print(f"ERROR:{{str(e)}}")
+    sys.exit(1)
+"""
+            
+            # Write test script to temporary file
+            script_file = self.create_temp_file(test_script, ".py")
+            
+            ret_code, stdout, stderr = self.run_command(["python3", script_file], timeout=test_case.timeout)
+            
+            if ret_code != 0:
+                return {"success": False, "error": f"Python test failed: {stderr}"}
+            
+            # Parse output
+            lines = stdout.strip().split('\n')
+            encoded_size = None
+            success = False
+            
+            for line in lines:
+                if line.startswith("ENCODED_SIZE:"):
+                    encoded_size = int(line[13:])
+                elif line.startswith("SUCCESS:"):
+                    success = line[8:].lower() == "true"
+            
+            # Read decoded output
+            with open(decoded_file, 'r', encoding='utf-8') as f:
+                decoded = f.read()
+            
+            return {
+                "success": success,
+                "encoded_size": encoded_size or 0,
+                "decoded": decoded,
+                "expected": test_case.message
+            }
+            
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+        finally:
+            self.cleanup_temp_file(message_file)
+            self.cleanup_temp_file(carrier_file)
+            self.cleanup_temp_file(output_file)
+            self.cleanup_temp_file(decoded_file)
+            if 'script_file' in locals():
+                self.cleanup_temp_file(script_file)
 
     def generate_test_cases(self) -> List[TestCase]:
         """Generate comprehensive test cases"""
