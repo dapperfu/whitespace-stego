@@ -8,6 +8,7 @@ on:
       - 'implementations/python/whitespace-stego-core/**'
       - 'implementations/c/**'
       - 'implementations/go/**'
+      - 'scripts/benchmark_implementations.sh'
       - 'Cargo.toml'
       - 'Cargo.lock'
   pull_request:
@@ -17,6 +18,7 @@ on:
       - 'implementations/python/whitespace-stego-core/**'
       - 'implementations/c/**'
       - 'implementations/go/**'
+      - 'scripts/benchmark_implementations.sh'
       - 'Cargo.toml'
       - 'Cargo.lock'
   workflow_dispatch:
@@ -204,10 +206,82 @@ jobs:
           # Cleanup
           rm -f test_*.txt *_encoded.txt decoded_*.txt
 
+  test-benchmark:
+    name: Test Benchmark Implementation Script
+    runs-on: ubuntu-latest
+    needs: [test-rust, test-c, test-go]
+    timeout-minutes: 30
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup all environments
+        run: |
+          # Setup Rust
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          source ~/.cargo/env
+          
+          # Setup Go
+          wget https://go.dev/dl/go1.21.0.linux-amd64.tar.gz
+          sudo tar -C /usr/local -xzf go1.21.0.linux-amd64.tar.gz
+          export PATH=$PATH:/usr/local/go/bin
+          
+          # Setup C
+          sudo apt-get update
+          sudo apt-get install -y build-essential gcc make libssl-dev bc
+          
+          # Setup Python
+          sudo apt-get install -y python3 python3-pip
+          
+      - name: Build all implementations
+        run: |
+          echo "🔨 Building all implementations for benchmark..."
+          
+          # Build Rust
+          cd implementations/rust && cargo build --release
+          cd ../python/whitespace-stego-core && cargo build --release
+          
+          # Build C
+          cd ../c && make clean && make all
+          
+          # Build Go
+          cd ../go && make build
+          
+          # Build C++
+          cd ../cpp && make clean && make all
+          
+      - name: Install Python dependencies
+        run: |
+          echo "🐍 Installing Python dependencies..."
+          cd implementations/python
+          pip3 install -e .
+          
+      - name: Run benchmark implementation script
+        run: |
+          echo "📊 Running benchmark implementation script..."
+          chmod +x scripts/benchmark_implementations.sh
+          ./scripts/benchmark_implementations.sh
+          
+      - name: Display benchmark results
+        run: |
+          echo "📈 Benchmark Results:"
+          echo "===================="
+          if [ -f benchmark_results/benchmark.log ]; then
+            cat benchmark_results/benchmark.log
+          fi
+          
+          if [ -f test_carrier.txt ]; then
+            echo "✅ Test files created successfully"
+          else
+            echo "❌ Test files not found"
+            exit 1
+          fi
+
   test-summary:
     name: Test Summary
     runs-on: ubuntu-latest
-    needs: [test-rust, test-c, test-go, test-integration]
+    needs: [test-rust, test-c, test-go, test-integration, test-benchmark]
     if: always()
     
     steps:
@@ -223,10 +297,11 @@ jobs:
           echo "✅ C Implementation: ${{ needs.test-c.result }}"
           echo "✅ Go Implementation: ${{ needs.test-go.result }}"
           echo "✅ Cross-Language Integration: ${{ needs.test-integration.result }}"
+          echo "✅ Benchmark Implementation Script: ${{ needs.test-benchmark.result }}"
           echo ""
           
-          if [[ "${{ needs.test-rust.result }}" == "success" && "${{ needs.test-c.result }}" == "success" && "${{ needs.test-go.result }}" == "success" && "${{ needs.test-integration.result }}" == "success" ]]; then
-            echo "🎉 All internal language tests passed!"
+          if [[ "${{ needs.test-rust.result }}" == "success" && "${{ needs.test-c.result }}" == "success" && "${{ needs.test-go.result }}" == "success" && "${{ needs.test-integration.result }}" == "success" && "${{ needs.test-benchmark.result }}" == "success" ]]; then
+            echo "🎉 All internal language tests and benchmark passed!"
             exit 0
           else
             echo "❌ Some tests failed. Check the individual job results for details."
