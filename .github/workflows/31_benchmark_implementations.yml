@@ -1,0 +1,83 @@
+name: Benchmark Implementations (3X)
+
+on:
+  push:
+    branches: [ main, implementation5 ]
+    paths:
+      - 'scripts/benchmark_implementations.sh'
+  pull_request:
+    branches: [ main, implementation5 ]
+    paths:
+      - 'scripts/benchmark_implementations.sh'
+  workflow_dispatch:
+
+jobs:
+  benchmark-full:
+    name: Benchmark Full (3X)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup all environments
+        run: |
+          # Setup Rust
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          source ~/.cargo/env
+          
+          # Setup Go
+          wget https://go.dev/dl/go1.21.0.linux-amd64.tar.gz
+          sudo tar -C /usr/local -xzf go1.21.0.linux-amd64.tar.gz
+          export PATH=$PATH:/usr/local/go/bin
+          
+          # Setup C
+          sudo apt-get update
+          sudo apt-get install -y build-essential gcc make libssl-dev bc
+          
+          # Setup Python
+          sudo apt-get install -y python3 python3-pip
+          
+      - name: Build all implementations
+        run: |
+          echo "🔨 Building all implementations for full benchmark..."
+          
+          # Build Rust
+          cd implementations/rust && cargo build --release
+          cd ../python/whitespace-stego-core && cargo build --release
+          
+          # Build C
+          cd ../c && make clean && make all
+          
+          # Build Go
+          cd ../go && make build
+          
+          # Build C++
+          cd ../cpp && make clean && make all
+          
+      - name: Install Python dependencies
+        run: |
+          echo "🐍 Installing Python dependencies..."
+          cd implementations/python
+          pip3 install -e .
+          
+      - name: Run full benchmark (3X)
+        run: |
+          echo "📊 Running full benchmark (3X)..."
+          chmod +x scripts/benchmark_implementations.sh
+          
+          for i in {1..3}; do
+            echo "=== Benchmark run $i/3 ==="
+            ./scripts/benchmark_implementations.sh
+            echo "=== Benchmark run $i/3 completed ==="
+            echo
+          done
+          
+      - name: Display results
+        run: |
+          echo "📈 Full Benchmark Results:"
+          echo "========================="
+          if [ -f benchmark_results/benchmark.log ]; then
+            cat benchmark_results/benchmark.log
+          fi 
