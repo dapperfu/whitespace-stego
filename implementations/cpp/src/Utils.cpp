@@ -13,7 +13,8 @@ static const std::string base64_chars =
 
 std::string base64Encode(const std::string& input) {
     // Security: Limit input size to prevent memory exhaustion attacks
-    const size_t MAX_INPUT_SIZE = 1024 * 1024; // 1MB limit
+    // Base64 expansion: ~1.33x (4/3 ratio)
+    const size_t MAX_INPUT_SIZE = 768 * 1024; // 768KB limit (allows up to 1MB output)
     if (input.length() > MAX_INPUT_SIZE) {
         throw std::runtime_error("Input too large: potential memory exhaustion attack");
     }
@@ -43,7 +44,8 @@ std::string base64Encode(const std::string& input) {
 
 std::string base64Decode(const std::string& input) {
     // Security: Limit input size to prevent memory exhaustion attacks
-    const size_t MAX_INPUT_SIZE = 1024 * 1024; // 1MB limit
+    // Base64 compression: ~0.75x (3/4 ratio)
+    const size_t MAX_INPUT_SIZE = 1024 * 1024; // 1MB limit (allows up to 768KB output)
     if (input.length() > MAX_INPUT_SIZE) {
         throw std::runtime_error("Input too large: potential memory exhaustion attack");
     }
@@ -73,14 +75,16 @@ std::string base64Decode(const std::string& input) {
 
 std::string toZeroWidth(const std::string& binary) {
     // Security: Limit input size to prevent memory exhaustion attacks
-    const size_t MAX_INPUT_SIZE = 256 * 1024; // 256KB limit (8x expansion factor)
+    // Base64 expansion: ~1.33x, Zero-width expansion: 24x, Total: ~32x
+    // For 1MB input, output could be up to 32MB
+    const size_t MAX_INPUT_SIZE = 256 * 1024; // 256KB limit (allows up to 8MB output)
     if (binary.length() > MAX_INPUT_SIZE) {
         throw std::runtime_error("Input too large: potential memory exhaustion attack");
     }
     
     // Security: Calculate output size and check limits
     const size_t OUTPUT_SIZE = binary.length() * 8 * 3; // 8 bits per byte, 3 bytes per zero-width char
-    const size_t MAX_OUTPUT_SIZE = 1024 * 1024; // 1MB limit
+    const size_t MAX_OUTPUT_SIZE = 8 * 1024 * 1024; // 8MB limit (32x expansion from 256KB input)
     if (OUTPUT_SIZE > MAX_OUTPUT_SIZE) {
         throw std::runtime_error("Output would be too large: potential memory exhaustion attack");
     }
@@ -105,7 +109,8 @@ std::string fromZeroWidth(const std::string& zwstr) {
     std::string current_byte;
     
     // Security: Limit input size to prevent memory exhaustion attacks
-    const size_t MAX_INPUT_SIZE = 1024 * 1024; // 1MB limit
+    // Zero-width compression: ~0.042x (1/24 ratio)
+    const size_t MAX_INPUT_SIZE = 8 * 1024 * 1024; // 8MB limit (allows up to 256KB output)
     if (zwstr.length() > MAX_INPUT_SIZE) {
         throw std::runtime_error("Input too large: potential memory exhaustion attack");
     }
