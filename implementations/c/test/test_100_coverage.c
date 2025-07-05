@@ -202,7 +202,7 @@ void test_edge_cases(void) {
 void test_crypto_error_conditions(void) {
     printf("Testing crypto error conditions...\n");
     
-    char* result = NULL;
+    unsigned char* result = NULL;
     size_t result_len = 0;
     
     // Test NULL inputs
@@ -213,7 +213,7 @@ void test_crypto_error_conditions(void) {
     assert(decrypt_result != 0); // Should fail
     
     // Test with invalid data
-    char invalid_data[10] = "invalid";
+    unsigned char invalid_data[10] = "invalid";
     decrypt_result = crypto_decrypt(invalid_data, 10, "password", &result, &result_len);
     // This might fail, but we don't assert to be safe
     if (decrypt_result == 0 && result) {
@@ -243,9 +243,9 @@ void test_utils_uncovered_functions(void) {
     
     // Test base64 functions
     char* b64_result = NULL;
-    int b64_len = to_base64("Hello", 5, &b64_result);
+    int b64_len = to_base64((const unsigned char*)"Hello", 5, &b64_result);
     if (b64_len > 0 && b64_result) {
-        char* decoded = NULL;
+        unsigned char* decoded = NULL;
         size_t decoded_len = 0;
         int from_b64_result = from_base64(b64_result, &decoded, &decoded_len);
         if (from_b64_result == 0 && decoded) {
@@ -383,11 +383,12 @@ void test_base64_edge_cases(void) {
     int b64_result = to_base64(NULL, 10, &result);
     assert(b64_result != 0); // Should fail
     
-    int from_b64_result = from_base64(NULL, &result, NULL);
+    unsigned char* decoded = NULL;
+    int from_b64_result = from_base64(NULL, &decoded, NULL);
     assert(from_b64_result != 0); // Should fail
     
     // Test with zero length
-    b64_result = to_base64("", 0, &result);
+    b64_result = to_base64((const unsigned char*)"", 0, &result);
     if (b64_result == 0 && result) {
         free(result);
     }

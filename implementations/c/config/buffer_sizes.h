@@ -12,7 +12,7 @@
 // Recommended buffer sizes
 #define TINY_BUFFER_SIZE 4096
 #define SMALL_BUFFER_SIZE 1048576
-#define STANDARD_BUFFER_SIZE 1048576
+#define STANDARD_BUFFER_SIZE 16777216
 #define LARGE_BUFFER_SIZE 4294967295
 
 // Buffer size validation

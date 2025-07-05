@@ -46,21 +46,21 @@
  (0.00s)
 - **python_core**: ❌ FAIL - Python test failed:  (0.05s)
 - **python_rust**: ❌ FAIL - Python test failed:  (0.05s)
-- **python_c**: ❌ FAIL - Python test failed:  (0.05s)
+- **python_c**: ❌ FAIL - Python test failed:  (0.06s)
 
 ### Empty carrier
 - **cpp**: ✅ PASS (0.01s)
 - **c**: ❌ FAIL - Encode failed: [Errno 2] No such file or directory: './implementations/c/bin/whitespace-stego-c' (0.00s)
 - **go**: ✅ PASS (0.00s)
 - **python_core**: ✅ PASS (0.05s)
-- **python_rust**: ✅ PASS (0.05s)
-- **python_c**: ✅ PASS (0.05s)
+- **python_rust**: ✅ PASS (0.06s)
+- **python_c**: ✅ PASS (0.06s)
 
 ### Single character
 - **cpp**: ✅ PASS (0.01s)
 - **c**: ❌ FAIL - Encode failed: [Errno 2] No such file or directory: './implementations/c/bin/whitespace-stego-c' (0.00s)
 - **go**: ✅ PASS (0.00s)
-- **python_core**: ✅ PASS (0.05s)
+- **python_core**: ✅ PASS (0.06s)
 - **python_rust**: ✅ PASS (0.06s)
 - **python_c**: ✅ PASS (0.05s)
 
@@ -69,23 +69,23 @@
 - **c**: ❌ FAIL - Encode failed: [Errno 2] No such file or directory: './implementations/c/bin/whitespace-stego-c' (0.00s)
 - **go**: ✅ PASS (0.00s)
 - **python_core**: ✅ PASS (0.05s)
-- **python_rust**: ✅ PASS (0.06s)
+- **python_rust**: ✅ PASS (0.05s)
 - **python_c**: ✅ PASS (0.05s)
 
 ### Very long message
-- **cpp**: ✅ PASS (0.04s)
+- **cpp**: ✅ PASS (0.05s)
 - **c**: ❌ FAIL - Encode failed: [Errno 2] No such file or directory: './implementations/c/bin/whitespace-stego-c' (0.00s)
 - **go**: ✅ PASS (0.11s)
-- **python_core**: ✅ PASS (0.32s)
-- **python_rust**: ✅ PASS (8.06s)
-- **python_c**: ✅ PASS (0.07s)
+- **python_core**: ✅ PASS (0.33s)
+- **python_rust**: ✅ PASS (8.34s)
+- **python_c**: ✅ PASS (0.08s)
 
 ### Very long carrier
 - **cpp**: ✅ PASS (0.01s)
 - **c**: ❌ FAIL - Encode failed: [Errno 2] No such file or directory: './implementations/c/bin/whitespace-stego-c' (0.00s)
 - **go**: ✅ PASS (0.01s)
 - **python_core**: ✅ PASS (0.05s)
-- **python_rust**: ✅ PASS (0.77s)
+- **python_rust**: ✅ PASS (0.81s)
 - **python_c**: ✅ PASS (0.05s)
 
 ### Null bytes in message
@@ -99,7 +99,7 @@
 ### Null bytes in carrier
 - **cpp**: ✅ PASS (0.01s)
 - **c**: ❌ FAIL - Encode failed: [Errno 2] No such file or directory: './implementations/c/bin/whitespace-stego-c' (0.00s)
-- **go**: ✅ PASS (0.01s)
+- **go**: ✅ PASS (0.00s)
 - **python_core**: ❌ FAIL - Python test failed: embedded null byte (0.00s)
 - **python_rust**: ❌ FAIL - Python test failed: embedded null byte (0.00s)
 - **python_c**: ❌ FAIL - Python test failed: embedded null byte (0.00s)
@@ -109,7 +109,7 @@
 - **c**: ❌ FAIL - Encode failed: [Errno 2] No such file or directory: './implementations/c/bin/whitespace-stego-c' (0.00s)
 - **go**: ✅ PASS (0.00s)
 - **python_core**: ✅ PASS (0.05s)
-- **python_rust**: ✅ PASS (0.05s)
+- **python_rust**: ✅ PASS (0.06s)
 - **python_c**: ✅ PASS (0.05s)
 
 ### Combining characters
@@ -117,7 +117,7 @@
 - **c**: ❌ FAIL - Encode failed: [Errno 2] No such file or directory: './implementations/c/bin/whitespace-stego-c' (0.00s)
 - **go**: ✅ PASS (0.00s)
 - **python_core**: ✅ PASS (0.05s)
-- **python_rust**: ✅ PASS (0.05s)
+- **python_rust**: ✅ PASS (0.06s)
 - **python_c**: ✅ PASS (0.05s)
 
 ### Right-to-left text
@@ -133,7 +133,7 @@
 - **c**: ❌ FAIL - Encode failed: [Errno 2] No such file or directory: './implementations/c/bin/whitespace-stego-c' (0.00s)
 - **go**: ✅ PASS (0.00s)
 - **python_core**: ✅ PASS (0.05s)
-- **python_rust**: ✅ PASS (0.05s)
+- **python_rust**: ✅ PASS (0.06s)
 - **python_c**: ✅ PASS (0.05s)
 
 ### Surrogate pairs
@@ -141,7 +141,7 @@
 - **c**: ❌ FAIL - Encode failed: [Errno 2] No such file or directory: './implementations/c/bin/whitespace-stego-c' (0.00s)
 - **go**: ✅ PASS (0.00s)
 - **python_core**: ✅ PASS (0.05s)
-- **python_rust**: ✅ PASS (0.05s)
+- **python_rust**: ✅ PASS (0.06s)
 - **python_c**: ✅ PASS (0.05s)
 
 ### Memory exhaustion attempt
@@ -149,17 +149,17 @@
   what():  Input too large: potential memory exhaustion attack
  (0.13s)
 - **c**: ❌ FAIL - Encode failed: [Errno 2] No such file or directory: './implementations/c/bin/whitespace-stego-c' (0.00s)
-- **go**: ❌ FAIL (1.01s)
-- **python_core**: ❌ FAIL (3.10s)
+- **go**: ❌ FAIL (1.04s)
+- **python_core**: ❌ FAIL (3.03s)
 - **python_rust**: ❌ FAIL - Python test failed: Command timed out (30.05s)
-- **python_c**: ❌ FAIL (0.39s)
+- **python_c**: ❌ FAIL (0.45s)
 
 ### Memory exhaustion carrier
 - **cpp**: ✅ PASS (0.02s)
 - **c**: ❌ FAIL - Encode failed: [Errno 2] No such file or directory: './implementations/c/bin/whitespace-stego-c' (0.00s)
-- **go**: ✅ PASS (0.03s)
+- **go**: ✅ PASS (0.02s)
 - **python_core**: ✅ PASS (0.06s)
-- **python_rust**: ✅ PASS (7.42s)
+- **python_rust**: ✅ PASS (7.84s)
 - **python_c**: ✅ PASS (0.06s)
 
 ### Malicious UTF-8
@@ -167,7 +167,7 @@
 - **c**: ❌ FAIL - Encode failed: [Errno 2] No such file or directory: './implementations/c/bin/whitespace-stego-c' (0.00s)
 - **go**: ✅ PASS (0.00s)
 - **python_core**: ✅ PASS (0.05s)
-- **python_rust**: ✅ PASS (0.05s)
+- **python_rust**: ✅ PASS (0.06s)
 - **python_c**: ✅ PASS (0.05s)
 
 ### Control characters
@@ -175,7 +175,7 @@
 - **c**: ❌ FAIL - Encode failed: [Errno 2] No such file or directory: './implementations/c/bin/whitespace-stego-c' (0.00s)
 - **go**: ✅ PASS (0.00s)
 - **python_core**: ✅ PASS (0.05s)
-- **python_rust**: ✅ PASS (0.05s)
+- **python_rust**: ✅ PASS (0.06s)
 - **python_c**: ✅ PASS (0.05s)
 
 ### Long password
@@ -183,7 +183,7 @@
 - **c**: ❌ FAIL - Encode failed: [Errno 2] No such file or directory: './implementations/c/bin/whitespace-stego-c' (0.00s)
 - **go**: ✅ PASS (0.00s)
 - **python_core**: ✅ PASS (0.06s)
-- **python_rust**: ✅ PASS (0.05s)
+- **python_rust**: ✅ PASS (0.06s)
 - **python_c**: ✅ PASS (0.05s)
 
 ### Empty password
@@ -191,7 +191,7 @@
 - **c**: ❌ FAIL - Encode failed: [Errno 2] No such file or directory: './implementations/c/bin/whitespace-stego-c' (0.00s)
 - **go**: ✅ PASS (0.00s)
 - **python_core**: ✅ PASS (0.05s)
-- **python_rust**: ✅ PASS (0.05s)
+- **python_rust**: ✅ PASS (0.06s)
 - **python_c**: ✅ PASS (0.05s)
 
 ### Message with markers
@@ -208,7 +208,7 @@
 - **go**: ❌ FAIL - Decode failed: Error decoding message: no valid messages found in carrier text
  (0.00s)
 - **python_core**: ❌ FAIL (0.05s)
-- **python_rust**: ❌ FAIL - Python test failed:  (0.05s)
+- **python_rust**: ❌ FAIL - Python test failed:  (0.06s)
 - **python_c**: ✅ PASS (0.05s)
 
 ### Mixed encoding
@@ -228,27 +228,27 @@
 - **python_c**: ✅ PASS (0.05s)
 
 ### Medium message
-- **cpp**: ✅ PASS (0.03s)
+- **cpp**: ✅ PASS (0.02s)
 - **c**: ❌ FAIL - Encode failed: [Errno 2] No such file or directory: './implementations/c/bin/whitespace-stego-c' (0.00s)
 - **go**: ✅ PASS (0.06s)
 - **python_core**: ✅ PASS (0.19s)
-- **python_rust**: ✅ PASS (4.24s)
-- **python_c**: ✅ PASS (0.06s)
+- **python_rust**: ✅ PASS (4.55s)
+- **python_c**: ✅ PASS (0.07s)
 
 ### Large message
 - **cpp**: ✅ PASS (0.08s)
 - **c**: ❌ FAIL - Encode failed: [Errno 2] No such file or directory: './implementations/c/bin/whitespace-stego-c' (0.00s)
-- **go**: ✅ PASS (0.19s)
-- **python_core**: ✅ PASS (0.59s)
-- **python_rust**: ✅ PASS (16.74s)
-- **python_c**: ✅ PASS (0.11s)
+- **go**: ✅ PASS (0.20s)
+- **python_core**: ✅ PASS (0.62s)
+- **python_rust**: ✅ PASS (17.82s)
+- **python_c**: ✅ PASS (0.12s)
 
 ### Special chars password
 - **cpp**: ✅ PASS (0.01s)
 - **c**: ❌ FAIL - Encode failed: [Errno 2] No such file or directory: './implementations/c/bin/whitespace-stego-c' (0.00s)
 - **go**: ✅ PASS (0.00s)
-- **python_core**: ✅ PASS (0.05s)
-- **python_rust**: ✅ PASS (0.05s)
+- **python_core**: ✅ PASS (0.06s)
+- **python_rust**: ✅ PASS (0.06s)
 - **python_c**: ✅ PASS (0.05s)
 
 ### Empty message encrypted
@@ -288,7 +288,7 @@
 - **c**: ❌ FAIL - Encode failed: [Errno 2] No such file or directory: './implementations/c/bin/whitespace-stego-c' (0.00s)
 - **go**: ✅ PASS (0.00s)
 - **python_core**: ✅ PASS (0.05s)
-- **python_rust**: ✅ PASS (0.05s)
+- **python_rust**: ✅ PASS (0.06s)
 - **python_c**: ✅ PASS (0.05s)
 
 ### Unicode password
@@ -305,6 +305,6 @@
 - **cpp**: ✅ PASS (0.01s)
 - **c**: ❌ FAIL - Encode failed: [Errno 2] No such file or directory: './implementations/c/bin/whitespace-stego-c' (0.00s)
 - **go**: ✅ PASS (0.00s)
-- **python_core**: ✅ PASS (0.05s)
-- **python_rust**: ✅ PASS (0.05s)
+- **python_core**: ✅ PASS (0.06s)
+- **python_rust**: ✅ PASS (0.06s)
 - **python_c**: ✅ PASS (0.05s)
