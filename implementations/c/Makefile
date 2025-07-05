@@ -90,7 +90,7 @@ CMAKE_CCACHE_ARG = -DCMAKE_C_COMPILER_LAUNCHER=$(CCACHE)
 .PHONY: all clean test test-c test-unity test-coverage coverage-report shared cmake-build cmake-test cmake-clean install-unity help install uninstall dev debug release ccache-setup ccache-stats ccache-clean ccache-show whitespace-stego-static whitespace-stego-static-small whitespace-stego-static-tiny whitespace-stego-static-large test-static test-static-small test-static-tiny test-static-large test-cross-static
 
 # Default target builds all implementations
-all: $(BUFFER_CONFIG_HEADER) cmake-build $(TARGET) $(SHARED_LIB) whitespace-stego-static whitespace-stego-static-small whitespace-stego-static-tiny whitespace-stego-static-large
+all: $(BUFFER_CONFIG_HEADER) cmake-build $(TARGET) $(SHARED_LIB) whitespace-stego-static whitespace-stego-static-small whitespace-stego-static-tiny whitespace-stego-static-large bin/whitespace-stego-c
 
 help:
 	@echo "Whitespace Steganography - C Implementation"
