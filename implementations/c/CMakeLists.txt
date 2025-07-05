@@ -50,24 +50,38 @@ set(LIB_SOURCES
 add_library(whitespace_stego SHARED ${LIB_SOURCES})
 target_link_libraries(whitespace_stego OpenSSL::SSL OpenSSL::Crypto)
 
-# Test executable (using static implementation)
-add_executable(test-c test/test_100_coverage.c ${LIB_SOURCES})
+# Source files for dynamic implementation
+set(DYNAMIC_SOURCES
+    src/whitespace_stego.c
+    src/crypto.c
+    src/utils.c
+)
+
+# Test executable (using dynamic implementation)
+add_executable(test-c test/test_100_coverage.c ${DYNAMIC_SOURCES})
 target_link_libraries(test-c OpenSSL::SSL OpenSSL::Crypto)
 
-# Coverage test executable (using static implementation)
-add_executable(test-coverage test/test_100_coverage.c ${LIB_SOURCES})
+# Coverage test executable (using dynamic implementation)
+add_executable(test-coverage test/test_100_coverage.c ${DYNAMIC_SOURCES})
 target_compile_options(test-coverage PRIVATE --coverage -fprofile-arcs -ftest-coverage)
 target_link_libraries(test-coverage OpenSSL::SSL OpenSSL::Crypto)
 target_link_options(test-coverage PRIVATE --coverage -fprofile-arcs -ftest-coverage)
 
 # 100% Coverage test executable
-add_executable(test-100-coverage test/test_100_coverage.c ${LIB_SOURCES})
+add_executable(test-100-coverage test/test_100_coverage.c ${DYNAMIC_SOURCES})
 target_compile_options(test-100-coverage PRIVATE --coverage -fprofile-arcs -ftest-coverage)
 target_link_libraries(test-100-coverage OpenSSL::SSL OpenSSL::Crypto)
 target_link_options(test-100-coverage PRIVATE --coverage -fprofile-arcs -ftest-coverage)
 
-# Cross-test executable for static implementations
-add_executable(test-cross-static test/cross_test_static.c ${LIB_SOURCES})
+# Cross-test executable for static implementations (include all static sources)
+add_executable(test-cross-static
+    test/cross_test_static.c
+    src/whitespace_stego_static.c
+    src/whitespace_stego_static_small.c
+    src/whitespace_stego_static_large.c
+    src/crypto.c
+    src/utils.c
+)
 target_link_libraries(test-cross-static OpenSSL::SSL OpenSSL::Crypto)
 
 # Unity test executable (if Unity is available)

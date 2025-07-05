@@ -1,4 +1,5 @@
 #include "Utils.hpp"
+#include "Constants.hpp"
 #include <sstream>
 #include <iomanip>
 #include <algorithm>
@@ -95,9 +96,9 @@ std::string toZeroWidth(const std::string& binary) {
     for (unsigned char byte : binary) {
         for (int i = 7; i >= 0; --i) {
             if (byte & (1 << i)) {
-                result += "\u200b"; // Zero-width space
+                result += Constants::ONE_BIT; // Zero-width joiner
             } else {
-                result += "\u200d"; // Zero-width joiner
+                result += Constants::ZERO_BIT; // Zero-width space
             }
         }
     }
@@ -119,28 +120,29 @@ std::string fromZeroWidth(const std::string& zwstr) {
     const size_t MAX_OUTPUT_SIZE = 256 * 1024; // 256KB limit
     const size_t MAX_BYTES = MAX_OUTPUT_SIZE;
     
-    // Zero-width space: \u200b (3 bytes: 0xE2 0x80 0x8B)
-    // Zero-width joiner: \u200d (3 bytes: 0xE2 0x80 0x8D)
+    // Use Constants for zero-width characters
+    const std::string& zero_bit = Constants::ZERO_BIT;
+    const std::string& one_bit = Constants::ONE_BIT;
+    const size_t bit_char_len = zero_bit.length(); // All are 3 bytes
+    
     for (size_t i = 0; i < zwstr.length(); ++i) {
         // Security: Check bounds before accessing next bytes
-        if (i + 2 >= zwstr.length()) {
+        if (i + bit_char_len - 1 >= zwstr.length()) {
             // Incomplete UTF-8 sequence at end - skip it
             break;
         }
         
-        // Security: Validate UTF-8 sequence bounds
-        if ((unsigned char)zwstr[i] == 0xE2 && 
-            (unsigned char)zwstr[i+1] == 0x80) {
-            
-            if ((unsigned char)zwstr[i+2] == 0x8B) {
-                current_byte += '1';
-                i += 2; // Skip the next 2 bytes
-            } else if ((unsigned char)zwstr[i+2] == 0x8D) {
-                current_byte += '0';
-                i += 2; // Skip the next 2 bytes
-            }
-            // Security: If it's not a valid zero-width character, skip it
+        // Check if this is a zero-width character
+        if (i + zero_bit.length() <= zwstr.length() && 
+            zwstr.substr(i, zero_bit.length()) == zero_bit) {
+            current_byte += '0';
+            i += zero_bit.length() - 1; // Skip the character bytes
+        } else if (i + one_bit.length() <= zwstr.length() && 
+                   zwstr.substr(i, one_bit.length()) == one_bit) {
+            current_byte += '1';
+            i += one_bit.length() - 1; // Skip the character bytes
         }
+        // Security: If it's not a valid zero-width character, skip it
         
         // Security: Check if we have a complete byte
         if (current_byte.length() == 8) {

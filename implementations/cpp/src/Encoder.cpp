@@ -37,10 +37,34 @@ std::string Encoder::encode(const std::string& message, const std::string& carri
 }
 
 size_t Encoder::findInsertPosition(const std::string& carrier) {
-    // Simple strategy: insert after the first space or at the end
-    size_t pos = carrier.find(' ');
-    if (pos == std::string::npos) {
-        return carrier.length();
+    // Strategy: insert after the first character for better compatibility
+    // This matches the behavior of other implementations
+    if (carrier.empty()) {
+        return 0;
     }
-    return pos + 1;
+    
+    // For UTF-8, we need to find the first complete character
+    size_t first_char_len = 0;
+    unsigned char first_byte = static_cast<unsigned char>(carrier[0]);
+    
+    if (first_byte < 0x80) {
+        // ASCII character - 1 byte
+        first_char_len = 1;
+    } else if (first_byte < 0xE0) {
+        // 2-byte UTF-8 sequence
+        first_char_len = 2;
+    } else if (first_byte < 0xF0) {
+        // 3-byte UTF-8 sequence
+        first_char_len = 3;
+    } else {
+        // 4-byte UTF-8 sequence
+        first_char_len = 4;
+    }
+    
+    // Ensure we don't exceed carrier length
+    if (first_char_len > carrier.length()) {
+        first_char_len = carrier.length();
+    }
+    
+    return first_char_len;
 } 
