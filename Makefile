@@ -10,13 +10,14 @@ VENV?=.venv
 BIN_DIR=bin
 MAKEFILE_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
-.PHONY: all c clean coverage coverage-xml cov-c cov-go cov-python go help install maturin-develop rust test venv wasi wasi-web
+.PHONY: all c cpp clean coverage coverage-xml cov-c cov-go cov-python go help install maturin-develop rust test venv wasi wasi-web
 
 # Default target
 help:
 	@echo "Available targets:"
 	@echo "  all             - Build all binaries and place in bin/ folder"
 	@echo "  c               - Build C CLI binary"
+	@echo "  cpp             - Build C++ CLI binary"
 	@echo "  clean           - Remove all build artifacts"
 	@echo "  coverage        - Run coverage tests for all languages"
 	@echo "  coverage-xml    - Generate consolidated Cobertura XML reports"
@@ -28,7 +29,6 @@ help:
 	@echo "  help            - Show this help message"
 	@echo "  install         - Install Python package and dependencies"
 	@echo "  maturin-develop - Install Rust extension in development mode"
-
 	@echo "  rust            - Build Rust CLI binary"
 	@echo "  test            - Run Python module tests"
 	@echo "  venv            - Create Python virtual environment"
@@ -36,7 +36,7 @@ help:
 	@echo "  wasi-web        - Build and serve WASM web interface"
 
 # Build all binaries and place in bin/ folder
-all: rust c go python-binary-docker
+all: rust c cpp go python-binary-docker
 	@echo "All binaries built and placed in ${BIN_DIR}/ folder:"
 	@ls -la ${BIN_DIR}/
 
@@ -49,6 +49,14 @@ c:
 	cp ${MAKEFILE_DIR}/implementations/c/bin/whitespace-stego-c ${BIN_DIR}/
 	cp ${MAKEFILE_DIR}/implementations/c/bin/whitespace-stego-c-dynamic ${BIN_DIR}/
 	cp ${MAKEFILE_DIR}/implementations/c/bin/whitespace-stego-c-static ${BIN_DIR}/
+
+# Build C++ CLI binary
+cpp:
+	@echo "Building C++ CLI binary..."
+	cd implementations/cpp && make clean && make all
+	cd ../..
+	mkdir -p ${BIN_DIR}
+	cp ${MAKEFILE_DIR}/implementations/cpp/bin/whitespace-stego-cpp ${BIN_DIR}/
 
 # Remove all build artifacts
 clean:
