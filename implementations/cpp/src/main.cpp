@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
             message = read_file(message_file);
         }
         if (message.empty()) {
-            std::cerr << "No message provided." << std::endl;
+            std::cerr << "Message must not be empty." << std::endl;
             return 1;
         }
         if (carrier_file.empty()) {

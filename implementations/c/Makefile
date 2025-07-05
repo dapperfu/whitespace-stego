@@ -370,32 +370,27 @@ distclean: clean ccache-clean
 	rm -rf test/build
 	rm -rf $(CCACHE_DIR_NAME)
 
+# Directory creation target
+bin:
+	@mkdir -p $(BIN_DIR)
+
 # Static implementation targets
-whitespace-stego-static: bin/whitespace-stego-static
-
-whitespace-stego-static-small: bin/whitespace-stego-static-small
-
-whitespace-stego-static-tiny: bin/whitespace-stego-static-tiny
-
-whitespace-stego-static-large: bin/whitespace-stego-static-large
-
-# Individual build targets for static implementations
-bin/whitespace-stego-static: bin
+whitespace-stego-static: bin
 	cmake -B build -S .
 	cmake --build build --target whitespace-stego-static
 	cp build/whitespace-stego-static bin/
 
-bin/whitespace-stego-static-small: bin
+whitespace-stego-static-small: bin
 	cmake -B build -S .
 	cmake --build build --target whitespace-stego-static-small
 	cp build/whitespace-stego-static-small bin/
 
-bin/whitespace-stego-static-tiny: bin
+whitespace-stego-static-tiny: bin
 	cmake -B build -S .
 	cmake --build build --target whitespace-stego-static-tiny
 	cp build/whitespace-stego-static-tiny bin/
 
-bin/whitespace-stego-static-large: bin
+whitespace-stego-static-large: bin
 	cmake -B build -S .
 	cmake --build build --target whitespace-stego-static-large
 	cp build/whitespace-stego-static-large bin/
@@ -405,17 +400,17 @@ bin/whitespace-stego-c: bin/whitespace-stego-static
 	ln -sf whitespace-stego-static bin/whitespace-stego-c
 
 # Test targets for static implementations
-test-static: bin/whitespace-stego-static
-	./bin/whitespace-stego-static --help
+test-static: whitespace-stego-static
+	./whitespace-stego-static --help
 
-test-static-small: bin/whitespace-stego-static-small
-	./bin/whitespace-stego-static-small --help
+test-static-small: whitespace-stego-static-small
+	./whitespace-stego-static-small --help
 
-test-static-tiny: bin/whitespace-stego-static-tiny
-	./bin/whitespace-stego-static-tiny --help
+test-static-tiny: whitespace-stego-static-tiny
+	./whitespace-stego-static-tiny --help
 
-test-static-large: bin/whitespace-stego-static-large
-	./bin/whitespace-stego-static-large --help
+test-static-large: whitespace-stego-static-large
+	./whitespace-stego-static-large --help
 
 # Update test-all to include static implementations
 test-all: test test-c test-unity test-coverage test-100-coverage test-cross-static test-static test-static-small test-static-tiny test-static-large

@@ -571,7 +571,7 @@ except Exception as e:
         
         # 1. Edge Cases
         test_cases.extend([
-            TestCase("Empty message", "edge_cases", "Empty message", "", "Carrier text", "", TestResult.PASS),
+            TestCase("Empty message", "edge_cases", "Empty message", "", "Carrier text", "", TestResult.FAIL, "Message must not be empty"),
             TestCase("Empty carrier", "edge_cases", "Empty carrier", "Message", "", "", TestResult.PASS),
             TestCase("Single character", "edge_cases", "Single character message", "A", "Carrier", "", TestResult.PASS),
             TestCase("Single character carrier", "edge_cases", "Single character carrier", "Message", "B", "", TestResult.PASS),
@@ -620,7 +620,7 @@ except Exception as e:
             TestCase("Simple encryption", "encryption", "Simple password", "Secret message", "Carrier", "password123", TestResult.PASS),
             TestCase("Unicode password", "encryption", "Unicode password", "Secret message", "Carrier", "密码123", TestResult.PASS),
             TestCase("Special chars password", "encryption", "Special characters in password", "Secret message", "Carrier", "p@ssw0rd!#$", TestResult.PASS),
-            TestCase("Empty message encrypted", "encryption", "Empty message with password", "", "Carrier", "password", TestResult.PASS),
+            TestCase("Empty message encrypted", "encryption", "Empty message with password", "", "Carrier", "password", TestResult.FAIL, "Message must not be empty"),
         ])
         
         return test_cases

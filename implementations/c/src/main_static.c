@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
     printf("No dynamic memory allocation used\n\n");
     
     // Initialize static buffers
-    whitespace_stego_buffers_t buffers;
+    static whitespace_stego_buffers_t buffers;
     if (!whitespace_stego_static_init(&buffers)) {
         printf("Failed to initialize buffers: %s\n", whitespace_stego_static_last_error());
         return 1;

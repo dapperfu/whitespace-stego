@@ -18,8 +18,11 @@
 #include <stddef.h>
 #include <stdint.h>
 
-/* Maximum buffer size: 2^32 - 1 bytes (4 GiB - 1) */
-#define MAX_BUFFER_SIZE ((size_t)4294967295U)
+/* Include auto-generated buffer size configuration */
+#include "../config/buffer_sizes.h"
+
+/* Maximum buffer size: Use configured standard size to avoid stack overflow */
+#define MAX_BUFFER_SIZE STANDARD_BUFFER_SIZE
 
 /* Maximum number of messages that can be decoded at once */
 #define MAX_MESSAGES 1000
@@ -27,7 +30,7 @@
 /* Buffer configuration */
 typedef struct {
     char carrier[MAX_BUFFER_SIZE];
-    char message[MAX_BUFFER_SIZE * MAX_MESSAGES];  /* Space for multiple messages */
+    char message[MAX_BUFFER_SIZE];  /* Single message buffer for standard static */
     char encoded[MAX_BUFFER_SIZE];
     char decoded[MAX_BUFFER_SIZE];
     char temp[MAX_BUFFER_SIZE];
