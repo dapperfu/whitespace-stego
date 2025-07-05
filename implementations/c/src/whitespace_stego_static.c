@@ -1,11 +1,11 @@
 /*
  * Static Whitespace Steganography Implementation
  * 
- * This implementation uses only static memory allocation with a 2^32 character limit.
+ * This implementation uses only static memory allocation with a 4 MiB buffer limit.
  * No dynamic memory allocation (malloc, free, realloc) is used.
  * 
  * Features:
- * - Maximum 4 GiB (2^32 bytes) for any single buffer
+ * - Fixed 4 MiB (4194304 bytes) for all buffers
  * - No memory leaks or allocation errors
  * - Thread-safe with proper buffer management
  * - MISRA C compliant

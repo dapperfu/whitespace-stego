@@ -43,10 +43,12 @@ all: rust c go python-binary-docker
 # Build C CLI binary
 c:
 	@echo "Building C CLI binary..."
-	cd implementations/c && make clean && make
+	cd implementations/c && make clean && make all
 	cd ../..
 	mkdir -p ${BIN_DIR}
 	cp ${MAKEFILE_DIR}/implementations/c/bin/whitespace-stego-c ${BIN_DIR}/
+	cp ${MAKEFILE_DIR}/implementations/c/bin/whitespace-stego-c-dynamic ${BIN_DIR}/
+	cp ${MAKEFILE_DIR}/implementations/c/bin/whitespace-stego-c-static ${BIN_DIR}/
 
 # Remove all build artifacts
 clean:

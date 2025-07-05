@@ -1,11 +1,11 @@
 /*
  * Static Whitespace Steganography Implementation
  * 
- * This implementation uses only static memory allocation with a 2^32 character limit.
+ * This implementation uses only static memory allocation with a 4 MiB buffer limit.
  * No dynamic memory allocation (malloc, free, realloc) is used.
  * 
  * Features:
- * - Maximum 4 GiB (2^32 bytes) for any single buffer
+ * - Fixed 4 MiB (4194304 bytes) for all buffers
  * - No memory leaks or allocation errors
  * - Thread-safe with proper buffer management
  * - MISRA C compliant
@@ -18,11 +18,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
-/* Include auto-generated buffer size configuration */
-#include "../config/buffer_sizes.h"
-
-/* Maximum buffer size: Use configured standard size to avoid stack overflow */
-#define MAX_BUFFER_SIZE STANDARD_BUFFER_SIZE
+/* Fixed buffer size: 4 MiB (4194304 bytes) */
+#define STATIC_BUFFER_SIZE 4194304
+#define MAX_BUFFER_SIZE STATIC_BUFFER_SIZE
 
 /* Maximum number of messages that can be decoded at once */
 #define MAX_MESSAGES 1000
@@ -123,7 +121,7 @@ int whitespace_stego_static_validate_size(size_t size);
 /**
  * @brief Get the maximum allowed buffer size
  *
- * @return The maximum buffer size (2^32 - 1)
+ * @return The maximum buffer size (4 MiB)
  */
 size_t whitespace_stego_static_max_size(void);
 
