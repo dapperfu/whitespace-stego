@@ -376,27 +376,32 @@ bin:
 
 # Static implementation targets
 whitespace-stego-static: bin
-	cmake -B build -S .
-	cmake --build build --target whitespace-stego-static
-	cp build/whitespace-stego-static bin/
+	cmake -B test/build -S .
+	cmake --build test/build --target whitespace-stego-static
+	@mkdir -p bin
+	cp test/build/whitespace-stego-static bin/
 
 whitespace-stego-static-small: bin
-	cmake -B build -S .
-	cmake --build build --target whitespace-stego-static-small
-	cp build/whitespace-stego-static-small bin/
+	cmake -B test/build -S .
+	cmake --build test/build --target whitespace-stego-static-small
+	@mkdir -p bin
+	cp test/build/whitespace-stego-static-small bin/
 
 whitespace-stego-static-tiny: bin
-	cmake -B build -S .
-	cmake --build build --target whitespace-stego-static-tiny
-	cp build/whitespace-stego-static-tiny bin/
+	cmake -B test/build -S .
+	cmake --build test/build --target whitespace-stego-static-tiny
+	@mkdir -p bin
+	cp test/build/whitespace-stego-static-tiny bin/
 
 whitespace-stego-static-large: bin
-	cmake -B build -S .
-	cmake --build build --target whitespace-stego-static-large
-	cp build/whitespace-stego-static-large bin/
+	cmake -B test/build -S .
+	cmake --build test/build --target whitespace-stego-static-large
+	@mkdir -p bin
+	cp test/build/whitespace-stego-static-large bin/
 
 # whitespace-stego-c is now an alias for whitespace-stego-static
 bin/whitespace-stego-c: bin/whitespace-stego-static
+	@mkdir -p bin
 	ln -sf whitespace-stego-static bin/whitespace-stego-c
 
 # Test targets for static implementations
