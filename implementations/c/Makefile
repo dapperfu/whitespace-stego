@@ -38,16 +38,24 @@ CORE_SRCS = $(SRC_DIR)/crypto.c $(SRC_DIR)/utils.c
 CORE_OBJS = $(CORE_SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 CORE_COVERAGE_OBJS = $(CORE_SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%_coverage.o)
 
-# Single dynamic implementation source files
+# Dynamic implementation source files
 DYNAMIC_SRCS = $(SRC_DIR)/whitespace_stego.c $(CORE_SRCS)
 DYNAMIC_OBJS = $(DYNAMIC_SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
-# Main executable source files
-MAIN_SRCS = $(SRC_DIR)/main.c $(DYNAMIC_SRCS)
-MAIN_OBJS = $(MAIN_SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
+# Static implementation source files
+STATIC_SRCS = $(SRC_DIR)/whitespace_stego_static.c $(CORE_SRCS)
+STATIC_OBJS = $(STATIC_SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
-# Single target
-MAIN_TARGET = $(BIN_DIR)/whitespace-stego-c
+# Main executable source files
+DYNAMIC_MAIN_SRCS = $(SRC_DIR)/main.c $(DYNAMIC_SRCS)
+DYNAMIC_MAIN_OBJS = $(DYNAMIC_MAIN_SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
+
+STATIC_MAIN_SRCS = $(SRC_DIR)/main_static.c $(STATIC_SRCS)
+STATIC_MAIN_OBJS = $(STATIC_MAIN_SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
+
+# Targets
+DYNAMIC_TARGET = $(BIN_DIR)/whitespace-stego-c
+STATIC_TARGET = $(BIN_DIR)/whitespace-stego-c-static
 SHARED_LIB = $(LIB_DIR)/libwhitespace_stego.so
 
 # Test targets
@@ -62,8 +70,8 @@ CMAKE_CCACHE_ARG = -DCMAKE_C_COMPILER_LAUNCHER=$(CCACHE)
 
 .PHONY: all clean test test-c test-unity test-coverage coverage-report shared cmake-build cmake-test cmake-clean install-unity help install uninstall dev debug release ccache-setup ccache-stats ccache-clean ccache-show
 
-# Default target builds single implementation
-all: $(MAIN_TARGET) $(SHARED_LIB)
+# Default target builds both implementations
+all: $(DYNAMIC_TARGET) $(STATIC_TARGET) $(SHARED_LIB)
 
 help:
 	@echo "Whitespace Steganography - C Implementation"
@@ -83,7 +91,7 @@ help:
 	@echo "  cmake-clean     - Clean CMake build artifacts"
 	@echo ""
 	@echo "Available targets:"
-	@echo "  all             - Build single C implementation (default)"
+	@echo "  all             - Build both C implementations (default)"
 	@echo "  help            - Show this help message"
 	@echo "  shared          - Build shared library only"
 	@echo "  install         - Install to /usr/local/bin"
@@ -155,15 +163,25 @@ ccache-show:
 	fi
 
 # Build targets
-build: ccache-setup $(MAIN_TARGET) $(SHARED_LIB)
+build: ccache-setup $(DYNAMIC_TARGET) $(STATIC_TARGET) $(SHARED_LIB)
+
+dynamic: ccache-setup $(DYNAMIC_TARGET)
+
+static: ccache-setup $(STATIC_TARGET)
 
 shared: ccache-setup $(SHARED_LIB)
 
-# Single C implementation
-$(MAIN_TARGET): $(MAIN_OBJS)
+# Dynamic C implementation
+$(DYNAMIC_TARGET): $(DYNAMIC_MAIN_OBJS)
 	@mkdir -p $(BIN_DIR)
-	@echo "🔗 Linking C implementation..."
-	$(CC_WRAPPER) $(MAIN_OBJS) -o $@ $(LDFLAGS)
+	@echo "🔗 Linking dynamic C implementation..."
+	$(CC_WRAPPER) $(DYNAMIC_MAIN_OBJS) -o $@ $(LDFLAGS)
+
+# Static C implementation
+$(STATIC_TARGET): $(STATIC_MAIN_OBJS)
+	@mkdir -p $(BIN_DIR)
+	@echo "🔗 Linking static C implementation..."
+	$(CC_WRAPPER) $(STATIC_MAIN_OBJS) -o $@ $(LDFLAGS)
 
 # Shared library
 $(SHARED_LIB): $(DYNAMIC_OBJS)
@@ -205,18 +223,18 @@ $(OBJ_DIR)/%_coverage.o: $(SRC_DIR)/%.c
 
 # Development targets
 dev: CFLAGS += -g -DDEBUG
-dev: ccache-setup $(MAIN_TARGET)
+dev: ccache-setup $(DYNAMIC_TARGET) $(STATIC_TARGET)
 
 debug: CFLAGS += -g -O0 -DDEBUG
-debug: ccache-setup $(MAIN_TARGET)
+debug: ccache-setup $(DYNAMIC_TARGET) $(STATIC_TARGET)
 
 release: CFLAGS += -O3 -DNDEBUG
-release: ccache-setup $(MAIN_TARGET)
+release: ccache-setup $(DYNAMIC_TARGET) $(STATIC_TARGET)
 
 # Installation targets
-install: $(MAIN_TARGET)
+install: $(DYNAMIC_TARGET)
 	@echo "Installing whitespace-stego-c binary to /usr/local/bin..."
-	@sudo cp $(MAIN_TARGET) /usr/local/bin/
+	@sudo cp $(DYNAMIC_TARGET) /usr/local/bin/
 	@sudo chmod +x /usr/local/bin/whitespace-stego-c
 	@echo "Installation complete!"
 
@@ -226,7 +244,7 @@ uninstall:
 	@echo "Uninstallation complete!"
 
 # Test targets
-test: $(MAIN_TARGET)
+test: $(DYNAMIC_TARGET)
 	@echo "Running basic tests..."
 	@./test/run_tests.sh
 
