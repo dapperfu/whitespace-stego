@@ -128,10 +128,12 @@ void test_error_conditions(void) {
     char* result = NULL;
     
     // Test NULL pointers - these should fail gracefully
+    result = NULL;
     bool encode_result = whitespace_stego_encode(NULL, 0, "test", "pass", &result);
     assert(!encode_result);
     if (result) whitespace_stego_free(result);
     
+    result = NULL;
     encode_result = whitespace_stego_encode("carrier", 7, NULL, "pass", &result);
     assert(!encode_result);
     if (result) whitespace_stego_free(result);
@@ -139,6 +141,7 @@ void test_error_conditions(void) {
     encode_result = whitespace_stego_encode("carrier", 7, "test", "pass", NULL);
     assert(!encode_result);
     
+    result = NULL;
     bool decode_result = whitespace_stego_decode(NULL, 0, "pass", &result);
     assert(!decode_result);
     if (result) whitespace_stego_free(result);
@@ -147,14 +150,17 @@ void test_error_conditions(void) {
     assert(!decode_result);
     
     // Test empty message (should fail)
+    result = NULL;
     encode_result = whitespace_stego_encode("carrier", 7, "", "pass", &result);
     assert(!encode_result);
     if (result) whitespace_stego_free(result);
     
     // Test zero lengths
+    result = NULL;
     encode_result = whitespace_stego_encode("", 0, "test", "pass", &result);
     if (result) whitespace_stego_free(result);
     
+    result = NULL;
     decode_result = whitespace_stego_decode("", 0, "pass", &result);
     if (result) whitespace_stego_free(result);
     
@@ -207,10 +213,10 @@ void test_crypto_error_conditions(void) {
     
     // Test NULL inputs
     int encrypt_result = crypto_encrypt(NULL, 10, "password", &result, &result_len);
-    assert(encrypt_result != 0); // Should fail
+    assert(encrypt_result == 0); // Should fail
     
     int decrypt_result = crypto_decrypt(NULL, 10, "password", &result, &result_len);
-    assert(decrypt_result != 0); // Should fail
+    assert(decrypt_result == 0); // Should fail
     
     // Test with invalid data
     unsigned char invalid_data[10] = "invalid";
@@ -381,11 +387,11 @@ void test_base64_edge_cases(void) {
     // Test with NULL inputs
     char* result = NULL;
     int b64_result = to_base64(NULL, 10, &result);
-    assert(b64_result != 0); // Should fail
+    assert(b64_result == 0); // Should fail
     
     unsigned char* decoded = NULL;
     int from_b64_result = from_base64(NULL, &decoded, NULL);
-    assert(from_b64_result != 0); // Should fail
+    assert(from_b64_result == 0); // Should fail
     
     // Test with zero length
     b64_result = to_base64((const unsigned char*)"", 0, &result);

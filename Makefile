@@ -47,8 +47,6 @@ c:
 	cd ../..
 	mkdir -p ${BIN_DIR}
 	cp ${MAKEFILE_DIR}/implementations/c/bin/whitespace-stego-c ${BIN_DIR}/
-	cp ${MAKEFILE_DIR}/implementations/c/bin/whitespace-stego-c-dynamic ${BIN_DIR}/
-	cp ${MAKEFILE_DIR}/implementations/c/bin/whitespace-stego-c-static ${BIN_DIR}/
 
 # Build C++ CLI binary
 cpp:

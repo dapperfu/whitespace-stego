@@ -156,8 +156,8 @@ static unsigned char* decode_binary(const char* encoded, size_t* out_len) {
 
 int whitespace_stego_encode(const char* carrier, size_t carrier_len, const char* message,
                            const char* password, char** result) {
-    if (!message || !result) {
-        snprintf(last_error, sizeof(last_error), "No message or result pointer provided");
+    if (!carrier || !message || !result) {
+        snprintf(last_error, sizeof(last_error), "No carrier, message, or result pointer provided");
         return 0;
     }
     
@@ -205,7 +205,7 @@ int whitespace_stego_encode(const char* carrier, size_t carrier_len, const char*
     free(zw);
 
     // Handle carrier embedding (match Python/Rust behavior)
-    if (!carrier || carrier_len == 0) {
+    if (carrier_len == 0) {
         // Empty carrier - return just the encoded message
         *result = encoded_message;
     } else {

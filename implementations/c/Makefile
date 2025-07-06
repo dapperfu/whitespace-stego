@@ -33,32 +33,20 @@ TEST_DIR = test
 LIB_DIR = lib
 COVERAGE_DIR = coverage
 
-# Fixed buffer size for static implementation (4 MiB = 4194304 bytes)
-STATIC_BUFFER_SIZE = 4194304
-
 # Core library source files
 CORE_SRCS = $(SRC_DIR)/crypto.c $(SRC_DIR)/utils.c
 CORE_OBJS = $(CORE_SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 CORE_COVERAGE_OBJS = $(CORE_SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%_coverage.o)
 
-# Dynamic implementation source files
+# Single dynamic implementation source files
 DYNAMIC_SRCS = $(SRC_DIR)/whitespace_stego.c $(CORE_SRCS)
 DYNAMIC_OBJS = $(DYNAMIC_SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
-# Static implementation source files
-STATIC_SRCS = $(SRC_DIR)/whitespace_stego_static.c $(CORE_SRCS)
-STATIC_OBJS = $(STATIC_SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
+# Main executable source files
+MAIN_SRCS = $(SRC_DIR)/main.c $(DYNAMIC_SRCS)
+MAIN_OBJS = $(MAIN_SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
-# All source files for main executables
-DYNAMIC_MAIN_SRCS = $(SRC_DIR)/main.c $(DYNAMIC_SRCS)
-DYNAMIC_MAIN_OBJS = $(DYNAMIC_MAIN_SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
-
-STATIC_MAIN_SRCS = $(SRC_DIR)/main_static_cli.c $(STATIC_SRCS)
-STATIC_MAIN_OBJS = $(STATIC_MAIN_SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
-
-# Targets
-DYNAMIC_TARGET = $(BIN_DIR)/whitespace-stego-c-dynamic
-STATIC_TARGET = $(BIN_DIR)/whitespace-stego-c-static
+# Single target
 MAIN_TARGET = $(BIN_DIR)/whitespace-stego-c
 SHARED_LIB = $(LIB_DIR)/libwhitespace_stego.so
 
@@ -67,16 +55,15 @@ TEST_C_TARGET = $(BIN_DIR)/test-c
 TEST_UNITY_TARGET = $(BIN_DIR)/test-unity
 TEST_COVERAGE_TARGET = $(BIN_DIR)/test-coverage
 TEST_100_COVERAGE_TARGET = $(BIN_DIR)/test-100-coverage
-TEST_CROSS_TARGET = $(BIN_DIR)/test-cross-impl
 
 CMAKE_BUILD_DIR = test/build
 CMAKE_GENERATOR ?= "Unix Makefiles"
 CMAKE_CCACHE_ARG = -DCMAKE_C_COMPILER_LAUNCHER=$(CCACHE)
 
-.PHONY: all clean test test-c test-unity test-coverage coverage-report shared cmake-build cmake-test cmake-clean install-unity help install uninstall dev debug release ccache-setup ccache-stats ccache-clean ccache-show dynamic static test-dynamic test-static test-all
+.PHONY: all clean test test-c test-unity test-coverage coverage-report shared cmake-build cmake-test cmake-clean install-unity help install uninstall dev debug release ccache-setup ccache-stats ccache-clean ccache-show
 
-# Default target builds both implementations
-all: $(DYNAMIC_TARGET) $(STATIC_TARGET) $(MAIN_TARGET) $(SHARED_LIB)
+# Default target builds single implementation
+all: $(MAIN_TARGET) $(SHARED_LIB)
 
 help:
 	@echo "Whitespace Steganography - C Implementation"
@@ -96,9 +83,7 @@ help:
 	@echo "  cmake-clean     - Clean CMake build artifacts"
 	@echo ""
 	@echo "Available targets:"
-	@echo "  all             - Build both implementations (default)"
-	@echo "  dynamic         - Build dynamic C implementation only"
-	@echo "  static          - Build static C implementation only (4MiB buffers)"
+	@echo "  all             - Build single C implementation (default)"
 	@echo "  help            - Show this help message"
 	@echo "  shared          - Build shared library only"
 	@echo "  install         - Install to /usr/local/bin"
@@ -110,10 +95,7 @@ help:
 	@echo "  test-unity      - Run Unity framework tests"
 	@echo "  test-coverage   - Run coverage tests"
 	@echo "  test-100-coverage - Run 100%% coverage tests"
-	@echo "  test-cross-impl - Run cross-tests for both implementations"
 	@echo "  test-all        - Run all tests"
-	@echo "  test-dynamic    - Test dynamic implementation"
-	@echo "  test-static     - Test static implementation"
 	@echo ""
 	@echo "Coverage:"
 	@echo "  coverage-report - Generate HTML coverage report"
@@ -173,66 +155,42 @@ ccache-show:
 	fi
 
 # Build targets
-build: ccache-setup $(DYNAMIC_TARGET) $(STATIC_TARGET) $(SHARED_LIB)
-
-dynamic: ccache-setup $(DYNAMIC_TARGET)
-
-static: ccache-setup $(STATIC_TARGET)
+build: ccache-setup $(MAIN_TARGET) $(SHARED_LIB)
 
 shared: ccache-setup $(SHARED_LIB)
 
-# Dynamic C implementation
-$(DYNAMIC_TARGET): $(DYNAMIC_MAIN_OBJS)
+# Single C implementation
+$(MAIN_TARGET): $(MAIN_OBJS)
 	@mkdir -p $(BIN_DIR)
-	@echo "🔗 Linking dynamic C implementation..."
-	$(CC_WRAPPER) $(DYNAMIC_MAIN_OBJS) -o $@ $(LDFLAGS)
+	@echo "🔗 Linking C implementation..."
+	$(CC_WRAPPER) $(MAIN_OBJS) -o $@ $(LDFLAGS)
 
-# Static C implementation with 4MiB pre-allocated stack
-$(STATIC_TARGET): $(STATIC_MAIN_OBJS)
-	@mkdir -p $(BIN_DIR)
-	@echo "🔗 Linking static C implementation (4MiB buffers)..."
-	$(CC_WRAPPER) $(STATIC_MAIN_OBJS) -o $@ $(LDFLAGS)
-
-# Main binary (symlink to static by default)
-$(MAIN_TARGET): $(STATIC_TARGET)
-	@mkdir -p $(BIN_DIR)
-	@echo "🔗 Creating main binary symlink..."
-	@ln -sf whitespace-stego-c-static $@
-
-# Shared library (using dynamic implementation)
+# Shared library
 $(SHARED_LIB): $(DYNAMIC_OBJS)
 	@mkdir -p $(LIB_DIR)
 	@echo "🔗 Linking shared library $(SHARED_LIB)..."
 	$(CC_WRAPPER) $(DYNAMIC_OBJS) -o $@ $(SHARED_LDFLAGS)
 
-
-
 # Test targets
-$(TEST_C_TARGET): $(CORE_OBJS) $(TEST_DIR)/test_100_coverage.c
+$(TEST_C_TARGET): $(DYNAMIC_OBJS) $(TEST_DIR)/test_100_coverage.c
 	@mkdir -p $(BIN_DIR)
 	@echo "🔗 Linking test-c..."
-	$(CC_WRAPPER) $(CFLAGS) $(TEST_DIR)/test_100_coverage.c $(CORE_OBJS) -o $@ $(LDFLAGS)
+	$(CC_WRAPPER) $(CFLAGS) $(TEST_DIR)/test_100_coverage.c $(DYNAMIC_OBJS) -o $@ $(LDFLAGS)
 
-$(TEST_UNITY_TARGET): $(CORE_OBJS) $(TEST_DIR)/test_unity.c
+$(TEST_UNITY_TARGET): $(DYNAMIC_OBJS) $(TEST_DIR)/test_unity.c $(TEST_DIR)/unity.c
 	@mkdir -p $(BIN_DIR)
 	@echo "🔗 Linking test-unity..."
-	$(CC_WRAPPER) $(CFLAGS) $(TEST_DIR)/test_unity.c $(CORE_OBJS) -o $@ $(LDFLAGS)
+	$(CC_WRAPPER) $(CFLAGS) $(TEST_DIR)/test_unity.c $(DYNAMIC_OBJS) $(TEST_DIR)/unity.c -o $@ $(LDFLAGS)
 
-$(TEST_COVERAGE_TARGET): $(CORE_COVERAGE_OBJS) $(TEST_DIR)/test_100_coverage.c
+$(TEST_COVERAGE_TARGET): $(CORE_COVERAGE_OBJS) $(OBJ_DIR)/whitespace_stego_coverage.o $(TEST_DIR)/test_100_coverage.c
 	@mkdir -p $(BIN_DIR)
 	@echo "🔗 Linking test-coverage..."
-	$(CC_WRAPPER) $(COVERAGE_CFLAGS) $(TEST_DIR)/test_100_coverage.c $(CORE_COVERAGE_OBJS) -o $@ $(COVERAGE_LDFLAGS)
+	$(CC_WRAPPER) $(COVERAGE_CFLAGS) $(TEST_DIR)/test_100_coverage.c $(CORE_COVERAGE_OBJS) $(OBJ_DIR)/whitespace_stego_coverage.o -o $@ $(COVERAGE_LDFLAGS)
 
 $(TEST_100_COVERAGE_TARGET): $(CORE_COVERAGE_OBJS) $(TEST_DIR)/test_100_coverage.c
 	@mkdir -p $(BIN_DIR)
 	@echo "🔗 Linking test-100-coverage..."
 	$(CC_WRAPPER) $(COVERAGE_CFLAGS) $(TEST_DIR)/test_100_coverage.c $(CORE_COVERAGE_OBJS) -o $@ $(COVERAGE_LDFLAGS)
-
-# Cross-test target for both implementations
-$(TEST_CROSS_TARGET): $(CORE_OBJS) $(TEST_DIR)/cross_test_static.c
-	@mkdir -p $(BIN_DIR)
-	@echo "🔗 Linking test-cross-impl..."
-	$(CC_WRAPPER) $(CFLAGS) $(TEST_DIR)/cross_test_static.c $(CORE_OBJS) -o $@ $(LDFLAGS)
 
 # Object file compilation rules
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
@@ -247,34 +205,28 @@ $(OBJ_DIR)/%_coverage.o: $(SRC_DIR)/%.c
 
 # Development targets
 dev: CFLAGS += -g -DDEBUG
-dev: ccache-setup $(DYNAMIC_TARGET) $(STATIC_TARGET)
+dev: ccache-setup $(MAIN_TARGET)
 
 debug: CFLAGS += -g -O0 -DDEBUG
-debug: ccache-setup $(DYNAMIC_TARGET) $(STATIC_TARGET)
+debug: ccache-setup $(MAIN_TARGET)
 
 release: CFLAGS += -O3 -DNDEBUG
-release: ccache-setup $(DYNAMIC_TARGET) $(STATIC_TARGET)
+release: ccache-setup $(MAIN_TARGET)
 
 # Installation targets
-install: $(DYNAMIC_TARGET) $(STATIC_TARGET)
-	@echo "Installing whitespace-stego-c binaries to /usr/local/bin..."
-	@sudo cp $(DYNAMIC_TARGET) /usr/local/bin/
-	@sudo cp $(STATIC_TARGET) /usr/local/bin/
-	@sudo ln -sf whitespace-stego-c-static /usr/local/bin/whitespace-stego-c
-	@sudo chmod +x /usr/local/bin/whitespace-stego-c-dynamic
-	@sudo chmod +x /usr/local/bin/whitespace-stego-c-static
+install: $(MAIN_TARGET)
+	@echo "Installing whitespace-stego-c binary to /usr/local/bin..."
+	@sudo cp $(MAIN_TARGET) /usr/local/bin/
 	@sudo chmod +x /usr/local/bin/whitespace-stego-c
 	@echo "Installation complete!"
 
 uninstall:
-	@echo "Removing whitespace-stego-c binaries from /usr/local/bin..."
-	@sudo rm -f /usr/local/bin/whitespace-stego-c-dynamic
-	@sudo rm -f /usr/local/bin/whitespace-stego-c-static
+	@echo "Removing whitespace-stego-c binary from /usr/local/bin..."
 	@sudo rm -f /usr/local/bin/whitespace-stego-c
 	@echo "Uninstallation complete!"
 
 # Test targets
-test: $(DYNAMIC_TARGET) $(STATIC_TARGET)
+test: $(MAIN_TARGET)
 	@echo "Running basic tests..."
 	@./test/run_tests.sh
 
@@ -294,19 +246,7 @@ test-100-coverage: $(TEST_100_COVERAGE_TARGET)
 	@echo "Running 100%% coverage tests..."
 	@./$(TEST_100_COVERAGE_TARGET)
 
-test-cross-impl: $(TEST_CROSS_TARGET)
-	@echo "Running cross-tests for both implementations..."
-	@./$(TEST_CROSS_TARGET)
-
-test-dynamic: $(DYNAMIC_TARGET)
-	@echo "Testing dynamic implementation..."
-	@./$(DYNAMIC_TARGET) --help
-
-test-static: $(STATIC_TARGET)
-	@echo "Testing static implementation..."
-	@./$(STATIC_TARGET) --help
-
-test-all: test test-c test-unity test-coverage test-100-coverage test-cross-impl test-dynamic test-static
+test-all: test test-c test-unity test-coverage test-100-coverage
 	@echo "All tests completed!"
 
 coverage-report: test-100-coverage

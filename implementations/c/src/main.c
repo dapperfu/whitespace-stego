@@ -36,9 +36,11 @@ static void print_encode_usage(const char* program_name) {
     fprintf(stdout, "Usage: %s encode [OPTIONS]\n\n", program_name);
     fprintf(stdout, "Encode a message into a carrier file using whitespace steganography.\n\n");
     fprintf(stdout, "Options:\n");
-    fprintf(stdout, "  -m, --message-file PATH       Path to the file containing the message to encode [required]\n");
-    fprintf(stdout, "  -c, --carrier-file PATH       Path to the carrier file [optional, empty if not provided]\n");
-    fprintf(stdout, "  -o, --output PATH             Path where the encoded file will be saved [required]\n");
+    fprintf(stdout, "  -m, --message TEXT            Message to encode (mutually exclusive with --message-file)\n");
+    fprintf(stdout, "  -mf, --message-file PATH      Path to the file containing the message to encode (mutually exclusive with --message)\n");
+    fprintf(stdout, "  -c, --carrier TEXT            Carrier text to encode into (mutually exclusive with --carrier-file)\n");
+    fprintf(stdout, "  -cf, --carrier-file PATH      Path to the carrier file (mutually exclusive with --carrier)\n");
+    fprintf(stdout, "  -o, --output PATH             Path where the encoded file will be saved (use '-' for stdout)\n");
     fprintf(stdout, "  -p, --password TEXT           Optional password for encryption\n");
     fprintf(stdout, "  -h, --help                    Show this message and exit\n");
 }
@@ -47,8 +49,9 @@ static void print_decode_usage(const char* program_name) {
     fprintf(stdout, "Usage: %s decode [OPTIONS]\n\n", program_name);
     fprintf(stdout, "Decode a message from a carrier file using whitespace steganography.\n\n");
     fprintf(stdout, "Options:\n");
-    fprintf(stdout, "  -c, --carrier-file PATH       Path to the encoded carrier file [required]\n");
-    fprintf(stdout, "  -o, --output PATH             Path where the decoded message will be saved [required]\n");
+    fprintf(stdout, "  -c, --carrier TEXT            Carrier text containing the encoded message (mutually exclusive with --carrier-file)\n");
+    fprintf(stdout, "  -cf, --carrier-file PATH      Path to the encoded carrier file (mutually exclusive with --carrier)\n");
+    fprintf(stdout, "  -o, --output PATH             Path where the decoded message will be saved (use '-' for stdout)\n");
     fprintf(stdout, "  -p, --password TEXT           Optional password for decryption\n");
     fprintf(stdout, "  -h, --help                    Show this message and exit\n");
 }
@@ -136,24 +139,34 @@ static int write_file(const char* filename, const char* content, size_t content_
 }
 
 static int handle_encode(int argc, char* argv[]) {
+    char* message = NULL;
     char* message_file = NULL;
+    char* carrier = NULL;
     char* carrier_file = NULL;
     char* output_file = NULL;
     char* password = NULL;
     size_t message_len, carrier_len;
-    char* message = NULL;
-    char* carrier = NULL;
+    char* message_content = NULL;
+    char* carrier_content = NULL;
     char* result = NULL;
     size_t result_len = 0;
     int i = 0;
     
     // Parse encode-specific arguments
     for (i = 0; i < argc; i++) {
-        if (strcmp(argv[i], "-m") == 0 || strcmp(argv[i], "--message-file") == 0) {
+        if (strcmp(argv[i], "-m") == 0 || strcmp(argv[i], "--message") == 0) {
+            if (i + 1 < argc) {
+                message = argv[++i];
+            }
+        } else if (strcmp(argv[i], "-mf") == 0 || strcmp(argv[i], "--message-file") == 0) {
             if (i + 1 < argc) {
                 message_file = argv[++i];
             }
-        } else if (strcmp(argv[i], "-c") == 0 || strcmp(argv[i], "--carrier-file") == 0) {
+        } else if (strcmp(argv[i], "-c") == 0 || strcmp(argv[i], "--carrier") == 0) {
+            if (i + 1 < argc) {
+                carrier = argv[++i];
+            }
+        } else if (strcmp(argv[i], "-cf") == 0 || strcmp(argv[i], "--carrier-file") == 0) {
             if (i + 1 < argc) {
                 carrier_file = argv[++i];
             }
@@ -171,97 +184,127 @@ static int handle_encode(int argc, char* argv[]) {
         }
     }
     
+    // Validate mutually exclusive options
+    if (message && message_file) {
+        fprintf(stderr, "Error: --message/-m and --message-file/-mf are mutually exclusive\n");
+        print_encode_usage(argv[0]);
+        return 1;
+    }
+    
+    if (carrier && carrier_file) {
+        fprintf(stderr, "Error: --carrier/-c and --carrier-file/-cf are mutually exclusive\n");
+        print_encode_usage(argv[0]);
+        return 1;
+    }
+    
     // Validate required arguments
-    if (!message_file) {
-        fprintf(stderr, "Error: --message-file is required\n");
+    if (!message && !message_file) {
+        fprintf(stderr, "Error: Either --message/-m or --message-file/-mf must be provided\n");
         print_encode_usage(argv[0]);
         return 1;
     }
     
-    if (!output_file) {
-        fprintf(stderr, "Error: --output is required\n");
-        print_encode_usage(argv[0]);
-        return 1;
-    }
-    
-    // Read input files
-    message = read_file(message_file, &message_len);
-    if (!message) {
-        return 1;
-    }
-    
-    if (carrier_file) {
-        carrier = read_file(carrier_file, &carrier_len);
-        if (!carrier) {
-            free(message);
+    // Get message content
+    if (message_file) {
+        message_content = read_file(message_file, &message_len);
+        if (!message_content) {
             return 1;
         }
     } else {
-        // No carrier file provided, use empty carrier
-        carrier = malloc(1);
-        if (!carrier) {
-            free(message);
+        message_content = strdup(message);
+        if (!message_content) {
             return 1;
         }
-        carrier[0] = '\0';
+        message_len = strlen(message_content);
+    }
+    
+    // Get carrier content
+    if (carrier_file) {
+        carrier_content = read_file(carrier_file, &carrier_len);
+        if (!carrier_content) {
+            free(message_content);
+            return 1;
+        }
+    } else if (carrier) {
+        carrier_content = strdup(carrier);
+        if (!carrier_content) {
+            free(message_content);
+            return 1;
+        }
+        carrier_len = strlen(carrier_content);
+    } else {
+        // No carrier provided, use empty carrier
+        carrier_content = malloc(1);
+        if (!carrier_content) {
+            free(message_content);
+            return 1;
+        }
+        carrier_content[0] = '\0';
         carrier_len = 0;
     }
     
     // Check for empty message with humorous error
     if (message_len == 0) {
         fprintf(stderr, "🤔 There's no point in encoding nothing! Even a blank canvas needs paint, and you're trying to hide invisible ink in invisible ink. Try again with an actual message!\n");
-        free(message);
-        free(carrier);
+        free(message_content);
+        free(carrier_content);
         return 1;
     }
     
-    debug_log("Encoding message from file: %s", message_file);
-    if (carrier_file) {
+    debug_log("Encoding message: %s", message ? "from command line" : "from file");
+    if (carrier) {
+        debug_log("Using carrier from command line");
+    } else if (carrier_file) {
         debug_log("Using carrier from file: %s", carrier_file);
     } else {
-        debug_log("Using empty carrier (no carrier file provided)");
+        debug_log("Using empty carrier (no carrier provided)");
     }
     debug_log("Using password: %s", password ? password : "None");
     debug_log("Carrier length: %zu bytes", carrier_len);
     if (carrier_len > 0) {
-        debug_log("First carrier byte: 0x%02x", (unsigned char)carrier[0]);
-        if (carrier_len > 1) debug_log("Second carrier byte: 0x%02x", (unsigned char)carrier[1]);
-        if (carrier_len > 2) debug_log("Third carrier byte: 0x%02x", (unsigned char)carrier[2]);
-        if (carrier_len > 3) debug_log("Fourth carrier byte: 0x%02x", (unsigned char)carrier[3]);
+        debug_log("First carrier byte: 0x%02x", (unsigned char)carrier_content[0]);
+        if (carrier_len > 1) debug_log("Second carrier byte: 0x%02x", (unsigned char)carrier_content[1]);
+        if (carrier_len > 2) debug_log("Third carrier byte: 0x%02x", (unsigned char)carrier_content[2]);
+        if (carrier_len > 3) debug_log("Fourth carrier byte: 0x%02x", (unsigned char)carrier_content[3]);
     }
     
     // Encode the message
-    if (!whitespace_stego_encode(carrier, carrier_len, message, password, &result)) {
+    if (!whitespace_stego_encode(carrier_content, carrier_len, message_content, password, &result)) {
         fprintf(stderr, "Error encoding message: %s\n", whitespace_stego_last_error());
-        free(message);
-        free(carrier);
+        free(message_content);
+        free(carrier_content);
         return 1;
     }
     
     // Write the result
     result_len = strlen(result);
-    if (!write_file(output_file, result, result_len)) {
-        free(message);
-        free(carrier);
-        free(result);
-        return 1;
+    if (output_file && strcmp(output_file, "-") != 0) {
+        if (!write_file(output_file, result, result_len)) {
+            free(message_content);
+            free(carrier_content);
+            free(result);
+            return 1;
+        }
+        fprintf(stdout, "Message successfully encoded into %s\n", output_file);
+    } else {
+        // Output to stdout
+        fprintf(stdout, "%s", result);
     }
     
-    fprintf(stdout, "Message successfully encoded into %s\n", output_file);
-    
     // Cleanup
-    free(message);
-    free(carrier);
+    free(message_content);
+    free(carrier_content);
     free(result);
     return 0;
 }
 
 static int handle_decode(int argc, char* argv[]) {
+    char* carrier = NULL;
     char* carrier_file = NULL;
     char* output_file = NULL;
     char* password = NULL;
     size_t carrier_len = 0;
-    char* carrier = NULL;
+    char* carrier_content = NULL;
     char** results = NULL;
     size_t result_count = 0;
     char* output_content = NULL;
@@ -273,7 +316,11 @@ static int handle_decode(int argc, char* argv[]) {
     
     // Parse decode-specific arguments
     for (i = 0; i < argc; i++) {
-        if (strcmp(argv[i], "-c") == 0 || strcmp(argv[i], "--carrier-file") == 0) {
+        if (strcmp(argv[i], "-c") == 0 || strcmp(argv[i], "--carrier") == 0) {
+            if (i + 1 < argc) {
+                carrier = argv[++i];
+            }
+        } else if (strcmp(argv[i], "-cf") == 0 || strcmp(argv[i], "--carrier-file") == 0) {
             if (i + 1 < argc) {
                 carrier_file = argv[++i];
             }
@@ -291,32 +338,41 @@ static int handle_decode(int argc, char* argv[]) {
         }
     }
     
+    // Validate mutually exclusive options
+    if (carrier && carrier_file) {
+        fprintf(stderr, "Error: --carrier/-c and --carrier-file/-cf are mutually exclusive\n");
+        print_decode_usage(argv[0]);
+        return 1;
+    }
+    
     // Validate required arguments
-    if (!carrier_file) {
-        fprintf(stderr, "Error: --carrier-file is required\n");
+    if (!carrier && !carrier_file) {
+        fprintf(stderr, "Error: Either --carrier/-c or --carrier-file/-cf must be provided\n");
         print_decode_usage(argv[0]);
         return 1;
     }
     
-    if (!output_file) {
-        fprintf(stderr, "Error: --output is required\n");
-        print_decode_usage(argv[0]);
-        return 1;
+    // Get carrier content
+    if (carrier_file) {
+        carrier_content = read_file(carrier_file, &carrier_len);
+        if (!carrier_content) {
+            return 1;
+        }
+    } else {
+        carrier_content = strdup(carrier);
+        if (!carrier_content) {
+            return 1;
+        }
+        carrier_len = strlen(carrier_content);
     }
     
-    // Read carrier file
-    carrier = read_file(carrier_file, &carrier_len);
-    if (!carrier) {
-        return 1;
-    }
-    
-    debug_log("Decoding message from file: %s", carrier_file);
+    debug_log("Decoding message: %s", carrier ? "from command line" : "from file");
     debug_log("Using password: %s", password ? password : "None");
     
     // Decode all messages
-    if (!whitespace_stego_decode_all(carrier, carrier_len, password, &results, &result_count)) {
+    if (!whitespace_stego_decode_all(carrier_content, carrier_len, password, &results, &result_count)) {
         fprintf(stderr, "Error decoding message: %s\n", whitespace_stego_last_error());
-        free(carrier);
+        free(carrier_content);
         return 1;
     }
     
@@ -335,7 +391,7 @@ static int handle_decode(int argc, char* argv[]) {
         output_content = malloc(total_len + 1);
         if (!output_content) {
             whitespace_stego_free_all(results, result_count);
-            free(carrier);
+            free(carrier_content);
             return 1;
         }
         
@@ -351,22 +407,26 @@ static int handle_decode(int argc, char* argv[]) {
     }
     
     // Write the result
-    if (!write_file(output_file, output_content, output_len)) {
-        whitespace_stego_free_all(results, result_count);
-        free(carrier);
-        free(output_content);
-        return 1;
-    }
-    
-    if (result_count == 1) {
-        fprintf(stdout, "Message successfully decoded into %s\n", output_file);
+    if (output_file && strcmp(output_file, "-") != 0) {
+        if (!write_file(output_file, output_content, output_len)) {
+            whitespace_stego_free_all(results, result_count);
+            free(carrier_content);
+            free(output_content);
+            return 1;
+        }
+        if (result_count == 1) {
+            fprintf(stdout, "Message successfully decoded into %s\n", output_file);
+        } else {
+            fprintf(stdout, "%zu messages successfully decoded into %s\n", result_count, output_file);
+        }
     } else {
-        fprintf(stdout, "%zu messages successfully decoded into %s\n", result_count, output_file);
+        // Output to stdout
+        fprintf(stdout, "%s", output_content);
     }
     
     // Cleanup
     whitespace_stego_free_all(results, result_count);
-    free(carrier);
+    free(carrier_content);
     free(output_content);
     return 0;
 }
