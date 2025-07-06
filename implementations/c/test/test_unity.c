@@ -133,14 +133,28 @@ void test_large_data(void) {
     }
     large_carrier[19999] = '\0';
     
+    printf("DEBUG: Message length: %zu, Carrier length: %zu\n", strlen(large_message), strlen(large_carrier));
+    
     // Test encoding large data
-    TEST_ASSERT_TRUE(whitespace_stego_static_encode(large_carrier, strlen(large_carrier), 
-                                                   large_message, TEST_PASSWORD, 
-                                                   encoded, sizeof(encoded)));
+    int encode_result = whitespace_stego_static_encode(large_carrier, strlen(large_carrier), 
+                                                      large_message, TEST_PASSWORD, 
+                                                      encoded, sizeof(encoded));
+    printf("DEBUG: Encode result: %d\n", encode_result);
+    if (!encode_result) {
+        printf("DEBUG: Encode error: %s\n", whitespace_stego_static_last_error());
+    }
+    
+    TEST_ASSERT_TRUE(encode_result);
     
     // Test decoding large data
-    TEST_ASSERT_TRUE(whitespace_stego_static_decode(encoded, strlen(encoded), 
-                                                   TEST_PASSWORD, decoded, sizeof(decoded)));
+    int decode_result = whitespace_stego_static_decode(encoded, strlen(encoded), 
+                                                      TEST_PASSWORD, decoded, sizeof(decoded));
+    printf("DEBUG: Decode result: %d\n", decode_result);
+    if (!decode_result) {
+        printf("DEBUG: Decode error: %s\n", whitespace_stego_static_last_error());
+    }
+    
+    TEST_ASSERT_TRUE(decode_result);
     
     // Verify round-trip
     TEST_ASSERT_EQUAL_STRING(large_message, decoded);

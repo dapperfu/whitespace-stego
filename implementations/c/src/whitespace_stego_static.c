@@ -28,6 +28,13 @@ static char static_buffer[STATIC_BUFFER_SIZE];
 static char message_buffer[MAX_MESSAGE_SIZE];
 static char carrier_buffer[MAX_CARRIER_SIZE];
 
+// Helper function to clear static buffers
+static void clear_static_buffers(void) {
+    memset(static_buffer, 0, sizeof(static_buffer));
+    memset(message_buffer, 0, sizeof(message_buffer));
+    memset(carrier_buffer, 0, sizeof(carrier_buffer));
+}
+
 const char* whitespace_stego_static_last_error(void) {
     return last_error;
 }
@@ -145,6 +152,9 @@ static int decode_binary_static(const char* encoded, unsigned char* out_buffer, 
 
 int whitespace_stego_static_encode(const char* carrier, size_t carrier_len, const char* message,
                                   const char* password, char* result, size_t result_size) {
+    // Clear static buffers to prevent contamination
+    clear_static_buffers();
+    
     if (!carrier || !message || !result || result_size == 0) {
         snprintf(last_error, sizeof(last_error), "Invalid parameters for static encode");
         return 0;
@@ -194,25 +204,78 @@ int whitespace_stego_static_encode(const char* carrier, size_t carrier_len, cons
 
     // Compose final encoded message
     size_t zw_len = strlen(static_buffer);
-    size_t total_len = strlen(START_MARKER) + zw_len + strlen(END_MARKER) + 1;
+    size_t encoded_message_len = strlen(START_MARKER) + zw_len + strlen(END_MARKER);
     
-    if (total_len >= result_size) {
-        snprintf(last_error, sizeof(last_error), "Result buffer too small (need %zu, have %zu)", total_len, result_size);
-        return 0;
+    // Handle carrier embedding
+    if (!carrier || carrier_len == 0) {
+        // Empty carrier - return just the encoded message
+        if (encoded_message_len + 1 >= result_size) {
+            snprintf(last_error, sizeof(last_error), "Result buffer too small (need %zu, have %zu)", 
+                    encoded_message_len + 1, result_size);
+            return 0;
+        }
+        
+        strcpy(result, START_MARKER);
+        strcat(result, static_buffer);
+        strcat(result, END_MARKER);
+    } else {
+        // Non-empty carrier - insert after first character
+        size_t out_len = carrier_len + encoded_message_len;
+        
+        if (out_len + 1 >= result_size) {
+            snprintf(last_error, sizeof(last_error), "Result buffer too small (need %zu, have %zu)", 
+                    out_len + 1, result_size);
+            return 0;
+        }
+        
+        // Copy the entire carrier
+        memcpy(result, carrier, carrier_len);
+        result[carrier_len] = '\0';
+        
+        // Find first complete UTF-8 character
+        size_t first_char_len = 0;
+        if ((unsigned char)carrier[0] < 0x80) {
+            first_char_len = 1;
+        } else if ((unsigned char)carrier[0] < 0xE0) {
+            first_char_len = 2;
+        } else if ((unsigned char)carrier[0] < 0xF0) {
+            first_char_len = 3;
+        } else {
+            first_char_len = 4;
+        }
+        
+        if (first_char_len > carrier_len) {
+            first_char_len = carrier_len;
+        }
+        
+        // Build final result by inserting encoded message after first character
+        char* p = result + first_char_len;
+        memcpy(p, START_MARKER, strlen(START_MARKER));
+        p += strlen(START_MARKER);
+        memcpy(p, static_buffer, zw_len);
+        p += zw_len;
+        memcpy(p, END_MARKER, strlen(END_MARKER));
+        p += strlen(END_MARKER);
+        
+        if (carrier_len > first_char_len) {
+            memcpy(p, carrier + first_char_len, carrier_len - first_char_len);
+            p += carrier_len - first_char_len;
+        }
+        *p = '\0';
     }
-    
-    char* encoded_message = result;
-    strcpy(encoded_message, START_MARKER);
-    strcat(encoded_message, static_buffer);
-    strcat(encoded_message, END_MARKER);
     
     return 1;
 }
 
 int whitespace_stego_static_decode(const char* carrier, size_t carrier_len, const char* password,
                                   char* result, size_t result_size) {
+    // Clear static buffers to prevent contamination
+    clear_static_buffers();
+    
+    printf("[DEBUG] decode: carrier_len=%zu, result_size=%zu\n", carrier_len, result_size);
     if (!carrier || !result || result_size == 0) {
         snprintf(last_error, sizeof(last_error), "Invalid parameters for static decode");
+        printf("[DEBUG] decode: invalid parameters\n");
         return 0;
     }
     
@@ -220,6 +283,7 @@ int whitespace_stego_static_decode(const char* carrier, size_t carrier_len, cons
     const char* start_pos = strstr(carrier, START_MARKER);
     if (!start_pos) {
         snprintf(last_error, sizeof(last_error), "Start marker not found");
+        printf("[DEBUG] decode: start marker not found\n");
         return 0;
     }
     
@@ -227,6 +291,7 @@ int whitespace_stego_static_decode(const char* carrier, size_t carrier_len, cons
     const char* end_pos = strstr(start_pos + strlen(START_MARKER), END_MARKER);
     if (!end_pos) {
         snprintf(last_error, sizeof(last_error), "End marker not found");
+        printf("[DEBUG] decode: end marker not found\n");
         return 0;
     }
     
@@ -234,9 +299,11 @@ int whitespace_stego_static_decode(const char* carrier, size_t carrier_len, cons
     size_t zw_start = start_pos + strlen(START_MARKER) - carrier;
     size_t zw_end = end_pos - carrier;
     size_t zw_len = zw_end - zw_start;
+    printf("[DEBUG] decode: zw_start=%zu, zw_end=%zu, zw_len=%zu\n", zw_start, zw_end, zw_len);
     
     if (zw_len >= sizeof(static_buffer)) {
         snprintf(last_error, sizeof(last_error), "Zero-width data too large for static buffer");
+        printf("[DEBUG] decode: zero-width data too large\n");
         return 0;
     }
     
@@ -247,51 +314,54 @@ int whitespace_stego_static_decode(const char* carrier, size_t carrier_len, cons
     // Decode zero-width to binary
     unsigned char* decoded_data = (unsigned char*)message_buffer;
     size_t decoded_len = 0;
-    
     if (!decode_binary_static(static_buffer, decoded_data, sizeof(message_buffer), &decoded_len)) {
+        printf("[DEBUG] decode: decode_binary_static failed\n");
         return 0;
     }
+    printf("[DEBUG] decode: decoded_len=%zu\n", decoded_len);
     
     // Base64 decode
     char* b64_decoded = NULL;
     size_t b64_len = 0;
     if (!from_base64((const char*)decoded_data, (unsigned char**)&b64_decoded, &b64_len)) {
         snprintf(last_error, sizeof(last_error), "Base64 decode failed");
+        printf("[DEBUG] decode: base64 decode failed\n");
         return 0;
     }
+    printf("[DEBUG] decode: b64_len=%zu\n", b64_len);
     
     // Decrypt if password provided
     if (password && password[0]) {
         unsigned char* decrypted_data = NULL;
         size_t decrypted_len = 0;
-        
-        if (!crypto_decrypt((const unsigned char*)b64_decoded, strlen(b64_decoded), password, &decrypted_data, &decrypted_len)) {
+        if (!crypto_decrypt((const unsigned char*)b64_decoded, b64_len, password, &decrypted_data, &decrypted_len)) {
             utils_free(b64_decoded);
+            printf("[DEBUG] decode: crypto_decrypt failed\n");
             return 0;
         }
-        
+        printf("[DEBUG] decode: decrypted_len=%zu\n", decrypted_len);
         if (decrypted_len >= result_size) {
             crypto_free(decrypted_data);
             utils_free(b64_decoded);
             snprintf(last_error, sizeof(last_error), "Result buffer too small for decrypted message");
+            printf("[DEBUG] decode: result buffer too small for decrypted message\n");
             return 0;
         }
-        
         memcpy(result, decrypted_data, decrypted_len);
         result[decrypted_len] = '\0';
         crypto_free(decrypted_data);
     } else {
         // No password, use base64 decoded data directly
-        size_t b64_len = strlen(b64_decoded);
         if (b64_len >= result_size) {
             utils_free(b64_decoded);
             snprintf(last_error, sizeof(last_error), "Result buffer too small for decoded message");
+            printf("[DEBUG] decode: result buffer too small for decoded message\n");
             return 0;
         }
-        
-        strcpy(result, b64_decoded);
+        memcpy(result, b64_decoded, b64_len);
+        result[b64_len] = '\0';
     }
-    
+    printf("[DEBUG] decode: final result length=%zu\n", strlen(result));
     utils_free(b64_decoded);
     return 1;
 }
