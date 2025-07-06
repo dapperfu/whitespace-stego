@@ -195,31 +195,37 @@ $(TEST_C_TARGET): $(DYNAMIC_OBJS) $(TEST_DIR)/test_100_coverage.c
 	@echo "🔗 Linking test-c..."
 	$(CC_WRAPPER) $(CFLAGS) $(TEST_DIR)/test_100_coverage.c $(DYNAMIC_OBJS) -o $@ $(LDFLAGS)
 
-$(TEST_UNITY_TARGET): $(DYNAMIC_OBJS) $(TEST_DIR)/test_unity.c $(TEST_DIR)/unity.c
+$(TEST_UNITY_TARGET): $(STATIC_OBJS) $(TEST_DIR)/test_unity.c $(TEST_DIR)/unity.c
 	@mkdir -p $(BIN_DIR)
 	@echo "🔗 Linking test-unity..."
-	$(CC_WRAPPER) $(CFLAGS) $(TEST_DIR)/test_unity.c $(DYNAMIC_OBJS) $(TEST_DIR)/unity.c -o $@ $(LDFLAGS)
+	$(CC_WRAPPER) $(CFLAGS) $(TEST_DIR)/test_unity.c $(STATIC_OBJS) $(TEST_DIR)/unity.c -o $@ $(LDFLAGS)
 
-$(TEST_COVERAGE_TARGET): $(CORE_COVERAGE_OBJS) $(OBJ_DIR)/whitespace_stego_coverage.o $(TEST_DIR)/test_100_coverage.c
+# Coverage build should only use dynamic implementation
+COVERAGE_SRCS = $(SRC_DIR)/whitespace_stego.c $(CORE_SRCS)
+COVERAGE_OBJS = $(COVERAGE_SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%_coverage.o)
+
+$(OBJ_DIR)/%_coverage.o: $(SRC_DIR)/%.c
+	@mkdir -p $(OBJ_DIR)
+	@echo "🔨 Compiling $< (coverage)..."
+	$(CC_WRAPPER) $(COVERAGE_CFLAGS) -c $< -o $@
+
+# Coverage test target (link only dynamic implementation)
+$(TEST_COVERAGE_TARGET): $(COVERAGE_OBJS) $(TEST_DIR)/test_100_coverage.c
 	@mkdir -p $(BIN_DIR)
 	@echo "🔗 Linking test-coverage..."
-	$(CC_WRAPPER) $(COVERAGE_CFLAGS) $(TEST_DIR)/test_100_coverage.c $(CORE_COVERAGE_OBJS) $(OBJ_DIR)/whitespace_stego_coverage.o -o $@ $(COVERAGE_LDFLAGS)
+	$(CC_WRAPPER) $(COVERAGE_CFLAGS) $(TEST_DIR)/test_100_coverage.c $(COVERAGE_OBJS) -o $@ $(COVERAGE_LDFLAGS)
 
-$(TEST_100_COVERAGE_TARGET): $(CORE_COVERAGE_OBJS) $(TEST_DIR)/test_100_coverage.c
+# 100% coverage test target (link only dynamic implementation)
+$(TEST_100_COVERAGE_TARGET): $(COVERAGE_OBJS) $(TEST_DIR)/test_100_coverage.c
 	@mkdir -p $(BIN_DIR)
 	@echo "🔗 Linking test-100-coverage..."
-	$(CC_WRAPPER) $(COVERAGE_CFLAGS) $(TEST_DIR)/test_100_coverage.c $(CORE_COVERAGE_OBJS) -o $@ $(COVERAGE_LDFLAGS)
+	$(CC_WRAPPER) $(COVERAGE_CFLAGS) $(TEST_DIR)/test_100_coverage.c $(COVERAGE_OBJS) -o $@ $(COVERAGE_LDFLAGS)
 
 # Object file compilation rules
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(OBJ_DIR)
 	@echo "🔨 Compiling $<..."
 	$(CC_WRAPPER) $(CFLAGS) -c $< -o $@
-
-$(OBJ_DIR)/%_coverage.o: $(SRC_DIR)/%.c
-	@mkdir -p $(OBJ_DIR)
-	@echo "🔨 Compiling $< (coverage)..."
-	$(CC_WRAPPER) $(COVERAGE_CFLAGS) -c $< -o $@
 
 # Development targets
 dev: CFLAGS += -g -DDEBUG

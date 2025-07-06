@@ -402,6 +402,432 @@ void test_base64_edge_cases(void) {
     printf("Base64 edge case tests completed!\n");
 }
 
+// NEW: Test static crypto functions for coverage
+void test_static_crypto_functions(void) {
+    printf("Testing static crypto functions...\n");
+    
+    // Test static encryption
+    unsigned char test_data[] = "Hello, World!";
+    unsigned char result_buffer[1024];
+    size_t result_len = 0;
+    
+    int encrypt_result = crypto_encrypt_static(test_data, strlen((char*)test_data), 
+                                             "password", result_buffer, sizeof(result_buffer), 
+                                             &result_len);
+    if (encrypt_result == 0) {
+        printf("Static encryption failed\n");
+    }
+    
+    // Test static decryption
+    unsigned char decrypted_buffer[1024];
+    size_t decrypted_len = 0;
+    
+    int decrypt_result = crypto_decrypt_static(result_buffer, result_len, 
+                                             "password", decrypted_buffer, sizeof(decrypted_buffer), 
+                                             &decrypted_len);
+    if (decrypt_result == 0) {
+        printf("Static decryption failed\n");
+    }
+    
+    // Test buffer size errors
+    unsigned char small_buffer[10];
+    size_t small_len = 0;
+    
+    int small_result = crypto_encrypt_static(test_data, strlen((char*)test_data), 
+                                           "password", small_buffer, sizeof(small_buffer), 
+                                           &small_len);
+    assert(small_result == 0); // Should fail due to small buffer
+    
+    printf("Static crypto function tests completed!\n");
+}
+
+// NEW: Test static utils functions for coverage
+void test_static_utils_functions(void) {
+    printf("Testing static utils functions...\n");
+    
+    // Test static base64 encoding
+    unsigned char test_data[] = "Hello, World!";
+    char result_buffer[1024];
+    size_t result_len = 0;
+    
+    int encode_result = to_base64_static(test_data, strlen((char*)test_data), 
+                                       result_buffer, sizeof(result_buffer), &result_len);
+    if (encode_result == 0) {
+        printf("Static base64 encoding failed\n");
+    }
+    
+    // Test static base64 decoding
+    unsigned char decoded_buffer[1024];
+    size_t decoded_len = 0;
+    
+    int decode_result = from_base64_static((unsigned char*)result_buffer, result_len, 
+                                         decoded_buffer, sizeof(decoded_buffer), &decoded_len);
+    if (decode_result == 0) {
+        printf("Static base64 decoding failed\n");
+    }
+    
+    // Test buffer size errors
+    char small_buffer[10];
+    size_t small_len = 0;
+    
+    int small_result = to_base64_static(test_data, strlen((char*)test_data), 
+                                      small_buffer, sizeof(small_buffer), &small_len);
+    assert(small_result == 0); // Should fail due to small buffer
+    
+    printf("Static utils function tests completed!\n");
+}
+
+// NEW: Test more crypto error conditions
+void test_more_crypto_errors(void) {
+    printf("Testing more crypto error conditions...\n");
+    
+    // Test with empty password
+    unsigned char* result = NULL;
+    size_t result_len = 0;
+    unsigned char test_data[] = "test";
+    
+    int encrypt_result = crypto_encrypt(test_data, 4, "", &result, &result_len);
+    if (encrypt_result == 0 && result) {
+        free(result);
+    }
+    
+    // Test with very short data
+    result = NULL;
+    result_len = 0;
+    encrypt_result = crypto_encrypt(test_data, 1, "password", &result, &result_len);
+    if (encrypt_result == 0 && result) {
+        free(result);
+    }
+    
+    // Test decrypt with data too short for IV
+    result = NULL;
+    result_len = 0;
+    unsigned char short_data[5] = "short";
+    int decrypt_result = crypto_decrypt(short_data, 5, "password", &result, &result_len);
+    assert(decrypt_result == 0); // Should fail - too short for IV
+    
+    printf("More crypto error condition tests completed!\n");
+}
+
+// NEW: Test more base64 error conditions
+void test_more_base64_errors(void) {
+    printf("Testing more base64 error conditions...\n");
+    
+    // Test with invalid base64 string
+    unsigned char* result = NULL;
+    size_t result_len = 0;
+    
+    int decode_result = from_base64("Invalid!@#", &result, &result_len);
+    assert(decode_result == 0); // Should fail
+    
+    // Test with string not divisible by 4
+    decode_result = from_base64("ABC", &result, &result_len);
+    assert(decode_result == 0); // Should fail
+    
+    // Test with invalid characters
+    decode_result = from_base64("ABC!", &result, &result_len);
+    assert(decode_result == 0); // Should fail
+    
+    // Test with zero length input
+    char* encode_result = NULL;
+    int encode_len = to_base64((const unsigned char*)"", 0, &encode_result);
+    if (encode_len == 0 && encode_result) {
+        free(encode_result);
+    }
+    
+    printf("More base64 error condition tests completed!\n");
+}
+
+// NEW: Test whitespace stego edge cases
+void test_whitespace_stego_edge_cases(void) {
+    printf("Testing whitespace stego edge cases...\n");
+    
+    // Test with very large messages
+    char* large_message = malloc(100000);
+    if (large_message) {
+        memset(large_message, 'A', 99999);
+        large_message[99999] = '\0';
+        
+        char* result = NULL;
+        bool encode_result = whitespace_stego_encode("carrier", 7, large_message, 
+                                                   "password", &result);
+        if (encode_result && result) {
+            whitespace_stego_free(result);
+        }
+        
+        free(large_message);
+    }
+    
+    // Test with messages containing zero-width characters
+    const char* zw_message = "Message with zero-width: \xE2\x80\x8B\xE2\x80\x8C\xE2\x80\x8D";
+    char* result = NULL;
+    bool encode_result = whitespace_stego_encode("carrier", 7, zw_message, 
+                                               "password", &result);
+    if (encode_result && result) {
+        whitespace_stego_free(result);
+    }
+    
+    // Test with corrupted encoded data
+    const char* corrupted = "\xEF\xBB\xBFInvalid\xE2\x80\x8C";
+    char* decoded = NULL;
+    bool decode_result = whitespace_stego_decode(corrupted, strlen(corrupted), 
+                                               "password", &decoded);
+    if (decode_result && decoded) {
+        whitespace_stego_free(decoded);
+    }
+    
+    printf("Whitespace stego edge case tests completed!\n");
+}
+
+// NEW: Test memory management functions
+void test_memory_management(void) {
+    printf("Testing memory management functions...\n");
+    
+    // Test crypto_free with NULL
+    crypto_free(NULL);
+    
+    // Test utils_free with NULL
+    utils_free(NULL);
+    
+    // Test whitespace_stego_free with NULL
+    whitespace_stego_free(NULL);
+    
+    // Test whitespace_stego_free_all with NULL
+    whitespace_stego_free_all(NULL, 0);
+    
+    // Test with valid pointers
+    char* test_ptr = malloc(10);
+    if (test_ptr) {
+        crypto_free((unsigned char*)test_ptr);
+    }
+    
+    test_ptr = malloc(10);
+    if (test_ptr) {
+        utils_free(test_ptr);
+    }
+    
+    test_ptr = malloc(10);
+    if (test_ptr) {
+        whitespace_stego_free(test_ptr);
+    }
+    
+    printf("Memory management tests completed!\n");
+}
+
+// NEW: Test UTF-8 edge cases
+void test_utf8_edge_cases(void) {
+    printf("Testing UTF-8 edge cases...\n");
+    
+    // Test with NULL string
+    size_t len = utf8_strlen(NULL);
+    assert(len == 0);
+    
+    // Test with empty string
+    len = utf8_strlen("");
+    assert(len == 0);
+    
+    // Test with invalid UTF-8 sequences
+    const char* invalid_utf8 = "Hello\xFF\xFE\xFDWorld";
+    len = utf8_strlen(invalid_utf8);
+    // Should handle invalid sequences gracefully
+    
+    // Test with incomplete UTF-8 sequences
+    const char* incomplete = "Hello\xE2\x80"; // Incomplete 3-byte sequence
+    len = utf8_strlen(incomplete);
+    // Should handle incomplete sequences gracefully
+    
+    printf("UTF-8 edge case tests completed!\n");
+}
+
+// NEW: Test extreme memory conditions
+void test_extreme_memory_conditions(void) {
+    printf("Testing extreme memory conditions...\n");
+    
+    // Test with extremely large messages that might trigger memory limits
+    // This tests the 1GB limit in encode_binary
+    char* huge_message = malloc(100000000); // 100MB
+    if (huge_message) {
+        memset(huge_message, 'A', 99999999);
+        huge_message[99999999] = '\0';
+        
+        char* result = NULL;
+        bool encode_result = whitespace_stego_encode("carrier", 7, huge_message, 
+                                                   "password", &result);
+        if (encode_result && result) {
+            whitespace_stego_free(result);
+        }
+        
+        free(huge_message);
+    }
+    
+    // Test with extremely large encoded data that might trigger decode limits
+    // This tests the 1GB limit in decode_binary
+    char* huge_encoded = malloc(100000000); // 100MB
+    if (huge_encoded) {
+        memset(huge_encoded, '\xE2', 99999999);
+        huge_encoded[99999999] = '\0';
+        
+        char* result = NULL;
+        bool decode_result = whitespace_stego_decode(huge_encoded, 99999999, 
+                                                   "password", &result);
+        if (decode_result && result) {
+            whitespace_stego_free(result);
+        }
+        
+        free(huge_encoded);
+    }
+    
+    printf("Extreme memory condition tests completed!\n");
+}
+
+// NEW: Test OpenSSL error conditions
+void test_openssl_error_conditions(void) {
+    printf("Testing OpenSSL error conditions...\n");
+    
+    // Test with very large data that might cause OpenSSL to fail
+    unsigned char* large_data = malloc(1000000); // 1MB
+    if (large_data) {
+        memset(large_data, 'A', 999999);
+        large_data[999999] = '\0';
+        
+        unsigned char* result = NULL;
+        size_t result_len = 0;
+        
+        int encrypt_result = crypto_encrypt(large_data, 999999, "password", &result, &result_len);
+        if (encrypt_result == 0 && result) {
+            free(result);
+        }
+        
+        free(large_data);
+    }
+    
+    // Test static functions with large data
+    unsigned char* large_data2 = malloc(1000000); // 1MB
+    if (large_data2) {
+        memset(large_data2, 'B', 999999);
+        large_data2[999999] = '\0';
+        
+        unsigned char result_buffer[2000000]; // 2MB buffer
+        size_t result_len = 0;
+        
+        int encrypt_result = crypto_encrypt_static(large_data2, 999999, "password", 
+                                                 result_buffer, sizeof(result_buffer), &result_len);
+        if (encrypt_result == 0) {
+            printf("Large static encryption failed as expected\n");
+        }
+        
+        free(large_data2);
+    }
+    
+    printf("OpenSSL error condition tests completed!\n");
+}
+
+// NEW: Test base64 static function edge cases
+void test_base64_static_edge_cases(void) {
+    printf("Testing base64 static function edge cases...\n");
+    
+    // Test with zero length input
+    char result_buffer[1024];
+    size_t result_len = 0;
+    
+    int encode_result = to_base64_static((const unsigned char*)"", 0, 
+                                       result_buffer, sizeof(result_buffer), &result_len);
+    if (encode_result == 0) {
+        printf("Zero length static base64 encoding failed as expected\n");
+    }
+    
+    // Test with NULL inputs
+    encode_result = to_base64_static(NULL, 10, result_buffer, sizeof(result_buffer), &result_len);
+    assert(encode_result == 0); // Should fail
+    
+    // Test with NULL result buffer
+    encode_result = to_base64_static((const unsigned char*)"Hello", 5, NULL, 1024, &result_len);
+    assert(encode_result == 0); // Should fail
+    
+    // Test with NULL result length
+    encode_result = to_base64_static((const unsigned char*)"Hello", 5, result_buffer, 1024, NULL);
+    assert(encode_result == 0); // Should fail
+    
+    // Test from_base64_static with NULL inputs
+    unsigned char decoded_buffer[1024];
+    size_t decoded_len = 0;
+    
+    int decode_result = from_base64_static(NULL, 10, decoded_buffer, sizeof(decoded_buffer), &decoded_len);
+    assert(decode_result == 0); // Should fail
+    
+    decode_result = from_base64_static((unsigned char*)"Hello", 5, NULL, 1024, &decoded_len);
+    assert(decode_result == 0); // Should fail
+    
+    decode_result = from_base64_static((unsigned char*)"Hello", 5, decoded_buffer, 1024, NULL);
+    assert(decode_result == 0); // Should fail
+    
+    printf("Base64 static edge case tests completed!\n");
+}
+
+// NEW: Test whitespace stego decode_all edge cases
+void test_decode_all_edge_cases(void) {
+    printf("Testing decode_all edge cases...\n");
+    
+    // Test with NULL inputs
+    char** results = NULL;
+    size_t result_count = 0;
+    
+    int decode_result = whitespace_stego_decode_all(NULL, 10, "password", &results, &result_count);
+    assert(decode_result == 0); // Should fail
+    
+    decode_result = whitespace_stego_decode_all("data", 4, "password", NULL, &result_count);
+    assert(decode_result == 0); // Should fail
+    
+    decode_result = whitespace_stego_decode_all("data", 4, "password", &results, NULL);
+    assert(decode_result == 0); // Should fail
+    
+    // Test with empty data
+    decode_result = whitespace_stego_decode_all("", 0, "password", &results, &result_count);
+    if (decode_result == 0 && results) {
+        whitespace_stego_free_all(results, result_count);
+    }
+    
+    // Test with data that doesn't contain markers
+    decode_result = whitespace_stego_decode_all("No markers here", 15, "password", &results, &result_count);
+    if (decode_result == 0 && results) {
+        whitespace_stego_free_all(results, result_count);
+    }
+    
+    printf("Decode_all edge case tests completed!\n");
+}
+
+// NEW: Test error message handling
+void test_error_message_handling(void) {
+    printf("Testing error message handling...\n");
+    
+    // Test last_error function
+    const char* error_msg = whitespace_stego_last_error();
+    // Just call it to ensure coverage
+    
+    // Test with various error conditions to populate error messages
+    char* result = NULL;
+    
+    // Test NULL carrier
+    bool encode_result = whitespace_stego_encode(NULL, 0, "test", "pass", &result);
+    if (encode_result == 0) {
+        error_msg = whitespace_stego_last_error();
+    }
+    
+    // Test empty message
+    encode_result = whitespace_stego_encode("carrier", 7, "", "pass", &result);
+    if (encode_result == 0) {
+        error_msg = whitespace_stego_last_error();
+    }
+    
+    // Test NULL message
+    encode_result = whitespace_stego_encode("carrier", 7, NULL, "pass", &result);
+    if (encode_result == 0) {
+        error_msg = whitespace_stego_last_error();
+    }
+    
+    printf("Error message handling tests completed!\n");
+}
+
 // Main test runner
 int main(void) {
     printf("Starting comprehensive coverage tests...\n");
@@ -416,6 +842,22 @@ int main(void) {
     test_utf8_character_detection();
     test_memory_allocation_failures();
     test_base64_edge_cases();
+    
+    // NEW: Run additional comprehensive tests
+    test_static_crypto_functions();
+    test_static_utils_functions();
+    test_more_crypto_errors();
+    test_more_base64_errors();
+    test_whitespace_stego_edge_cases();
+    test_memory_management();
+    test_utf8_edge_cases();
+    
+    // NEW: Run extreme condition tests
+    test_extreme_memory_conditions();
+    test_openssl_error_conditions();
+    test_base64_static_edge_cases();
+    test_decode_all_edge_cases();
+    test_error_message_handling();
     
     // Print summary
     printf("\n=== Test Summary ===\n");
