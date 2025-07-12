@@ -2,7 +2,7 @@
 //
 // Build:
 //
-//	go build -o bench_core bench_core.go core.go crypto.go constants.go
+//	go build -o bench_core bench_core.go
 //
 // Run:
 //
@@ -15,6 +15,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"whitespace-stego-go/src/stego"
 )
 
 const (
@@ -26,12 +28,12 @@ const (
 func main() {
 	message := strings.Repeat("Secret message", MSG_REPEAT)
 	carrier := strings.Repeat("This is the carrier text.", CARRIER_REPEAT)
-	var encoded string
+	var encoded, decoded string
 	var err error
 
 	t0 := time.Now()
 	for i := 0; i < ITER; i++ {
-		encoded, err = Encode(message, carrier, "")
+		encoded, err = stego.Encode(message, carrier, "")
 		if err != nil {
 			fmt.Printf("[WARN] encode error at iter %d\n", i)
 			break
@@ -43,14 +45,17 @@ func main() {
 
 	t0 = time.Now()
 	for i := 0; i < ITER; i++ {
-		decodedArr, err := Decode(encoded, "")
+		var decodedArr []string
+		decodedArr, err = stego.Decode(encoded, "")
 		if err != nil || len(decodedArr) == 0 {
 			fmt.Printf("[WARN] decode error at iter %d\n", i)
 			break
 		}
-		_ = decodedArr[0] // Prevent optimization
+		decoded = decodedArr[0]
 	}
 	t1 = time.Now()
 	elapsed = t1.Sub(t0).Seconds()
 	fmt.Printf("Go decode: %.2f ms total, %.2f us/call\n", elapsed*1000, elapsed/ITER*1e6)
+	// Prevent compiler from optimizing away 'decoded'
+	fmt.Printf("Decoded length: %d\n", len(decoded))
 }
