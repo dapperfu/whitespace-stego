@@ -20,39 +20,43 @@ import os
 import argparse
 import json
 
+# Get the project root directory
+import os
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 # Configurable implementations and their CLI templates
 IMPLEMENTATIONS = {
     "go": {
-        "encode": "./bin/whitespace-stego-go encode -mf {msg} -cf {carrier} -o {encoded}",
-        "decode": "./bin/whitespace-stego-go decode -cf {encoded} -o {decoded}",
+        "encode": f"{PROJECT_ROOT}/bin/whitespace-stego-go encode -mf {{msg}} -cf {{carrier}} -o {{encoded}}",
+        "decode": f"{PROJECT_ROOT}/bin/whitespace-stego-go decode -cf {{encoded}} -o {{decoded}}",
     },
     "c": {
-        "encode": "./bin/whitespace-stego-c encode --message-file {msg} --carrier-file {carrier} --output {encoded}",
-        "decode": "./bin/whitespace-stego-c decode --carrier-file {encoded} --output {decoded}",
+        "encode": f"{PROJECT_ROOT}/bin/whitespace-stego-c encode --message-file {{msg}} --carrier-file {{carrier}} --output {{encoded}}",
+        "decode": f"{PROJECT_ROOT}/bin/whitespace-stego-c decode --carrier-file {{encoded}} --output {{decoded}}",
     },
     "c-static": {
-        "encode": "./bin/whitespace-stego-c-static encode --message-file {msg} --carrier-file {carrier} --output {encoded}",
-        "decode": "./bin/whitespace-stego-c-static decode --carrier-file {encoded} --output {decoded}",
+        "encode": f"{PROJECT_ROOT}/bin/whitespace-stego-c-static encode --message-file {{msg}} --carrier-file {{carrier}} --output {{encoded}}",
+        "decode": f"{PROJECT_ROOT}/bin/whitespace-stego-c-static decode --carrier-file {{encoded}} --output {{decoded}}",
     },
     "cpp": {
-        "encode": "./bin/whitespace-stego-cpp encode -mf {msg} -cf {carrier} -o {encoded}",
-        "decode": "./bin/whitespace-stego-cpp decode -cf {encoded} -o {decoded}",
+        "encode": f"{PROJECT_ROOT}/bin/whitespace-stego-cpp encode -mf {{msg}} -cf {{carrier}} -o {{encoded}}",
+        "decode": f"{PROJECT_ROOT}/bin/whitespace-stego-cpp decode -cf {{encoded}} -o {{decoded}}",
     },
     "py": {
-        "encode": "./bin/whitespace-stego-py --backend python encode --message-file {msg} --carrier-file {carrier} --output {encoded}",
-        "decode": "./bin/whitespace-stego-py --backend python decode --carrier-file {encoded} --output {decoded}",
+        "encode": f"{PROJECT_ROOT}/bin/whitespace-stego-py --backend python encode --message-file {{msg}} --carrier-file {{carrier}} --output {{encoded}}",
+        "decode": f"{PROJECT_ROOT}/bin/whitespace-stego-py --backend python decode --carrier-file {{encoded}} --output {{decoded}}",
     },
     "py-c": {
-        "encode": "./bin/whitespace-stego-py --backend c encode --message-file {msg} --carrier-file {carrier} --output {encoded}",
-        "decode": "./bin/whitespace-stego-py --backend c decode --carrier-file {encoded} --output {decoded}",
+        "encode": f"{PROJECT_ROOT}/bin/whitespace-stego-py --backend c encode --message-file {{msg}} --carrier-file {{carrier}} --output {{encoded}}",
+        "decode": f"{PROJECT_ROOT}/bin/whitespace-stego-py --backend c decode --carrier-file {{encoded}} --output {{decoded}}",
     },
     "py-rs": {
-        "encode": "./bin/whitespace-stego-py --backend rust encode --message-file {msg} --carrier-file {carrier} --output {encoded}",
-        "decode": "./bin/whitespace-stego-py --backend rust decode --carrier-file {encoded} --output {decoded}",
+        "encode": f"{PROJECT_ROOT}/bin/whitespace-stego-py --backend rust encode --message-file {{msg}} --carrier-file {{carrier}} --output {{encoded}}",
+        "decode": f"{PROJECT_ROOT}/bin/whitespace-stego-py --backend rust decode --carrier-file {{encoded}} --output {{decoded}}",
     },
     "rs": {
-        "encode": "./bin/whitespace-stego-rs encode --mf {msg} --cf {carrier} --output {encoded}",
-        "decode": "./bin/whitespace-stego-rs decode --cf {encoded} --output {decoded}",
+        "encode": f"{PROJECT_ROOT}/bin/whitespace-stego-rs encode --mf {{msg}} --cf {{carrier}} --output {{encoded}}",
+        "decode": f"{PROJECT_ROOT}/bin/whitespace-stego-rs decode --cf {{encoded}} --output {{decoded}}",
     },
 }
 
