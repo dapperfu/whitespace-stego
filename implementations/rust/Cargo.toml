@@ -17,4 +17,8 @@ whitespace-stego-core = { path = "../python/whitespace-stego-core" }
 
 [[bin]]
 name = "whitespace-stego-rs"
-path = "src/main.rs" 
+path = "src/main.rs"
+
+[[bin]]
+name = "bench_core"
+path = "src/bench_core.rs" 

@@ -22,12 +22,12 @@ RUN /opt/venv/bin/pip install --upgrade pip && \
 WORKDIR /build
 COPY . /build
 
-# Build and install the Rust backend in the venv
-RUN cd implementations/python/whitespace-stego-python && /opt/venv/bin/maturin develop --release
-
+# Build and install the Rust backend (double assurance: pip and maturin)
+RUN cd implementations/python/whitespace-stego-rust \
+    && /opt/venv/bin/pip install -e . \
+    && /opt/venv/bin/maturin develop --release
 # Build C backend
 RUN cd implementations/c && make clean && make && cd ../..
-
 # Copy the C shared library to a standard location
 RUN cp implementations/c/lib/libwhitespace_stego.so /usr/local/lib/ && ldconfig
 ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"

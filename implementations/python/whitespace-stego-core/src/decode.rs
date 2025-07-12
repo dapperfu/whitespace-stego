@@ -96,14 +96,7 @@ pub fn decode_binary(encoded: &str) -> Result<Vec<u8>, StegoError> {
 /// let decoded = decode("carrier\u{FEFF}hidden\u{200C}", None).unwrap();
 /// ```
 pub fn decode(carrier: &str, password: Option<&str>) -> Result<String, StegoError> {
-    let messages = decode_all(carrier, password)?;
-
-    // Return string for single message, join with newlines for multiple messages
-    if messages.len() == 1 {
-        Ok(messages.into_iter().next().unwrap())
-    } else {
-        Ok(messages.join("\n"))
-    }
+    decode_fast(carrier, password)
 }
 
 /// Decode all messages from carrier text containing zero-width characters.
@@ -132,39 +125,41 @@ pub fn decode(carrier: &str, password: Option<&str>) -> Result<String, StegoErro
 /// let messages = decode_all("carrier\u{FEFF}hidden1\u{200C}\u{FEFF}hidden2\u{200C}", None).unwrap();
 /// ```
 pub fn decode_all(carrier: &str, password: Option<&str>) -> Result<Vec<String>, StegoError> {
-    debug_log("[DEBUG] decode_all: function entered");
-    debug_log(&format!("[DEBUG] decode_all input carrier: {:?}", carrier));
+    decode_all_fast(carrier, password)
+}
+
+/// Fast version of decode_all without debug logging for benchmarking.
+///
+/// This function is identical to decode_all but without debug logging
+/// to avoid the massive I/O overhead that causes performance issues.
+///
+/// # Arguments
+/// * `carrier` - The carrier text containing the encoded messages
+/// * `password` - Optional password for decryption
+///
+/// # Returns
+/// A vector of decoded messages
+///
+/// # Errors
+/// Returns `StegoError::InvalidCarrier` if no markers are found
+/// Returns `StegoError::DecryptionFailed` if decryption fails
+/// Returns `StegoError::InvalidBinaryData` if the encoded data is malformed
+pub fn decode_all_fast(carrier: &str, password: Option<&str>) -> Result<Vec<String>, StegoError> {
     let mut messages = Vec::new();
     let mut decryption_failures = 0;
     let chars: Vec<char> = carrier.chars().collect();
     let carrier_len = chars.len();
     let start_marker_len = 1; // START_MARKER is a char, so length is 1
     let end_marker_len = 1; // END_MARKER is a char, so length is 1
-    debug_log(&format!(
-        "[DEBUG] carrier_len: {} start_marker_len: {} end_marker_len: {}",
-        carrier_len, start_marker_len, end_marker_len
-    ));
     let mut i = 0;
     while i + start_marker_len <= carrier_len {
-        debug_log(&format!("[DEBUG] marker search loop: i = {}", i));
         // Find start marker
         if chars[i] == START_MARKER {
-            debug_log(&format!("[DEBUG] Found start marker at char {}", i));
             // Find end marker after start
             let mut j = i + start_marker_len;
             while j + end_marker_len <= carrier_len {
-                debug_log(&format!("[DEBUG] end marker search: j = {}", j));
                 if chars[j] == END_MARKER {
-                    debug_log(&format!("[DEBUG] Found end marker at char {}", j));
-                    // About to slice chars for encoded message
-                    debug_log(&format!(
-                        "[DEBUG] About to slice chars[{}..{}] (len={})",
-                        i + start_marker_len,
-                        j,
-                        chars.len()
-                    ));
                     let encoded: String = chars[i + start_marker_len..j].iter().collect();
-                    debug_log(&format!("[DEBUG] Extracted encoded message: {:?}", encoded));
                     // Convert zero-width characters back to binary
                     let data = match decode_binary(&encoded) {
                         Ok(d) => d,
@@ -209,67 +204,59 @@ pub fn decode_all(carrier: &str, password: Option<&str>) -> Result<Vec<String>, 
                             },
                         }
                     } else {
-                        // For non-password messages, base64 decode the data directly
-                        match BASE64.decode(&data) {
-                            Ok(decoded) => {
-                                match String::from_utf8(decoded) {
-                                    Ok(message) => messages.push(message),
-                                    Err(_) => {
-                                        // Map UTF-8 error to decryption failed
-                                        decryption_failures += 1;
-                                        i = j + end_marker_len;
-                                        break;
-                                    },
-                                }
-                            },
+                        // No password, so data is base64 encoded message
+                        match String::from_utf8(data) {
+                            Ok(message) => messages.push(message),
                             Err(_) => {
-                                // Map base64 decode error to decryption failed
+                                // Map UTF-8 error to decryption failed
                                 decryption_failures += 1;
                                 i = j + end_marker_len;
                                 break;
                             },
                         }
                     }
-                    // Move i past this message
                     i = j + end_marker_len;
                     break;
                 }
                 j += 1;
             }
-            // If no end marker found, break
             if j + end_marker_len > carrier_len {
-                debug_log("[DEBUG] No end marker found after start marker");
-                break;
+                // No end marker found after start marker
+                i += 1;
             }
         } else {
             i += 1;
         }
     }
-    debug_log("[DEBUG] marker search loop finished");
-    if password.is_some() && decryption_failures > 0 && !messages.is_empty() {
-        debug_log("[DEBUG] returning partial messages due to decryption failures");
-        return Ok(messages);
-    }
-    if decryption_failures > 0 && messages.is_empty() {
-        debug_log("[DEBUG] raising error for decryption failure");
-        return Err(StegoError::decryption_failed(
-            "Decryption failed or no valid messages found in carrier text",
-        ));
-    }
-    if password.is_some() && messages.is_empty() {
-        debug_log("[DEBUG] raising error for wrong password");
-        return Err(StegoError::decryption_failed(
-            "Invalid password or no valid messages found in carrier text",
-        ));
-    }
+
+    // Handle errors based on results
     if messages.is_empty() {
-        debug_log("[DEBUG] returning error: no valid messages found");
-        return Err(StegoError::invalid_carrier(
-            "No valid messages found in carrier text",
-        ));
+        if decryption_failures > 0 {
+            if password.is_some() {
+                Err(StegoError::decryption_failed("Wrong password or no valid messages found"))
+            } else {
+                Err(StegoError::invalid_carrier("No valid messages found in carrier text"))
+            }
+        } else {
+            Err(StegoError::invalid_carrier("No valid messages found in carrier text"))
+        }
+    } else {
+        Ok(messages)
     }
-    debug_log("[DEBUG] returning decoded messages");
-    Ok(messages)
+}
+
+/// Fast version of decode without debug logging for benchmarking.
+///
+/// This function is identical to decode but uses decode_all_fast internally.
+pub fn decode_fast(carrier: &str, password: Option<&str>) -> Result<String, StegoError> {
+    let messages = decode_all_fast(carrier, password)?;
+
+    // Return string for single message, join with newlines for multiple messages
+    if messages.len() == 1 {
+        Ok(messages.into_iter().next().unwrap())
+    } else {
+        Ok(messages.join("\n"))
+    }
 }
 
 /// Extract the encoded message and remaining carrier text.

@@ -23,7 +23,7 @@
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use whitespace_stego_core::decode::decode_debug_log_only;
-use whitespace_stego_core::{count_messages, decode, decode_all, encode, StegoError};
+use whitespace_stego_core::{count_messages, decode, decode_all, encode, StegoError, decode_fast, decode_all_fast};
 
 /// A Python module implemented in Rust.
 ///
@@ -38,6 +38,8 @@ fn whitespace_stego_rust(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(decode_all_py, m)?)?;
     m.add_function(wrap_pyfunction!(count_messages_py, m)?)?;
     m.add_function(wrap_pyfunction!(decode_debug_log_only_py, m)?)?;
+    m.add_function(wrap_pyfunction!(decode_fast_py, m)?)?;
+    m.add_function(wrap_pyfunction!(decode_all_fast_py, m)?)?;
     Ok(())
 }
 
@@ -140,6 +142,48 @@ pub fn count_messages_py(carrier: &str) -> PyResult<usize> {
 #[pyfunction]
 fn decode_debug_log_only_py(carrier: &str) -> PyResult<()> {
     decode_debug_log_only(carrier).map_err(|e| PyValueError::new_err(format!("{:?}", e)))
+}
+
+/// Python binding for fast decoding (no debug logging).
+///
+/// # Arguments
+/// * `carrier` - The carrier text containing encoded message
+/// * `password` - Optional password for decryption
+///
+/// # Returns
+/// The decoded message
+///
+/// # Errors
+/// Returns a [`PyValueError`] if decoding fails.
+///
+/// # Examples
+/// ```python
+/// decoded = decode_fast_py(encoded_carrier, None)
+/// ```
+#[pyfunction]
+pub fn decode_fast_py(carrier: &str, password: Option<&str>) -> PyResult<String> {
+    decode_fast(carrier, password).map_err(|e| PyValueError::new_err(e.to_string()))
+}
+
+/// Python binding for fast decoding all messages (no debug logging).
+///
+/// # Arguments
+/// * `carrier` - The carrier text containing encoded messages
+/// * `password` - Optional password for decryption
+///
+/// # Returns
+/// A list of decoded messages
+///
+/// # Errors
+/// Returns a [`PyValueError`] if decoding fails.
+///
+/// # Examples
+/// ```python
+/// messages = decode_all_fast_py(encoded_carrier, None)
+/// ```
+#[pyfunction]
+pub fn decode_all_fast_py(carrier: &str, password: Option<&str>) -> PyResult<Vec<String>> {
+    decode_all_fast(carrier, password).map_err(|e| PyValueError::new_err(e.to_string()))
 }
 
 #[cfg(test)]

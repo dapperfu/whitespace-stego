@@ -38,8 +38,8 @@ def get_backend_implementation(backend: str, ctx=None):
     if backend == "rust":
         try:
             import whitespace_stego_rust
-            rust_encode = whitespace_stego_rust.encode_py
-            rust_decode = whitespace_stego_rust.decode_py
+            rust_encode = whitespace_stego_rust.encode
+            rust_decode = whitespace_stego_rust.decode
         except ImportError:
             msg = "Rust backend not available. Please ensure it is installed."
             if ctx is not None:

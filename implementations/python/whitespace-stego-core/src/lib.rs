@@ -74,7 +74,7 @@ pub use error::StegoError;
 // Re-export main functions
 pub use decode::{
     count_messages, decode, decode_all, decode_binary, extract_encoded,
-    get_encoded_message_position,
+    get_encoded_message_position, decode_fast, decode_all_fast,
 };
 pub use encode::{encode, encode_binary, get_encoded_message_size, has_encoded_message};
 
