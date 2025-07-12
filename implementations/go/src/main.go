@@ -76,6 +76,13 @@ func encodeCommand() {
 		os.Exit(1)
 	}
 
+	// Validate that carrier is provided for encoding
+	if carrier == "" && carrierFile == "" {
+		fmt.Fprintf(os.Stderr, "Error: either -c/-carrier or -cf/-carrier-file is required for encoding\n")
+		fs.PrintDefaults()
+		os.Exit(1)
+	}
+
 	// Read message from file if message-file is provided
 	if messageFile != "" {
 		messageBytes, err := os.ReadFile(messageFile)
