@@ -13,29 +13,31 @@ Multiple benchmarking scripts are available for performance testing:
 
 ## Performance Results
 
-### Comprehensive Benchmark Results (100 iterations each)
+### CLI Benchmark Results (2024-12-19)
 
 **Encode Performance:**
-| Implementation | Backend | Throughput (ops/sec) | Avg Time (ms) | Std Dev (ms) |
-|----------------|---------|---------------------|---------------|--------------|
-| go-standalone | standalone | 617.1 | 1.62 | 0.23 |
-| c-standalone | standalone | 341.2 | 2.93 | 0.27 |
-| rust-standalone | standalone | 312.3 | 3.20 | 0.26 |
-| python-cli-c | c | 12.9 | 77.43 | 7.22 |
-| python-cli-rust | rust | 12.5 | 79.79 | 7.97 |
-| python-cli-python | python | 11.8 | 84.54 | 8.57 |
-| python-standalone | standalone | 3.5 | 287.06 | 36.93 |
+| Implementation | Throughput (ops/sec) | Avg Time (ms) | Std Dev (ms) | Iterations |
+|----------------|---------------------|---------------|--------------|------------|
+| go | 265.1 | 3.77 | 0.34 | 100 |
+| c | 226.5 | 4.42 | 0.34 | 100 |
+| cpp | 211.5 | 4.73 | 0.41 | 100 |
+| rs | 202.6 | 4.93 | 0.39 | 100 |
+| c-static | 116.7 | 8.57 | 0.57 | 100 |
+| py | 5.5 | 183.36 | 3.75 | 10 |
+| py-c | 5.5 | 183.01 | 1.47 | 10 |
+| py-rs | 5.4 | 185.70 | 2.82 | 10 |
 
 **Decode Performance:**
-| Implementation | Backend | Throughput (ops/sec) | Avg Time (ms) | Std Dev (ms) |
-|----------------|---------|---------------------|---------------|--------------|
-| go-standalone | standalone | 640.2 | 1.56 | 0.24 |
-| c-standalone | standalone | 349.2 | 2.86 | 0.25 |
-| rust-standalone | standalone | 91.2 | 10.97 | 1.34 |
-| python-cli-c | c | 13.0 | 76.65 | 5.01 |
-| python-cli-python | python | 12.3 | 81.54 | 16.32 |
-| python-cli-rust | rust | 5.1 | 197.74 | 20.98 |
-| python-standalone | standalone | 3.8 | 262.38 | 13.73 |
+| Implementation | Throughput (ops/sec) | Avg Time (ms) | Std Dev (ms) | Iterations |
+|----------------|---------------------|---------------|--------------|------------|
+| go | 264.6 | 3.78 | 0.37 | 100 |
+| c | 224.3 | 4.46 | 0.36 | 100 |
+| cpp | 212.6 | 4.70 | 0.38 | 100 |
+| c-static | 115.9 | 8.63 | 0.49 | 100 |
+| rs | 98.2 | 10.19 | 0.47 | 100 |
+| py | 5.5 | 181.02 | 1.63 | 10 |
+| py-c | 5.4 | 183.87 | 1.64 | 10 |
+| py-rs | 5.3 | 189.40 | 2.45 | 10 |
 
 ### Quick Benchmark Results (10 iterations each)
 
@@ -81,48 +83,62 @@ Multiple benchmarking scripts are available for performance testing:
 ### Performance Rankings
 
 1. **Go Implementation** - Fastest by significant margin
-   - Encode: 576-617 ops/sec
-   - Decode: 584-640 ops/sec
-   - ~1.8x faster than C implementation
+   - Encode: 265.1 ops/sec
+   - Decode: 264.6 ops/sec
+   - ~1.2x faster than C implementation
    - Excellent memory efficiency
 
 2. **C Implementation** - Second fastest, very consistent
-   - Encode: 324-341 ops/sec
-   - Decode: 334-349 ops/sec
+   - Encode: 226.5 ops/sec
+   - Decode: 224.3 ops/sec
    - Low standard deviation indicates stable performance
    - Minimal memory footprint
 
-3. **Rust Implementation** - Third fastest, decode performance issue
-   - Encode: 294-312 ops/sec
-   - Decode: 91-133 ops/sec (significant drop from encode)
-   - Decode performance ~3x slower than encode
-   - New CLI implementation shows improved usability
+3. **C++ Implementation** - Third fastest, consistent performance
+   - Encode: 211.5 ops/sec
+   - Decode: 212.6 ops/sec
+   - Very balanced encode/decode performance
+   - Good memory efficiency
 
-4. **Python Implementations** - Significantly slower
-   - Standalone: 3.5-3.9 ops/sec
-   - CLI with backends: 5.1-13.0 ops/sec
-   - 150-200x slower than Go implementation
+4. **Rust Implementation** - Good encode, slower decode
+   - Encode: 202.6 ops/sec
+   - Decode: 98.2 ops/sec (significant drop from encode)
+   - Decode performance ~2x slower than encode
+   - CLI implementation shows good usability
+
+5. **C-static Implementation** - Slower than regular C
+   - Encode: 116.7 ops/sec
+   - Decode: 115.9 ops/sec
+   - ~2x slower than regular C implementation
+   - Static linking overhead
+
+6. **Python Implementations** - Significantly slower
+   - All variants: ~5.5 ops/sec (py, py-c, py-rs)
+   - 50x slower than Go implementation
+   - Backend selection has minimal impact on performance
    - High memory usage due to interpreter overhead
 
 ### Performance Ratios (Relative to Fastest)
 
 **Encode Performance Ratios:**
-- go-standalone: 1.00x (baseline)
-- c-standalone: 0.55x
-- rust-standalone: 0.51x
-- python-cli-c: 0.02x
-- python-cli-rust: 0.02x
-- python-cli-python: 0.02x
-- python-standalone: 0.01x
+- go: 1.00x (baseline)
+- c: 0.85x
+- cpp: 0.80x
+- rs: 0.76x
+- c-static: 0.44x
+- py: 0.02x
+- py-c: 0.02x
+- py-rs: 0.02x
 
 **Decode Performance Ratios:**
-- go-standalone: 1.00x (baseline)
-- c-standalone: 0.55x
-- rust-standalone: 0.14x
-- python-cli-c: 0.02x
-- python-cli-python: 0.02x
-- python-cli-rust: 0.01x
-- python-standalone: 0.01x
+- go: 1.00x (baseline)
+- c: 0.85x
+- cpp: 0.80x
+- c-static: 0.44x
+- rs: 0.37x
+- py: 0.02x
+- py-c: 0.02x
+- py-rs: 0.02x
 
 ### Cross-Implementation Compatibility
 
@@ -134,12 +150,13 @@ All implementations maintain **bit-per-bit compatibility**:
 
 ## Test Configuration
 
-### Comprehensive Benchmark
-- **Iterations**: 100 per implementation
-- **Message length**: 1,056 characters
-- **Carrier length**: 500 characters
-- **Runtime**: ~2 minutes
+### CLI Benchmark
+- **Iterations**: 100 for fast implementations, 10 for slow ones
+- **Message length**: ~50 characters
+- **Carrier length**: ~80 characters
+- **Runtime**: ~30 seconds
 - **Features**: Standard deviation, detailed analysis, JSON output
+- **Script**: `scripts/benchmark_cli.py`
 
 ### Quick Benchmark
 - **Iterations**: 10 per implementation
@@ -195,6 +212,9 @@ All implementations maintain **bit-per-bit compatibility**:
 ### Running Benchmarks
 
 ```bash
+# CLI performance comparison (~30 seconds)
+python scripts/benchmark_cli.py
+
 # Quick performance comparison (~5 seconds)
 python quick_benchmark.py
 
