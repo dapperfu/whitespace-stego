@@ -1,6 +1,7 @@
 /*
  * Static C Implementation Header: whitespace_stego_static.h
  * This header provides the interface for the static version with pre-allocated buffers.
+ * - MISRA C:2012 compliant logging system
  */
 
 #ifndef WHITESPACE_STEGO_STATIC_H
@@ -11,6 +12,31 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * MISRA-compliant logging levels
+ */
+typedef enum {
+    LOG_LEVEL_NONE = 0,
+    LOG_LEVEL_ERROR = 1,
+    LOG_LEVEL_WARN = 2,
+    LOG_LEVEL_INFO = 3,
+    LOG_LEVEL_DEBUG = 4
+} log_level_t;
+
+/**
+ * Set the logging level for MISRA-compliant debug output
+ * @param level The logging level to set
+ */
+void whitespace_stego_static_set_log_level(log_level_t level);
+
+/**
+ * MISRA-compliant log function (no printf, uses snprintf to buffer)
+ * @param level The logging level
+ * @param format The format string (limited to safe format specifiers)
+ * @param ... Variable arguments
+ */
+void whitespace_stego_static_log(log_level_t level, const char* format, ...);
 
 /**
  * Get the last error message from static implementation

@@ -63,12 +63,13 @@ TEST_C_TARGET = $(BIN_DIR)/test-c
 TEST_UNITY_TARGET = $(BIN_DIR)/test-unity
 TEST_COVERAGE_TARGET = $(BIN_DIR)/test-coverage
 TEST_100_COVERAGE_TARGET = $(BIN_DIR)/test-100-coverage
+TEST_MISRA_TARGET = $(BIN_DIR)/test-misra-compliance
 
 CMAKE_BUILD_DIR = test/build
 CMAKE_GENERATOR ?= "Unix Makefiles"
 CMAKE_CCACHE_ARG = -DCMAKE_C_COMPILER_LAUNCHER=$(CCACHE)
 
-.PHONY: all clean test test-c test-unity test-coverage coverage-report shared cmake-build cmake-test cmake-clean install-unity help install uninstall dev debug release ccache-setup ccache-stats ccache-clean ccache-show
+.PHONY: all clean test test-c test-unity test-coverage test-misra coverage-report shared cmake-build cmake-test cmake-clean install-unity help install uninstall dev debug release ccache-setup ccache-stats ccache-clean ccache-show
 
 # Default target builds both implementations
 all: $(DYNAMIC_TARGET) $(STATIC_TARGET) $(SHARED_LIB)
@@ -103,6 +104,7 @@ help:
 	@echo "  test-unity      - Run Unity framework tests"
 	@echo "  test-coverage   - Run coverage tests"
 	@echo "  test-100-coverage - Run 100%% coverage tests"
+	@echo "  test-misra      - Run MISRA compliance tests"
 	@echo "  test-all        - Run all tests"
 	@echo ""
 	@echo "Coverage:"
@@ -221,6 +223,12 @@ $(TEST_100_COVERAGE_TARGET): $(COVERAGE_OBJS) $(TEST_DIR)/test_100_coverage.c
 	@echo "🔗 Linking test-100-coverage..."
 	$(CC_WRAPPER) $(COVERAGE_CFLAGS) $(TEST_DIR)/test_100_coverage.c $(COVERAGE_OBJS) -o $@ $(COVERAGE_LDFLAGS)
 
+# MISRA compliance test target (uses static implementation)
+$(TEST_MISRA_TARGET): $(STATIC_OBJS) $(TEST_DIR)/test_misra_compliance.c
+	@mkdir -p $(BIN_DIR)
+	@echo "🔗 Linking test-misra-compliance..."
+	$(CC_WRAPPER) $(CFLAGS) $(TEST_DIR)/test_misra_compliance.c $(STATIC_OBJS) -o $@ $(LDFLAGS)
+
 # Object file compilation rules
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(OBJ_DIR)
@@ -270,7 +278,11 @@ test-100-coverage: $(TEST_100_COVERAGE_TARGET)
 	@echo "Running 100%% coverage tests..."
 	@./$(TEST_100_COVERAGE_TARGET)
 
-test-all: test test-c test-unity test-coverage test-100-coverage
+test-misra: $(TEST_MISRA_TARGET)
+	@echo "Running MISRA compliance tests..."
+	@./$(TEST_MISRA_TARGET)
+
+test-all: test test-c test-unity test-coverage test-100-coverage test-misra
 	@echo "All tests completed!"
 
 coverage-report: test-100-coverage
