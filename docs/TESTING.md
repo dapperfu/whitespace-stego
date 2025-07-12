@@ -48,6 +48,27 @@ python tests/test_21_unicode_cross_impl.py
 python tests/test_22_comprehensive_encoding_identity.py
 ```
 
+### Comprehensive Security & Edge Case Test Suite
+
+The script `comprehensive_security_test_suite.py` provides a thorough, automated test suite covering:
+- Edge cases (empty messages, single characters, very long messages)
+- Security scenarios (malicious inputs, memory exhaustion attempts)
+- Unicode and encoding edge cases
+- Cross-implementation compatibility (C, C++, Go, Python core, Python CFFI, Python PyO3)
+- Protocol robustness
+- Performance under stress
+
+**How to run:**
+```bash
+python3 comprehensive_security_test_suite.py
+```
+
+**Outputs:**
+- `comprehensive_test_report.md` — Human-readable Markdown summary of all results
+- `comprehensive_test_results.json` — Raw machine-readable results for further analysis
+
+This suite is the most comprehensive way to validate all implementations and edge cases in one go. See the generated Markdown report for a summary and per-implementation breakdown.
+
 ## Test Coverage
 - >95% for core functionality
 - Unicode, emoji, password, error handling, and pipeline support
