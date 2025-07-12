@@ -44,7 +44,8 @@ void whitespace_stego_static_log(log_level_t level, const char* format, ...) {
     if (level <= current_log_level) {
         va_list args;
         va_start(args, format);
-        (void)vsnprintf(log_buffer, sizeof(log_buffer), format, args);
+        /* Use vsprintf for C89 compatibility */
+        (void)vsprintf(log_buffer, format, args);
         va_end(args);
         /* In MISRA-compliant systems, this would write to a log file or system log */
         /* For now, we just store the message in the buffer */
@@ -73,7 +74,7 @@ static int encode_binary_static(const unsigned char* data, size_t data_len, char
     
     /* Parameter validation */
     if ((data == NULL) || (out_buffer == NULL) || (buffer_size == 0U)) {
-        (void)snprintf(last_error, sizeof(last_error), "Invalid parameters for encode_binary_static");
+        (void)sprintf(last_error, "Invalid parameters for encode_binary_static");
         return 0;
     }
     
@@ -85,7 +86,7 @@ static int encode_binary_static(const unsigned char* data, size_t data_len, char
     
     /* Check if buffer is large enough */
     if (required_len >= buffer_size) {
-        (void)snprintf(last_error, sizeof(last_error), "Buffer too small for encoding (need %zu, have %zu)", required_len, buffer_size);
+        (void)sprintf(last_error, "Buffer too small for encoding");
         return 0;
     }
     
@@ -102,7 +103,7 @@ static int encode_binary_static(const unsigned char* data, size_t data_len, char
             if (bit_value != 0U) {
                 /* One bit */
                 if (remaining_space < one_bit_len) {
-                    (void)snprintf(last_error, sizeof(last_error), "Buffer overflow prevented");
+                    (void)sprintf(last_error, "Buffer overflow prevented");
                     return 0;
                 }
                 (void)memcpy(p, ONE_BIT, one_bit_len);
@@ -111,7 +112,7 @@ static int encode_binary_static(const unsigned char* data, size_t data_len, char
             } else {
                 /* Zero bit */
                 if (remaining_space < zero_bit_len) {
-                    (void)snprintf(last_error, sizeof(last_error), "Buffer overflow prevented");
+                    (void)sprintf(last_error, "Buffer overflow prevented");
                     return 0;
                 }
                 (void)memcpy(p, ZERO_BIT, zero_bit_len);
@@ -138,7 +139,7 @@ static int decode_binary_static(const char* encoded, unsigned char* out_buffer, 
     
     /* Parameter validation */
     if ((encoded == NULL) || (out_buffer == NULL) || (out_len == NULL) || (buffer_size == 0U)) {
-        (void)snprintf(last_error, sizeof(last_error), "Invalid parameters for decode_binary_static");
+        (void)sprintf(last_error, "Invalid parameters for decode_binary_static");
         return 0;
     }
     
@@ -153,7 +154,7 @@ static int decode_binary_static(const char* encoded, unsigned char* out_buffer, 
     
     /* Check if buffer is large enough */
     if (bytes >= buffer_size) {
-        (void)snprintf(last_error, sizeof(last_error), "Buffer too small for decoding (need %zu, have %zu)", bytes, buffer_size);
+        (void)sprintf(last_error, "Buffer too small for decoding");
         return 0;
     }
     
@@ -220,7 +221,7 @@ int whitespace_stego_static_encode(const char* carrier, size_t carrier_len, cons
     
     /* Parameter validation */
     if ((carrier == NULL) || (message == NULL) || (result == NULL) || (result_size == 0U)) {
-        (void)snprintf(last_error, sizeof(last_error), "Invalid parameters for static encode");
+        (void)sprintf(last_error, "Invalid parameters for static encode");
         return 0;
     }
     
@@ -229,13 +230,13 @@ int whitespace_stego_static_encode(const char* carrier, size_t carrier_len, cons
     
     /* Check for empty message */
     if (message_len == 0U) {
-        (void)snprintf(last_error, sizeof(last_error), "Empty message not allowed");
+        (void)sprintf(last_error, "Empty message not allowed");
         return 0;
     }
     
     /* Check message size */
     if (message_len >= MAX_MESSAGE_SIZE_BYTES) {
-        (void)snprintf(last_error, sizeof(last_error), "Message too large for static implementation");
+        (void)sprintf(last_error, "Message too large for static implementation");
         return 0;
     }
     
@@ -279,8 +280,7 @@ int whitespace_stego_static_encode(const char* carrier, size_t carrier_len, cons
     if ((carrier == NULL) || (carrier_len == 0U)) {
         /* Empty carrier - return just the encoded message */
         if ((encoded_message_len + 1U) >= result_size) {
-            (void)snprintf(last_error, sizeof(last_error), "Result buffer too small (need %zu, have %zu)", 
-                    encoded_message_len + 1U, result_size);
+            (void)sprintf(last_error, "Result buffer too small");
             return 0;
         }
         
@@ -293,8 +293,7 @@ int whitespace_stego_static_encode(const char* carrier, size_t carrier_len, cons
         size_t out_len = carrier_len + encoded_message_len;
         
         if ((out_len + 1U) >= result_size) {
-            (void)snprintf(last_error, sizeof(last_error), "Result buffer too small (need %zu, have %zu)", 
-                    out_len + 1U, result_size);
+            (void)sprintf(last_error, "Result buffer too small");
             return 0;
         }
         
@@ -343,9 +342,12 @@ int whitespace_stego_static_decode(const char* carrier, size_t carrier_len, cons
     
     /* Parameter validation */
     if ((carrier == NULL) || (result == NULL) || (result_size == 0U)) {
-        (void)snprintf(last_error, sizeof(last_error), "Invalid parameters for static decode");
+        (void)sprintf(last_error, "Invalid parameters for static decode");
         return 0;
     }
+    
+    /* Suppress unused parameter warning */
+    (void)carrier_len;
     
     /* Get marker lengths using safe functions */
     start_marker_len = misra_safe_strlen(START_MARKER, START_MARKER_LENGTH);
@@ -353,14 +355,14 @@ int whitespace_stego_static_decode(const char* carrier, size_t carrier_len, cons
     /* Find start marker */
     start_pos = strstr(carrier, START_MARKER);
     if (start_pos == NULL) {
-        (void)snprintf(last_error, sizeof(last_error), "Start marker not found");
+        (void)sprintf(last_error, "Start marker not found");
         return 0;
     }
     
     /* Find end marker */
     end_pos = strstr(start_pos + start_marker_len, END_MARKER);
     if (end_pos == NULL) {
-        (void)snprintf(last_error, sizeof(last_error), "End marker not found");
+        (void)sprintf(last_error, "End marker not found");
         return 0;
     }
     
@@ -370,7 +372,7 @@ int whitespace_stego_static_decode(const char* carrier, size_t carrier_len, cons
     zw_len = zw_end - zw_start;
     
     if (zw_len >= sizeof(static_buffer)) {
-        (void)snprintf(last_error, sizeof(last_error), "Zero-width data too large for static buffer");
+        (void)sprintf(last_error, "Zero-width data too large for static buffer");
         return 0;
     }
     
@@ -389,7 +391,7 @@ int whitespace_stego_static_decode(const char* carrier, size_t carrier_len, cons
     char* b64_decoded = NULL;
     size_t b64_len = 0;
     if (from_base64((const char*)decoded_data, (unsigned char**)&b64_decoded, &b64_len) == 0) {
-        (void)snprintf(last_error, sizeof(last_error), "Base64 decode failed");
+        (void)sprintf(last_error, "Base64 decode failed");
         return 0;
     }
     
@@ -404,7 +406,7 @@ int whitespace_stego_static_decode(const char* carrier, size_t carrier_len, cons
         if (decrypted_len >= result_size) {
             crypto_free(decrypted_data);
             utils_free(b64_decoded);
-            (void)snprintf(last_error, sizeof(last_error), "Result buffer too small for decrypted message");
+            (void)sprintf(last_error, "Result buffer too small for decrypted message");
             return 0;
         }
         (void)memcpy(result, decrypted_data, decrypted_len);
@@ -414,7 +416,7 @@ int whitespace_stego_static_decode(const char* carrier, size_t carrier_len, cons
         /* No password, use base64 decoded data directly */
         if (b64_len >= result_size) {
             utils_free(b64_decoded);
-            (void)snprintf(last_error, sizeof(last_error), "Result buffer too small for decoded message");
+            (void)sprintf(last_error, "Result buffer too small for decoded message");
             return 0;
         }
         (void)memcpy(result, b64_decoded, b64_len);
@@ -435,7 +437,7 @@ int whitespace_stego_static_decode_all(const char* carrier, size_t carrier_len, 
     
     /* Parameter validation */
     if ((carrier == NULL) || (results == NULL) || (result_count == NULL) || (max_results == 0U)) {
-        (void)snprintf(last_error, sizeof(last_error), "Invalid parameters for static decode_all");
+        (void)sprintf(last_error, "Invalid parameters for static decode_all");
         return 0;
     }
     
@@ -473,7 +475,7 @@ int whitespace_stego_static_decode_all(const char* carrier, size_t carrier_len, 
             message_len = message_end - message_start;
             
             if (message_len >= sizeof(carrier_buffer)) {
-                (void)snprintf(last_error, sizeof(last_error), "Message too large for static buffer");
+                (void)sprintf(last_error, "Message too large for static buffer");
                 return 0;
             }
             

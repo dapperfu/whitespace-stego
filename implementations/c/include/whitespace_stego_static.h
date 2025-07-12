@@ -45,6 +45,11 @@ void whitespace_stego_static_log(log_level_t level, const char* format, ...);
 const char* whitespace_stego_static_last_error(void);
 
 /**
+ * Clear the error state (for testing purposes)
+ */
+void whitespace_stego_static_clear_error(void);
+
+/**
  * Encode a message into carrier text using static buffers
  * @param carrier The carrier text
  * @param carrier_len Length of carrier text
@@ -86,4 +91,4 @@ int whitespace_stego_static_decode_all(const char* carrier, size_t carrier_len, 
 }
 #endif
 
-#endif // WHITESPACE_STEGO_STATIC_H 
+#endif 

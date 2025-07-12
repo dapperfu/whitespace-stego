@@ -1,81 +1,75 @@
 /*
- * MISRA C Compliance: utils.h
- * This file has been refactored for MISRA C:2012 compliance.
- * - No <stdbool.h>; use int for boolean (0/1)
- * - All functions and logic blocks documented
+ * Utils Header: utils.h
+ * Provides utility functions for base64 encoding/decoding and memory management.
  */
+
 #ifndef UTILS_H
 #define UTILS_H
 
 #include <stddef.h>
 
-/**
- * @brief Check if a string contains only ASCII characters
- *
- * @param str String to check
- * @return 1 if string contains only ASCII characters, 0 otherwise
- */
-int is_ascii(const char* str);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
- * @brief Convert a string to base64
- *
- * @param data Data to convert
- * @param data_len Length of data
- * @param result Pointer to store base64 string
- * @return 1 if conversion was successful, 0 otherwise
+ * Encode binary data to base64 string
+ * @param data Input binary data
+ * @param data_len Length of input data
+ * @param result Output base64 string (will be allocated)
+ * @return 1 on success, 0 on failure
  */
 int to_base64(const unsigned char* data, size_t data_len, char** result);
 
 /**
- * @brief Convert a base64 string to binary data
- *
- * @param str Base64 string to convert
- * @param result Pointer to store binary data
- * @param result_len Pointer to store length of binary data
- * @return 1 if conversion was successful, 0 otherwise
+ * Decode base64 string to binary data
+ * @param base64_str Input base64 string
+ * @param result Output binary data (will be allocated)
+ * @param result_len Output length of binary data
+ * @return 1 on success, 0 on failure
  */
-int from_base64(const char* str, unsigned char** result, size_t* result_len);
+int from_base64(const char* base64_str, unsigned char** result, size_t* result_len);
 
 /**
- * @brief Free memory allocated by base64 functions
- *
- * @param ptr Pointer to the memory to free
+ * Free allocated memory from utils functions
+ * @param ptr Pointer to memory to free
  */
 void utils_free(void* ptr);
 
 /**
- * @brief Count the number of UTF-8 codepoints in a string
- *
- * @param str UTF-8 encoded string
- * @return Number of codepoints in the string
+ * Get utils error message
+ * @return Pointer to error message string
  */
-size_t utf8_strlen(const char* str);
+const char* utils_get_error(void);
 
 /**
- * @brief Convert a string to base64 with static buffer
- *
- * @param data Data to convert
- * @param data_len Length of data
- * @param result_buffer Static buffer to store base64 string
- * @param result_buffer_size Size of the result buffer
- * @param result_len Pointer to store length of base64 string
- * @return 1 if conversion was successful, 0 otherwise
+ * Clear utils error state
  */
-int to_base64_static(const unsigned char* data, size_t data_len, 
-                     char* result_buffer, size_t result_buffer_size, size_t* result_len);
+void utils_clear_error(void);
 
 /**
- * @brief Convert a base64 string to binary data with static buffer
- *
- * @param data Base64 data to convert
- * @param data_len Length of base64 data
- * @param result_buffer Static buffer to store binary data
- * @param result_buffer_size Size of the result buffer
- * @param result_len Pointer to store length of binary data
- * @return 1 if conversion was successful, 0 otherwise
+ * Validate base64 string
+ * @param str String to validate
+ * @return 1 if valid base64, 0 if invalid
  */
-int from_base64_static(const unsigned char* data, size_t data_len,
-                       unsigned char* result_buffer, size_t result_buffer_size, size_t* result_len);
+int is_valid_base64(const char* str);
 
-#endif // UTILS_H 
+/**
+ * Calculate base64 output length for given input length
+ * @param input_len Input data length
+ * @return Required output buffer size for base64 encoding
+ */
+size_t base64_output_length(size_t input_len);
+
+/**
+ * Calculate binary output length for given base64 string length
+ * @param base64_len Base64 string length
+ * @return Required output buffer size for base64 decoding
+ */
+size_t base64_decode_length(size_t base64_len);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif 

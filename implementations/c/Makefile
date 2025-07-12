@@ -43,7 +43,7 @@ DYNAMIC_SRCS = $(SRC_DIR)/whitespace_stego.c $(CORE_SRCS)
 DYNAMIC_OBJS = $(DYNAMIC_SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
 # Static implementation source files
-STATIC_SRCS = $(SRC_DIR)/whitespace_stego_static.c $(CORE_SRCS)
+STATIC_SRCS = $(SRC_DIR)/whitespace_stego_static.c $(SRC_DIR)/whitespace_stego_static_misra.c $(CORE_SRCS)
 STATIC_OBJS = $(STATIC_SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
 # Main executable source files
@@ -64,6 +64,7 @@ TEST_UNITY_TARGET = $(BIN_DIR)/test-unity
 TEST_COVERAGE_TARGET = $(BIN_DIR)/test-coverage
 TEST_100_COVERAGE_TARGET = $(BIN_DIR)/test-100-coverage
 TEST_MISRA_TARGET = $(BIN_DIR)/test-misra-compliance
+TEST_MISRA_FIXED_TARGET = $(BIN_DIR)/test-misra-compliance-fixed
 
 CMAKE_BUILD_DIR = test/build
 CMAKE_GENERATOR ?= "Unix Makefiles"
@@ -229,6 +230,12 @@ $(TEST_MISRA_TARGET): $(STATIC_OBJS) $(TEST_DIR)/test_misra_compliance.c
 	@echo "🔗 Linking test-misra-compliance..."
 	$(CC_WRAPPER) $(CFLAGS) $(TEST_DIR)/test_misra_compliance.c $(STATIC_OBJS) -o $@ $(LDFLAGS)
 
+# MISRA compliance fixed test target (uses static implementation with safe functions)
+$(TEST_MISRA_FIXED_TARGET): $(STATIC_OBJS) $(TEST_DIR)/test_misra_compliance_fixed.c
+	@mkdir -p $(BIN_DIR)
+	@echo "🔗 Linking test-misra-compliance-fixed..."
+	$(CC_WRAPPER) $(CFLAGS) $(TEST_DIR)/test_misra_compliance_fixed.c $(STATIC_OBJS) -o $@ $(LDFLAGS)
+
 # Object file compilation rules
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(OBJ_DIR)
@@ -282,7 +289,11 @@ test-misra: $(TEST_MISRA_TARGET)
 	@echo "Running MISRA compliance tests..."
 	@./$(TEST_MISRA_TARGET)
 
-test-all: test test-c test-unity test-coverage test-100-coverage test-misra
+test-misra-fixed: $(TEST_MISRA_FIXED_TARGET)
+	@echo "Running MISRA compliance fixed tests..."
+	@./$(TEST_MISRA_FIXED_TARGET)
+
+test-all: test test-c test-unity test-coverage test-100-coverage test-misra test-misra-fixed
 	@echo "All tests completed!"
 
 coverage-report: test-100-coverage
