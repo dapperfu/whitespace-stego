@@ -35,6 +35,7 @@ func encodeCommand() {
 
 	var message string
 	var messageFile string
+	var carrier string
 	var carrierFile string
 	var outputFile string
 	var password string
@@ -43,6 +44,8 @@ func encodeCommand() {
 	fs.StringVar(&message, "message", "", "Message to encode")
 	fs.StringVar(&messageFile, "mf", "", "Message file path")
 	fs.StringVar(&messageFile, "message-file", "", "Message file path")
+	fs.StringVar(&carrier, "c", "", "Carrier text")
+	fs.StringVar(&carrier, "carrier", "", "Carrier text")
 	fs.StringVar(&carrierFile, "cf", "", "Carrier file path")
 	fs.StringVar(&carrierFile, "carrier-file", "", "Carrier file path")
 	fs.StringVar(&outputFile, "o", "", "Output file path")
@@ -55,6 +58,13 @@ func encodeCommand() {
 	// Check for mutual exclusivity between message and message-file
 	if message != "" && messageFile != "" {
 		fmt.Fprintf(os.Stderr, "Error: -m/-message and -mf/-message-file are mutually exclusive\n")
+		fs.PrintDefaults()
+		os.Exit(1)
+	}
+
+	// Check for mutual exclusivity between carrier and carrier-file
+	if carrier != "" && carrierFile != "" {
+		fmt.Fprintf(os.Stderr, "Error: -c/-carrier and -cf/-carrier-file are mutually exclusive\n")
 		fs.PrintDefaults()
 		os.Exit(1)
 	}
@@ -77,7 +87,6 @@ func encodeCommand() {
 	}
 
 	// Read carrier text
-	var carrier string
 	if carrierFile != "" {
 		carrierBytes, err := os.ReadFile(carrierFile)
 		if err != nil {
@@ -109,10 +118,13 @@ func encodeCommand() {
 func decodeCommand() {
 	fs := flag.NewFlagSet("decode", flag.ExitOnError)
 
+	var carrier string
 	var carrierFile string
 	var outputFile string
 	var password string
 
+	fs.StringVar(&carrier, "c", "", "Carrier text")
+	fs.StringVar(&carrier, "carrier", "", "Carrier text")
 	fs.StringVar(&carrierFile, "cf", "", "Carrier file path")
 	fs.StringVar(&carrierFile, "carrier-file", "", "Carrier file path")
 	fs.StringVar(&outputFile, "o", "", "Output file path")
@@ -122,20 +134,29 @@ func decodeCommand() {
 
 	fs.Parse(os.Args[2:])
 
+	// Check for mutual exclusivity between carrier and carrier-file
+	if carrier != "" && carrierFile != "" {
+		fmt.Fprintf(os.Stderr, "Error: -c/-carrier and -cf/-carrier-file are mutually exclusive\n")
+		fs.PrintDefaults()
+		os.Exit(1)
+	}
+
 	// Validate required arguments
-	if carrierFile == "" {
-		fmt.Fprintf(os.Stderr, "Error: carrier file is required\n")
+	if carrier == "" && carrierFile == "" {
+		fmt.Fprintf(os.Stderr, "Error: either -c/-carrier or -cf/-carrier-file is required\n")
 		fs.PrintDefaults()
 		os.Exit(1)
 	}
 
 	// Read carrier text
-	carrierBytes, err := os.ReadFile(carrierFile)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error reading carrier file: %v\n", err)
-		os.Exit(1)
+	if carrierFile != "" {
+		carrierBytes, err := os.ReadFile(carrierFile)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error reading carrier file: %v\n", err)
+			os.Exit(1)
+		}
+		carrier = string(carrierBytes)
 	}
-	carrier := string(carrierBytes)
 
 	// Decode the message
 	messages, err := stego.Decode(carrier, password)
@@ -182,19 +203,23 @@ Commands:
 Encode options:
   -m, -message <text>       Message to encode (mutually exclusive with -mf/-message-file)
   -mf, -message-file <path> Message file path (mutually exclusive with -m/-message)
-  -cf, -carrier-file <path> Carrier file path
+  -c, -carrier <text>       Carrier text (mutually exclusive with -cf/-carrier-file)
+  -cf, -carrier-file <path> Carrier file path (mutually exclusive with -c/-carrier)
   -o, -output <path>        Output file path (default: stdout)
   -p, -password <text>      Password for encryption
 
 Decode options:
-  -cf, -carrier-file <path> Carrier file path (required)
+  -c, -carrier <text>       Carrier text (mutually exclusive with -cf/-carrier-file)
+  -cf, -carrier-file <path> Carrier file path (mutually exclusive with -c/-carrier)
   -o, -output <path>        Output file path (default: stdout)
   -p, -password <text>      Password for decryption
 
 Examples:
+  whitespace-stego-go encode -m "Hello, World!" -c "This is carrier text" -o encoded.txt
   whitespace-stego-go encode -m "Hello, World!" -cf carrier.txt -o encoded.txt
   whitespace-stego-go encode -mf message.txt -cf carrier.txt -o encoded.txt
-  whitespace-stego-go encode -m "Secret" -cf carrier.txt -p "mypassword" -o encoded.txt
+  whitespace-stego-go encode -m "Secret" -c "Carrier text" -p "mypassword" -o encoded.txt
+  whitespace-stego-go decode -c "encoded text with hidden message"
   whitespace-stego-go decode -cf encoded.txt
   whitespace-stego-go decode -cf encoded.txt -p "mypassword" -o decoded.txt
 `)
