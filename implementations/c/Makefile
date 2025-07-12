@@ -356,12 +356,43 @@ install-unity:
 
 # Clean targets
 clean:
+	@echo "🧹 Cleaning build artifacts..."
 	rm -rf $(OBJ_DIR) $(BIN_DIR) $(LIB_DIR) $(COVERAGE_DIR)
+	rm -rf build
+	rm -rf test/build
+	rm -rf $(CCACHE_DIR_NAME)
+	rm -rf config
+	@echo "🧹 Removing object files and libraries..."
+	find . -name "*.o" -delete
+	find . -name "*.a" -delete
+	find . -name "*.so" -delete
+	@echo "🧹 Removing coverage files..."
 	find . -name "*.gcno" -delete
 	find . -name "*.gcda" -delete
 	find . -name "*.gcov" -delete
+	find . -name "*.info" -delete
+	@echo "🧹 Removing test executables..."
+	find . -name "test-*" -type f -executable -delete
+	find . -name "whitespace-stego-*" -type f -executable -delete
+	@echo "🧹 Removing development artifacts..."
+	rm -f debug_large debug_large.c
+	rm -f test_static_buffer_sizes test_static_buffer_sizes.c
+	rm -f test_buffer_sizes test_buffer_sizes.c
+	rm -f whitespace-stego-large
+	rm -f coverage.info
+	rm -f configure_buffer_sizes.sh
+	@echo "🧹 Removing temporary files..."
+	find . -name "*.tmp" -delete
+	find . -name "*.log" -delete
+	find . -name "*.bak" -delete
+	find . -name "*~" -delete
+	find . -name ".#*" -delete
+	find . -name ".DS_Store" -delete
+	@echo "✅ Clean complete!"
 
 distclean: clean ccache-clean
+	@echo "🧹 Deep cleaning..."
 	rm -f test/unity.h test/unity.c
 	rm -rf test/build
 	rm -rf $(CCACHE_DIR_NAME)
+	@echo "✅ Distclean complete!"
