@@ -10,7 +10,7 @@ VENV?=.venv
 BIN_DIR=bin
 MAKEFILE_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
-.PHONY: all c cpp clean coverage coverage-xml cov-c cov-go cov-python go help install maturin-develop rust test venv wasi wasi-web
+.PHONY: all c cpp clean coverage coverage-xml cov-c cov-go cov-python go help install maturin-develop rust test test_rust venv wasi wasi-web
 
 # Default target
 help:
@@ -31,6 +31,7 @@ help:
 	@echo "  maturin-develop - Install Rust extension in development mode"
 	@echo "  rust            - Build Rust CLI binary"
 	@echo "  test            - Run Python module tests"
+	@echo "  test_rust       - Run Rust tests"
 	@echo "  venv            - Create Python virtual environment"
 	@echo "  wasi            - Build WASM web interface"
 	@echo "  wasi-web        - Build and serve WASM web interface"
@@ -196,6 +197,11 @@ rust: venv
 test: venv maturin-develop install all
 	@echo "Running Python module tests..."
 	cd implementations/python && ../../.venv/bin/pytest -v
+
+# Run Rust tests
+test_rust:
+	@echo "🧪 Running Rust tests..."
+	cd implementations/rust && cargo test
 
 # Create Python virtual environment
 venv:

@@ -1,6 +1,6 @@
 use clap::{Arg, Command};
 use env_logger;
-use log::{info, LevelFilter};
+use log::LevelFilter;
 use std::error::Error;
 use std::fs;
 use whitespace_stego_core::{decode as core_decode, encode as core_encode};

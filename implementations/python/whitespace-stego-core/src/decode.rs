@@ -205,10 +205,20 @@ pub fn decode_all_fast(carrier: &str, password: Option<&str>) -> Result<Vec<Stri
                         }
                     } else {
                         // No password, so data is base64 encoded message
-                        match String::from_utf8(data) {
-                            Ok(message) => messages.push(message),
+                        match BASE64.decode(&data) {
+                            Ok(decoded_bytes) => {
+                                match String::from_utf8(decoded_bytes) {
+                                    Ok(message) => messages.push(message),
+                                    Err(_) => {
+                                        // Map UTF-8 error to decryption failed
+                                        decryption_failures += 1;
+                                        i = j + end_marker_len;
+                                        break;
+                                    },
+                                }
+                            },
                             Err(_) => {
-                                // Map UTF-8 error to decryption failed
+                                // Map base64 decode error to decryption failed
                                 decryption_failures += 1;
                                 i = j + end_marker_len;
                                 break;
