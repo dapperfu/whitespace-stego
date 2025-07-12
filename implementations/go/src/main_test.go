@@ -131,16 +131,15 @@ func TestMissingMessageOption(t *testing.T) {
 	}
 }
 
-// TestMissingCarrierOption tests that encode requires either -c or -cf
+// TestMissingCarrierOption tests that encode works with no carrier
 func TestMissingCarrierOption(t *testing.T) {
-	// Test that missing carrier option causes error
-	_, stderr, err := runCommand(t, "encode", "-m", "Test message")
-	if err == nil {
-		t.Fatalf("Expected error when missing carrier option, but command succeeded")
+	// Test that missing carrier option is allowed and outputs a valid encoded message
+	stdout, stderr, err := runCommand(t, "encode", "-m", "Test message")
+	if err != nil {
+		t.Fatalf("Expected encode to succeed with no carrier, but got error: %v\nstderr: %s", err, stderr)
 	}
-
-	if !strings.Contains(stderr, "required") {
-		t.Fatalf("Expected error about required carrier option, got: %s", stderr)
+	if len(stdout) == 0 {
+		t.Fatalf("Expected encoded output, got empty string")
 	}
 }
 
