@@ -39,6 +39,15 @@ htmlcov/
 # Distribution
 dist/
 build/
+
+# Binaries and executables
+bin/
+
+# Test results and reports
+results/
+coverage/
+*.html
+comprehensive_test_results*.json
 *.egg-info/
 
 # Misc
