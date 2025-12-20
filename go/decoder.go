@@ -10,11 +10,13 @@ import (
 //
 // Parameters:
 //   - encodedText: Text containing the encoded message with control markers.
+//   - password: Optional password for XOR decryption. If provided, the
+//     message will be decrypted after Base64 decoding.
 //
 // Returns:
 //   - Decoded original message
 //   - Error if decoding fails
-func Decode(encodedText string) (string, error) {
+func Decode(encodedText string, password *string) (string, error) {
 	// Find control markers
 	startIdx := strings.Index(encodedText, controlStart)
 	endIdx := strings.Index(encodedText, controlEnd)
@@ -78,6 +80,22 @@ func Decode(encodedText string) (string, error) {
 	utf8Bytes, err := base64.StdEncoding.DecodeString(base64Str)
 	if err != nil {
 		return "", fmt.Errorf("Base64 decoding failed: %w", err)
+	}
+
+	// Apply XOR decryption if password is provided
+	if password != nil && len(*password) > 0 {
+		passwordBytes := []byte(*password)
+		// Derive key by repeating password bytes cyclically
+		key := make([]byte, len(utf8Bytes))
+		for i := range key {
+			key[i] = passwordBytes[i%len(passwordBytes)]
+		}
+		// XOR decrypt each byte
+		for i := range utf8Bytes {
+			utf8Bytes[i] ^= key[i]
+		}
+	} else if password != nil && len(*password) == 0 {
+		return "", fmt.Errorf("password cannot be empty")
 	}
 
 	// Decode UTF-8 bytes to original message
