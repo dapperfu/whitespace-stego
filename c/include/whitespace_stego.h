@@ -22,6 +22,7 @@ extern "C" {
  * Parameters:
  *   message: Input message to encode (UTF-8)
  *   carrier: Optional carrier text (NULL for no carrier)
+ *   password: Optional password for XOR encryption (NULL for no encryption)
  *   output: Output buffer (must be allocated by caller)
  *   output_size: Size of output buffer
  *   output_len: Pointer to receive actual output length
@@ -29,13 +30,14 @@ extern "C" {
  * Returns:
  *   STEGO_SUCCESS on success, error code on failure
  */
-int whitespace_encode(const char *message, const char *carrier,
+int whitespace_encode(const char *message, const char *carrier, const char *password,
                       char *output, size_t output_size, size_t *output_len);
 
 /* Decode a message from invisible Unicode characters.
  *
  * Parameters:
  *   encoded_text: Input encoded text
+ *   password: Optional password for XOR decryption (NULL for no decryption)
  *   output: Output buffer (must be allocated by caller)
  *   output_size: Size of output buffer
  *   output_len: Pointer to receive actual output length
@@ -43,7 +45,7 @@ int whitespace_encode(const char *message, const char *carrier,
  * Returns:
  *   STEGO_SUCCESS on success, error code on failure
  */
-int whitespace_decode(const char *encoded_text,
+int whitespace_decode(const char *encoded_text, const char *password,
                       char *output, size_t output_size, size_t *output_len);
 
 /* Get error message for error code */

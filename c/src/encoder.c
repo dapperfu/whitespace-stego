@@ -13,9 +13,13 @@ extern size_t base64_encode(const unsigned char *input, size_t input_len,
 #define BIT_0 "\xE2\x80\x8B"          /* U+200B Zero Width Space */
 #define BIT_1 "\xE2\x80\x8C"          /* U+200C Zero Width Non-Joiner */
 
-int whitespace_encode(const char *message, const char *carrier,
+int whitespace_encode(const char *message, const char *carrier, const char *password,
                       char *output, size_t output_size, size_t *output_len) {
     if (!message || !output || !output_len) {
+        return STEGO_ERROR_ENCODING;
+    }
+
+    if (password && strlen(password) == 0) {
         return STEGO_ERROR_ENCODING;
     }
 
@@ -30,9 +34,21 @@ int whitespace_encode(const char *message, const char *carrier,
         return STEGO_SUCCESS;
     }
 
-    /* Encode message to Base64 */
-    unsigned char *utf8_bytes = (unsigned char *)message;
+    /* Convert message to UTF-8 bytes */
+    unsigned char *utf8_bytes = malloc(message_len);
+    if (!utf8_bytes) {
+        return STEGO_ERROR_MEMORY;
+    }
+    memcpy(utf8_bytes, message, message_len);
     size_t utf8_len = message_len;
+
+    /* Apply XOR encryption if password is provided */
+    if (password) {
+        size_t password_len = strlen(password);
+        for (size_t i = 0; i < utf8_len; i++) {
+            utf8_bytes[i] ^= password[i % password_len];
+        }
+    }
 
     /* Estimate Base64 output size */
     size_t base64_size = ((utf8_len + 2) / 3) * 4 + 1;
@@ -136,6 +152,7 @@ int whitespace_encode(const char *message, const char *carrier,
         *output_len = strlen(output);
     }
 
+    free(utf8_bytes);
     free(base64_str);
     free(binary_bits);
     free(encoded_payload);
