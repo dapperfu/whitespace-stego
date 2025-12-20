@@ -13,9 +13,13 @@ extern size_t base64_decode(const char *input, size_t input_len,
 #define BIT_0 "\xE2\x80\x8B"          /* U+200B Zero Width Space */
 #define BIT_1 "\xE2\x80\x8C"          /* U+200C Zero Width Non-Joiner */
 
-int whitespace_decode(const char *encoded_text,
+int whitespace_decode(const char *encoded_text, const char *password,
                       char *output, size_t output_size, size_t *output_len) {
     if (!encoded_text || !output || !output_len) {
+        return STEGO_ERROR_DECODING;
+    }
+
+    if (password && strlen(password) == 0) {
         return STEGO_ERROR_DECODING;
     }
 
@@ -157,6 +161,14 @@ int whitespace_decode(const char *encoded_text,
         free(base64_str);
         free(utf8_bytes);
         return STEGO_ERROR_INVALID_BASE64;
+    }
+
+    /* Apply XOR decryption if password is provided */
+    if (password) {
+        size_t password_len = strlen(password);
+        for (size_t i = 0; i < utf8_len; i++) {
+            utf8_bytes[i] ^= password[i % password_len];
+        }
     }
 
     /* Check output size */
