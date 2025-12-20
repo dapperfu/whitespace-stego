@@ -305,3 +305,39 @@ TITLE: Memory Efficiency
 STATEMENT: The system shall operate with memory usage that scales linearly with input message size, avoiding excessive memory overhead during encoding and decoding operations.
 RATIONALE: Efficient memory usage ensures the system can operate within reasonable resource constraints, supporting deployment in resource-limited environments.
 
+[REQUIREMENT]
+UID: REQ-045
+TITLE: Optional Password-Based Encryption
+STATEMENT: The system shall support optional password-based encryption of messages before Base64 encoding, using XOR cipher with a password-derived key.
+RATIONALE: Password protection adds an additional layer of security to encoded messages, ensuring that only parties with the correct password can decode the hidden content.
+
+[REQUIREMENT]
+UID: REQ-046
+TITLE: Password Key Derivation
+STATEMENT: The system shall derive an encryption key from the password by repeating the password bytes cyclically to match the length of the message UTF-8 byte sequence.
+RATIONALE: Cyclic key repetition provides a simple and deterministic key derivation method that works with passwords of any length while maintaining backward compatibility when no password is provided.
+
+[REQUIREMENT]
+UID: REQ-047
+TITLE: XOR Encryption Process
+STATEMENT: The system shall apply XOR encryption to each UTF-8 byte of the message with the corresponding byte from the password-derived key before applying Base64 encoding.
+RATIONALE: XOR encryption is a symmetric cipher that allows the same password to both encrypt and decrypt the message, and it operates on the plaintext before Base64 encoding to ensure the carrier text appears normal.
+
+[REQUIREMENT]
+UID: REQ-048
+TITLE: XOR Decryption Process
+STATEMENT: The system shall apply XOR decryption to the Base64-decoded bytes using the same password-derived key to recover the original message.
+RATIONALE: XOR decryption reverses the encryption process, recovering the original message when the correct password is provided.
+
+[REQUIREMENT]
+UID: REQ-049
+TITLE: Password Backward Compatibility
+STATEMENT: The system shall maintain backward compatibility with existing encoded messages by making the password parameter optional, allowing encoding and decoding without passwords to function as before.
+RATIONALE: Backward compatibility ensures that existing encoded messages continue to work without modification, preserving the usability of the system across version updates.
+
+[REQUIREMENT]
+UID: REQ-050
+TITLE: Password Interface Support
+STATEMENT: The system shall provide encoding and decoding functions that accept an optional password parameter, allowing applications to choose whether to use password protection.
+RATIONALE: Optional password support provides flexibility for applications that may or may not require password protection, accommodating diverse use cases and security requirements.
+
