@@ -75,6 +75,52 @@ docs/_build/
 .pybuilder/
 target/
 
+# Rust build artifacts
+**/target/
+**/Cargo.lock
+*.rlib
+
+# C/C++ build artifacts
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+**/obj/
+**/build/
+**/lib/
+**/bin/
+
+# Go build artifacts
+*.exe
+*.test
+*.out
+
+# Assembly build artifacts
+*.o
+*.a
+
+# WASM build artifacts
+**/pkg/
+**/*.wasm
+
+# Python build artifacts (already covered but being explicit)
+**/build/
+**/dist/
+**/__pycache__/
+**/*.egg-info/
+**/*.spec
+**/*.pyc
+**/*.pyo
+
+# CMake build artifacts
+**/CMakeCache.txt
+**/CMakeFiles/
+**/cmake_install.cmake
+**/Makefile
+**/CTestTestfile.cmake
+**/Testing/
+
 # Jupyter Notebook
 .ipynb_checkpoints
 
