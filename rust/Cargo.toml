@@ -1,0 +1,25 @@
+[package]
+name = "whitespace-stego"
+version = "0.1.0"
+edition = "2021"
+description = "Whitespace steganography using invisible Unicode characters"
+license = "MIT"
+authors = ["whitespace-stego contributors"]
+
+[dependencies]
+base64 = "0.21"
+
+[dev-dependencies]
+
+[[test]]
+name = "integration_test"
+path = "tests/integration_test.rs"
+
+[[bin]]
+name = "whitespace-stego-rust"
+path = "examples/cli.rs"
+
+[lib]
+name = "whitespace_stego"
+path = "src/lib.rs"
+

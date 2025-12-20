@@ -1,0 +1,53 @@
+{
+  "test_cases": [
+    {
+      "name": "single_char",
+      "message": "A",
+      "carrier": "",
+      "description": "Single character message"
+    },
+    {
+      "name": "single_byte",
+      "message": "a",
+      "carrier": "",
+      "description": "Single byte message"
+    },
+    {
+      "name": "very_long",
+      "message": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "carrier": "",
+      "description": "Very long message (100 characters, expand as needed)"
+    },
+    {
+      "name": "binary_like",
+      "message": "\u0000\u0001\u0002\u0003",
+      "carrier": "",
+      "description": "Binary-like data (will be Base64 encoded)"
+    },
+    {
+      "name": "newlines_only",
+      "message": "\n\n\n",
+      "carrier": "",
+      "description": "Only newline characters"
+    },
+    {
+      "name": "tabs_spaces",
+      "message": "\t\t  \t  ",
+      "carrier": "",
+      "description": "Tabs and spaces"
+    },
+    {
+      "name": "empty_carrier",
+      "message": "Hello",
+      "carrier": "",
+      "description": "Message with empty carrier"
+    },
+    {
+      "name": "single_char_carrier",
+      "message": "Hello",
+      "carrier": "A",
+      "description": "Message with single character carrier"
+    }
+  ]
+}
+

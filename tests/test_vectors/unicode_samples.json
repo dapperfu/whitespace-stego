@@ -1,0 +1,47 @@
+{
+  "test_cases": [
+    {
+      "name": "emoji",
+      "message": "Hello 🌍 你好",
+      "carrier": "",
+      "description": "Message with emoji and CJK characters"
+    },
+    {
+      "name": "accented_chars",
+      "message": "Café résumé naïve",
+      "carrier": "",
+      "description": "Accented characters"
+    },
+    {
+      "name": "cjk_characters",
+      "message": "你好世界",
+      "carrier": "",
+      "description": "CJK characters"
+    },
+    {
+      "name": "arabic",
+      "message": "مرحبا بالعالم",
+      "carrier": "",
+      "description": "Arabic text"
+    },
+    {
+      "name": "cyrillic",
+      "message": "Привет мир",
+      "carrier": "",
+      "description": "Cyrillic text"
+    },
+    {
+      "name": "mixed_unicode",
+      "message": "Hello 世界 🌍 مرحبا Привет",
+      "carrier": "",
+      "description": "Mixed Unicode characters"
+    },
+    {
+      "name": "unicode_with_carrier",
+      "message": "Secret: 🌍",
+      "carrier": "This is normal text.",
+      "description": "Unicode message with carrier text"
+    }
+  ]
+}
+

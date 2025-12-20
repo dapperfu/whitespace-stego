@@ -1,0 +1,47 @@
+{
+  "test_cases": [
+    {
+      "name": "empty_message",
+      "message": "",
+      "carrier": "",
+      "description": "Empty message should encode to just control markers"
+    },
+    {
+      "name": "simple_ascii",
+      "message": "Hello, World!",
+      "carrier": "",
+      "description": "Simple ASCII text"
+    },
+    {
+      "name": "simple_ascii_with_carrier",
+      "message": "Hello, World!",
+      "carrier": "This is normal text.",
+      "description": "Simple ASCII text with carrier"
+    },
+    {
+      "name": "multiline_text",
+      "message": "Line 1\nLine 2\nLine 3",
+      "carrier": "",
+      "description": "Multiline text"
+    },
+    {
+      "name": "special_characters",
+      "message": "!@#$%^&*()_+-=[]{}|;:,.<>?",
+      "carrier": "",
+      "description": "Special ASCII characters"
+    },
+    {
+      "name": "numbers",
+      "message": "1234567890",
+      "carrier": "",
+      "description": "Numeric string"
+    },
+    {
+      "name": "long_text",
+      "message": "The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog.",
+      "carrier": "",
+      "description": "Longer text for testing"
+    }
+  ]
+}
+

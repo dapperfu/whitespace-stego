@@ -1,0 +1,21 @@
+[package]
+name = "whitespace-stego-wasm"
+version = "0.1.0"
+edition = "2021"
+description = "WASM bindings for whitespace steganography"
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+wasm-bindgen = "0.2"
+whitespace-stego = { path = "../rust" }
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3"
+
+[profile.release]
+opt-level = "z"
+lto = true
+
