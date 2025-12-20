@@ -313,7 +313,7 @@
             }
 
             try {
-                const encoded = encode_message(message, carrier || null);
+                const encoded = encode_message(message, carrier || null, null);
                 outputTextarea.value = encoded;
                 outputContainer.classList.remove('hidden');
             } catch (error) {
@@ -385,7 +385,7 @@
             }
 
             try {
-                const decoded = decode_message(encoded);
+                const decoded = decode_message(encoded, null);
                 showSuccess('decodeOutput', 'Decoded message:\n\n' + decoded);
             } catch (error) {
                 showError('decodeOutput', 'Error: ' + error.message);

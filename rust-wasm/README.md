@@ -43,7 +43,7 @@ python3 -m http.server 8000
 
 The WASM module exposes:
 
-- `encode_message(message: string, carrier?: string): string` - Encode a message
-- `decode_message(encoded_text: string): string` - Decode a message
+- `encode_message(message: string, carrier?: string, password?: string): string` - Encode a message with optional carrier text and password encryption
+- `decode_message(encoded_text: string, password?: string): string` - Decode a message with optional password decryption
 - `has_encoded_data(text: string): boolean` - Check if text contains encoded data
 
