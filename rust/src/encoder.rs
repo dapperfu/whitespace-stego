@@ -13,6 +13,8 @@ use crate::errors::StegoError;
 /// * `carrier` - Optional carrier text to embed the encoded message in.
 ///               If provided, the encoded payload will be inserted after
 ///               the first character of the carrier text.
+/// * `password` - Optional password for XOR encryption. If provided, the
+///                message will be encrypted before Base64 encoding.
 ///
 /// # Returns
 ///
@@ -22,12 +24,31 @@ use crate::errors::StegoError;
 /// # Errors
 ///
 /// Returns `StegoError::Encoding` if encoding fails for any reason.
-pub fn encode(message: &str, carrier: Option<&str>) -> Result<String, StegoError> {
+pub fn encode(message: &str, carrier: Option<&str>, password: Option<&str>) -> Result<String, StegoError> {
     // Convert message to UTF-8 bytes
-    let utf8_bytes = message.as_bytes();
+    let mut utf8_bytes = message.as_bytes().to_vec();
+
+    // Apply XOR encryption if password is provided
+    if let Some(password) = password {
+        if password.is_empty() {
+            return Err(StegoError::Encoding("Password cannot be empty".to_string()));
+        }
+        let password_bytes = password.as_bytes();
+        // Derive key by repeating password bytes cyclically
+        let key: Vec<u8> = password_bytes
+            .iter()
+            .cycle()
+            .take(utf8_bytes.len())
+            .copied()
+            .collect();
+        // XOR encrypt each byte
+        for (byte, key_byte) in utf8_bytes.iter_mut().zip(key.iter()) {
+            *byte ^= key_byte;
+        }
+    }
 
     // Encode to Base64
-    let base64_str = general_purpose::STANDARD.encode(utf8_bytes);
+    let base64_str = general_purpose::STANDARD.encode(&utf8_bytes);
 
     // Convert Base64 string to binary representation
     let mut binary_bits = String::new();
