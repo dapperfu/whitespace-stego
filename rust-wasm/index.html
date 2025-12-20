@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whitespace Steganography - WASM Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            color: #667eea;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section h2 {
+            color: #764ba2;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+            font-family: 'Courier New', monospace;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .output {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            min-height: 50px;
+            white-space: pre-wrap;
+        }
+
+        .output-container {
+            margin-top: 15px;
+            position: relative;
+        }
+
+        .output-textarea {
+            width: 100%;
+            padding: 12px;
+            padding-right: 80px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            min-height: 100px;
+            background: #f5f5f5;
+            border-left: 4px solid #27ae60;
+        }
+
+        .output-textarea:focus {
+            outline: none;
+            border-color: #27ae60;
+            background: white;
+        }
+
+        .copy-button {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+        }
+
+        .copy-button:hover {
+            background: #229954;
+            transform: translateY(-1px);
+        }
+
+        .copy-button:active {
+            transform: translateY(0);
+        }
+
+        .copy-button.copied {
+            background: #3498db;
+        }
+
+        .error {
+            background: #fee;
+            border-left-color: #e74c3c;
+            color: #c0392b;
+        }
+
+        .success {
+            background: #efe;
+            border-left-color: #27ae60;
+            color: #229954;
+        }
+
+        .info {
+            background: #e8f4f8;
+            border-left-color: #3498db;
+            color: #2980b9;
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🕵️ Whitespace Steganography</h1>
+        <p class="subtitle">Hide secrets in plain sight using invisible Unicode characters</p>
+
+        <div id="loading" class="info">
+            <strong>Loading WASM module...</strong> <span class="loading"></span>
+        </div>
+
+        <div id="app" class="hidden">
+            <div class="section">
+                <h2>Encode Message</h2>
+                <div class="input-group">
+                    <label for="message">Message to encode:</label>
+                    <textarea id="message" placeholder="Enter your secret message here..."></textarea>
+                </div>
+                <div class="input-group">
+                    <label for="carrier">Carrier text (optional):</label>
+                    <input type="text" id="carrier" placeholder="This is normal text.">
+                </div>
+                <button id="encodeBtn" onclick="encodeMessage()">Encode</button>
+                <div id="encodeOutputContainer" class="output-container hidden">
+                    <textarea id="encodeOutput" class="output-textarea" readonly placeholder="Encoded message will appear here..."></textarea>
+                    <button class="copy-button" onclick="copyToClipboard('encodeOutput')">Copy</button>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Decode Message</h2>
+                <div class="input-group">
+                    <label for="encoded">Encoded text:</label>
+                    <textarea id="encoded" placeholder="Paste encoded text here..."></textarea>
+                </div>
+                <button id="decodeBtn" onclick="decodeMessage()">Decode</button>
+                <button onclick="checkEncoded()">Check if contains encoded data</button>
+                <div id="decodeOutput" class="output hidden"></div>
+            </div>
+
+            <div class="info">
+                <strong>💡 Tip:</strong> The encoded text looks identical to normal text, but contains your hidden message! 
+                Try encoding a message, then copying the result and decoding it.
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import init, { encode_message, decode_message, has_encoded_data } from './pkg/whitespace_stego_wasm.js';
+        
+        // Note: The import path depends on the package name in Cargo.toml
+        // If the import fails, check the actual filename in pkg/ directory
+
+        let wasmReady = false;
+
+        async function loadWasm() {
+            try {
+                await init();
+                wasmReady = true;
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('app').classList.remove('hidden');
+            } catch (error) {
+                document.getElementById('loading').innerHTML = 
+                    '<strong style="color: #e74c3c;">Error loading WASM:</strong> ' + error.message;
+            }
+        }
+
+        window.encodeMessage = function() {
+            const outputTextarea = document.getElementById('encodeOutput');
+            const outputContainer = document.getElementById('encodeOutputContainer');
+            
+            // Remove any existing error messages
+            const existingError = outputContainer.querySelector('.output.error');
+            if (existingError) {
+                existingError.remove();
+            }
+
+            if (!wasmReady) {
+                showEncodeError('WASM module not loaded yet');
+                return;
+            }
+
+            const message = document.getElementById('message').value;
+            const carrier = document.getElementById('carrier').value.trim();
+            
+            if (!message) {
+                showEncodeError('Please enter a message to encode');
+                return;
+            }
+
+            try {
+                const encoded = encode_message(message, carrier || null);
+                outputTextarea.value = encoded;
+                outputContainer.classList.remove('hidden');
+            } catch (error) {
+                showEncodeError('Error: ' + error.message);
+            }
+        };
+
+        function showEncodeError(message) {
+            const outputContainer = document.getElementById('encodeOutputContainer');
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'output error';
+            errorDiv.textContent = message;
+            errorDiv.style.marginTop = '10px';
+            outputContainer.appendChild(errorDiv);
+            outputContainer.classList.remove('hidden');
+        }
+
+        window.copyToClipboard = async function(textareaId) {
+            const textarea = document.getElementById(textareaId);
+            if (!textarea || !textarea.value) {
+                return;
+            }
+
+            try {
+                await navigator.clipboard.writeText(textarea.value);
+                const copyButton = textarea.nextElementSibling;
+                if (copyButton && copyButton.classList.contains('copy-button')) {
+                    const originalText = copyButton.textContent;
+                    copyButton.textContent = 'Copied!';
+                    copyButton.classList.add('copied');
+                    setTimeout(() => {
+                        copyButton.textContent = originalText;
+                        copyButton.classList.remove('copied');
+                    }, 2000);
+                }
+            } catch (error) {
+                // Fallback for older browsers
+                textarea.select();
+                textarea.setSelectionRange(0, 99999); // For mobile devices
+                try {
+                    document.execCommand('copy');
+                    const copyButton = textarea.nextElementSibling;
+                    if (copyButton && copyButton.classList.contains('copy-button')) {
+                        const originalText = copyButton.textContent;
+                        copyButton.textContent = 'Copied!';
+                        copyButton.classList.add('copied');
+                        setTimeout(() => {
+                            copyButton.textContent = originalText;
+                            copyButton.classList.remove('copied');
+                        }, 2000);
+                    }
+                } catch (err) {
+                    alert('Failed to copy to clipboard');
+                }
+            }
+        };
+
+        window.decodeMessage = function() {
+            if (!wasmReady) {
+                showError('decodeOutput', 'WASM module not loaded yet');
+                return;
+            }
+
+            const encoded = document.getElementById('encoded').value.trim();
+            
+            if (!encoded) {
+                showError('decodeOutput', 'Please enter encoded text to decode');
+                return;
+            }
+
+            try {
+                const decoded = decode_message(encoded);
+                showSuccess('decodeOutput', 'Decoded message:\n\n' + decoded);
+            } catch (error) {
+                showError('decodeOutput', 'Error: ' + error.message);
+            }
+        };
+
+        window.checkEncoded = function() {
+            if (!wasmReady) {
+                showError('decodeOutput', 'WASM module not loaded yet');
+                return;
+            }
+
+            const text = document.getElementById('encoded').value.trim();
+            
+            if (!text) {
+                showError('decodeOutput', 'Please enter text to check');
+                return;
+            }
+
+            try {
+                const hasData = has_encoded_data(text);
+                if (hasData) {
+                    showSuccess('decodeOutput', '✓ This text contains encoded data!');
+                } else {
+                    showInfo('decodeOutput', 'This text does not appear to contain encoded data.');
+                }
+            } catch (error) {
+                showError('decodeOutput', 'Error: ' + error.message);
+            }
+        };
+
+        function showSuccess(id, message) {
+            const output = document.getElementById(id);
+            output.textContent = message;
+            output.className = 'output success';
+            output.classList.remove('hidden');
+        }
+
+        function showError(id, message) {
+            const output = document.getElementById(id);
+            // For regular div outputs (like decodeOutput)
+            output.textContent = message;
+            output.className = 'output error';
+            output.classList.remove('hidden');
+        }
+
+        function showInfo(id, message) {
+            const output = document.getElementById(id);
+            output.textContent = message;
+            output.className = 'output info';
+            output.classList.remove('hidden');
+        }
+
+        // Load WASM on page load
+        loadWasm();
+    </script>
+</body>
+</html>
+

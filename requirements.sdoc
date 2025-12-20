@@ -1,0 +1,307 @@
+[DOCUMENT]
+TITLE: Whitespace Steganography System Requirements
+VERSION: 1.0.0
+
+[GRAMMAR]
+ELEMENTS:
+- TAG: REQUIREMENT
+  FIELDS:
+  - TITLE: UID
+    TYPE: String
+    REQUIRED: True
+  - TITLE: TITLE
+    TYPE: String
+    REQUIRED: True
+  - TITLE: STATEMENT
+    TYPE: String
+    REQUIRED: True
+  - TITLE: RATIONALE
+    TYPE: String
+    REQUIRED: False
+  - TITLE: COMMENT
+    TYPE: String
+    REQUIRED: False
+  - TITLE: PARENT
+    TYPE: String
+    REQUIRED: False
+
+[REQUIREMENT]
+UID: REQ-001
+TITLE: Language-Agnostic Design
+STATEMENT: The system shall be designed and specified in a programming language-agnostic manner, allowing implementation in any programming language that supports Unicode string manipulation and Base64 encoding/decoding operations.
+RATIONALE: To ensure the requirements can be implemented across diverse technology stacks and environments, maximizing the system's applicability and portability.
+
+[REQUIREMENT]
+UID: REQ-002
+TITLE: Invisible Character Steganography Method
+STATEMENT: The system shall use invisible Unicode control characters as the steganographic medium, specifically zero-width characters that are not visible when rendered in standard text displays.
+RATIONALE: To ensure the encoded messages remain undetectable during normal text viewing and processing, maintaining the covert nature of the steganography.
+
+[REQUIREMENT]
+UID: REQ-003
+TITLE: Bidirectional Message Processing
+STATEMENT: The system shall provide both encoding and decoding capabilities, allowing messages to be embedded into text and subsequently extracted from encoded text.
+RATIONALE: To enable complete steganographic communication workflows where messages can be both concealed and recovered.
+
+[REQUIREMENT]
+UID: REQ-004
+TITLE: Unicode Control Character Specifications
+STATEMENT: The system shall use the following Unicode control characters for encoding: CONTROL_START: U+2060 (Word Joiner) to mark the beginning of an encoded payload; CONTROL_END: U+2063 (Invisible Separator) to mark the end of an encoded payload; BIT_0: U+200B (Zero Width Space) to represent binary bit value 0; BIT_1: U+200C (Zero Width Non-Joiner) to represent binary bit value 1.
+RATIONALE: These specific Unicode characters are chosen because they are invisible when rendered, allowing encoded messages to remain undetectable in normal text viewing contexts.
+
+[REQUIREMENT]
+UID: REQ-005
+TITLE: Base64 Encoding Standard
+STATEMENT: The system shall use Base64 encoding as specified in RFC 4648 to encode the original message before binary conversion.
+RATIONALE: Base64 encoding ensures that any message content (including binary data) can be safely represented as ASCII characters, which can then be converted to binary format for steganographic encoding.
+
+[REQUIREMENT]
+UID: REQ-006
+TITLE: Binary Representation Format
+STATEMENT: The system shall represent each Base64-encoded character as an 8-bit binary value, with bits ordered from most significant bit (MSB) to least significant bit (LSB).
+RATIONALE: Standard 8-bit byte representation ensures consistent encoding and decoding across different platforms and character encodings.
+
+[REQUIREMENT]
+UID: REQ-007
+TITLE: Control Marker Positioning
+STATEMENT: The encoded payload shall be wrapped with CONTROL_START immediately before the first bit character and CONTROL_END immediately after the last bit character, with no intervening characters between the markers and the payload.
+RATIONALE: Precise marker positioning ensures reliable payload extraction during decoding operations.
+
+[REQUIREMENT]
+UID: REQ-008
+TITLE: Message Encoding Capability
+STATEMENT: The system shall encode an input message string into a steganographic representation using invisible Unicode control characters.
+RATIONALE: Encoding is a fundamental operation required to conceal messages within text.
+PARENT: REQ-003
+
+[REQUIREMENT]
+UID: REQ-009
+TITLE: UTF-8 Message Encoding
+STATEMENT: The system shall encode the input message to UTF-8 byte sequence before applying Base64 encoding.
+RATIONALE: UTF-8 encoding ensures that messages containing any Unicode characters can be properly processed, supporting international text and emoji characters.
+PARENT: REQ-008
+
+[REQUIREMENT]
+UID: REQ-010
+TITLE: Base64 Encoding Application
+STATEMENT: The system shall apply Base64 encoding to the UTF-8 encoded message bytes to produce a Base64-encoded string.
+RATIONALE: Base64 encoding converts arbitrary byte sequences into a safe ASCII representation that can be reliably converted to binary format.
+PARENT: REQ-008
+
+[REQUIREMENT]
+UID: REQ-011
+TITLE: Binary Conversion
+STATEMENT: The system shall convert each character in the Base64-encoded string to its 8-bit binary representation, producing a sequence of binary digits (0s and 1s).
+RATIONALE: Binary representation is necessary to map message data to individual bit values that can be encoded as invisible characters.
+PARENT: REQ-008
+
+[REQUIREMENT]
+UID: REQ-012
+TITLE: Bit-to-Character Mapping
+STATEMENT: The system shall map each binary digit to its corresponding invisible Unicode character, where bit value 0 maps to BIT_0 (U+200B) and bit value 1 maps to BIT_1 (U+200C).
+RATIONALE: This mapping creates the steganographic payload that can be embedded invisibly within text.
+PARENT: REQ-008
+
+[REQUIREMENT]
+UID: REQ-013
+TITLE: Control Marker Wrapping
+STATEMENT: The system shall wrap the sequence of bit-encoded invisible characters with CONTROL_START (U+2060) at the beginning and CONTROL_END (U+2063) at the end to form the complete encoded payload.
+RATIONALE: Control markers enable the decoder to identify and extract the encoded payload from text that may contain other content.
+PARENT: REQ-008
+
+[REQUIREMENT]
+UID: REQ-014
+TITLE: Carrier Text Embedding Support
+STATEMENT: The system shall support optional embedding of the encoded message within a carrier text string, where the encoded payload is inserted after the first character of the carrier text.
+RATIONALE: Carrier text embedding allows encoded messages to be hidden within seemingly normal text, enhancing the steganographic concealment.
+PARENT: REQ-008
+
+[REQUIREMENT]
+UID: REQ-015
+TITLE: Standalone Encoding Mode
+STATEMENT: The system shall support encoding a message without carrier text, producing a string containing only the control markers and encoded payload.
+RATIONALE: Standalone encoding mode provides flexibility for use cases where carrier text is not needed or will be added separately.
+PARENT: REQ-008
+
+[REQUIREMENT]
+UID: REQ-016
+TITLE: Message Decoding Capability
+STATEMENT: The system shall decode a steganographically encoded string to recover the original message.
+RATIONALE: Decoding is a fundamental operation required to extract concealed messages from encoded text.
+PARENT: REQ-003
+
+[REQUIREMENT]
+UID: REQ-017
+TITLE: Control Marker Detection
+STATEMENT: The system shall detect the presence of CONTROL_START and CONTROL_END markers within the input string to identify the encoded payload boundaries.
+RATIONALE: Marker detection is necessary to locate and extract the encoded payload from text that may contain additional content.
+PARENT: REQ-016
+
+[REQUIREMENT]
+UID: REQ-018
+TITLE: Payload Extraction
+STATEMENT: The system shall extract the sequence of invisible characters located between the CONTROL_START and CONTROL_END markers, excluding the markers themselves from the payload.
+RATIONALE: Accurate payload extraction is required to obtain the bit-encoded data for subsequent decoding operations.
+PARENT: REQ-016
+
+[REQUIREMENT]
+UID: REQ-019
+TITLE: Character-to-Bit Conversion
+STATEMENT: The system shall convert each invisible character in the extracted payload to its corresponding binary digit, where BIT_0 (U+200B) maps to bit value 0 and BIT_1 (U+200C) maps to bit value 1.
+RATIONALE: This conversion reverses the encoding process, reconstructing the binary representation of the Base64-encoded message.
+PARENT: REQ-016
+
+[REQUIREMENT]
+UID: REQ-020
+TITLE: Binary-to-Byte Conversion
+STATEMENT: The system shall group the sequence of binary digits into 8-bit bytes, converting each 8-bit group from binary representation to its corresponding byte value.
+RATIONALE: Byte reconstruction is necessary to convert the binary bit sequence back into character data for Base64 decoding.
+PARENT: REQ-016
+
+[REQUIREMENT]
+UID: REQ-021
+TITLE: Base64 Decoding
+STATEMENT: The system shall apply Base64 decoding to the reconstructed byte sequence to recover the original UTF-8 encoded message bytes.
+RATIONALE: Base64 decoding reverses the Base64 encoding applied during the encoding process, recovering the original message bytes.
+PARENT: REQ-016
+
+[REQUIREMENT]
+UID: REQ-022
+TITLE: UTF-8 Message Decoding
+STATEMENT: The system shall decode the UTF-8 byte sequence to produce the original message string.
+RATIONALE: UTF-8 decoding recovers the original message text from the byte representation, completing the decoding process.
+PARENT: REQ-016
+
+[REQUIREMENT]
+UID: REQ-023
+TITLE: Round-Trip Integrity
+STATEMENT: The system shall ensure that decoding an encoded message produces the exact original message, with no data loss or corruption.
+RATIONALE: Round-trip integrity is essential for reliable steganographic communication, ensuring messages can be accurately recovered.
+PARENT: REQ-016
+
+[REQUIREMENT]
+UID: REQ-024
+TITLE: Missing Start Marker Detection
+STATEMENT: The system shall detect when the CONTROL_START marker is absent from the input string during decoding operations and handle this condition as an error.
+RATIONALE: Missing start markers indicate invalid or corrupted encoded data, requiring appropriate error handling to prevent incorrect decoding results.
+
+[REQUIREMENT]
+UID: REQ-025
+TITLE: Missing End Marker Detection
+STATEMENT: The system shall detect when the CONTROL_END marker is absent from the input string during decoding operations and handle this condition as an error.
+RATIONALE: Missing end markers indicate incomplete or corrupted encoded data, requiring appropriate error handling to prevent incorrect decoding results.
+
+[REQUIREMENT]
+UID: REQ-026
+TITLE: Invalid Payload Character Handling
+STATEMENT: The system shall detect when the extracted payload contains characters other than BIT_0 (U+200B) and BIT_1 (U+200C) and handle this condition as an error.
+RATIONALE: Invalid characters in the payload indicate corrupted or malformed encoded data, requiring error detection to maintain decoding reliability.
+
+[REQUIREMENT]
+UID: REQ-027
+TITLE: Base64 Decoding Failure Handling
+STATEMENT: The system shall detect when Base64 decoding fails due to invalid Base64 data and handle this condition as an error.
+RATIONALE: Base64 decoding failures indicate corrupted payload data or encoding errors, requiring appropriate error handling.
+
+[REQUIREMENT]
+UID: REQ-028
+TITLE: UTF-8 Decoding Failure Handling
+STATEMENT: The system shall detect when UTF-8 decoding fails due to invalid UTF-8 byte sequences and handle this condition as an error.
+RATIONALE: UTF-8 decoding failures indicate corrupted message data, requiring appropriate error handling to prevent invalid output.
+
+[REQUIREMENT]
+UID: REQ-029
+TITLE: Incomplete Payload Handling
+STATEMENT: The system shall detect when the extracted payload does not contain a complete number of 8-bit bytes (i.e., the bit count is not divisible by 8) and handle this condition as an error.
+RATIONALE: Incomplete payloads indicate truncated or corrupted encoded data, requiring error detection to prevent incorrect decoding.
+
+[REQUIREMENT]
+UID: REQ-030
+TITLE: Error Reporting
+STATEMENT: The system shall report decoding errors in a manner that clearly indicates the nature of the failure, allowing calling code to distinguish between different error conditions.
+RATIONALE: Clear error reporting enables proper error handling in applications using the steganography system, improving system reliability and debuggability.
+
+[REQUIREMENT]
+UID: REQ-031
+TITLE: Encoding Function Interface
+STATEMENT: The system shall provide an encoding function that accepts a message string as input and returns an encoded string containing the steganographic representation of the message.
+RATIONALE: A well-defined encoding interface enables integration of the steganography system into various applications and use cases.
+
+[REQUIREMENT]
+UID: REQ-032
+TITLE: Encoding Function with Carrier Text
+STATEMENT: The system shall provide an encoding function variant that accepts both a message string and an optional carrier text string, returning a string containing the carrier text with the encoded message embedded within it.
+RATIONALE: Support for carrier text embedding provides enhanced steganographic concealment capabilities.
+
+[REQUIREMENT]
+UID: REQ-033
+TITLE: Decoding Function Interface
+STATEMENT: The system shall provide a decoding function that accepts an encoded string as input and returns the decoded message string, or raises an error if decoding fails.
+RATIONALE: A well-defined decoding interface enables reliable message extraction from encoded text.
+
+[REQUIREMENT]
+UID: REQ-034
+TITLE: String Input/Output Format
+STATEMENT: All interface functions shall accept and return string data types that support Unicode character representation, capable of handling the invisible Unicode control characters used for encoding.
+RATIONALE: Unicode string support is essential for handling the invisible control characters that form the basis of the steganographic encoding.
+
+[REQUIREMENT]
+UID: REQ-035
+TITLE: Empty Input Handling
+STATEMENT: The system shall handle empty message strings as valid input for encoding operations, producing an encoded string containing only the control markers with an empty payload.
+RATIONALE: Supporting empty inputs provides interface consistency and enables edge case handling in applications.
+
+[REQUIREMENT]
+UID: REQ-036
+TITLE: Empty Carrier Text Handling
+STATEMENT: The system shall handle empty carrier text strings as valid input, producing encoded output equivalent to encoding without carrier text.
+RATIONALE: Supporting empty carrier text provides interface flexibility, allowing applications to conditionally include carrier text.
+
+[REQUIREMENT]
+UID: REQ-037
+TITLE: Programming Language Independence
+STATEMENT: The system specification shall be independent of any specific programming language, allowing implementation in any language that supports Unicode string operations and Base64 encoding/decoding.
+RATIONALE: Language independence ensures the requirements can be implemented across diverse technology stacks, maximizing system applicability.
+
+[REQUIREMENT]
+UID: REQ-038
+TITLE: Unicode Character Encoding Support
+STATEMENT: The system shall support Unicode character encoding (specifically UTF-8) for both input messages and encoded output, enabling support for international text, emoji, and other Unicode characters.
+RATIONALE: Unicode support ensures the system can handle messages containing any text content, not limited to ASCII characters.
+
+[REQUIREMENT]
+UID: REQ-039
+TITLE: Message Size Scalability
+STATEMENT: The system shall support encoding and decoding messages of arbitrary size, limited only by the underlying platform's string handling capabilities and memory constraints.
+RATIONALE: Scalability ensures the system can handle messages ranging from short text to large documents, accommodating diverse use cases.
+
+[REQUIREMENT]
+UID: REQ-040
+TITLE: Stealthiness Requirement
+STATEMENT: The encoded messages shall be visually imperceptible when rendered in standard text displays, appearing identical to unencoded text or carrier text.
+RATIONALE: Visual imperceptibility is fundamental to steganography, ensuring encoded messages remain undetectable during normal text viewing.
+
+[REQUIREMENT]
+UID: REQ-041
+TITLE: Encoding Determinism
+STATEMENT: The system shall produce identical encoded output when encoding the same message with the same carrier text, ensuring deterministic encoding behavior.
+RATIONALE: Deterministic encoding enables reliable testing, verification, and predictable system behavior across different implementations and executions.
+
+[REQUIREMENT]
+UID: REQ-042
+TITLE: Decoding Robustness
+STATEMENT: The system shall successfully decode any valid encoded string produced by the encoding function, ensuring complete round-trip compatibility.
+RATIONALE: Decoding robustness ensures that encoded messages can be reliably recovered, maintaining the integrity of the steganographic communication channel.
+
+[REQUIREMENT]
+UID: REQ-043
+TITLE: Performance Efficiency
+STATEMENT: The system shall perform encoding and decoding operations efficiently, with computational complexity that scales linearly with message size.
+RATIONALE: Linear time complexity ensures the system remains practical for real-world use cases, handling messages of various sizes without excessive performance degradation.
+
+[REQUIREMENT]
+UID: REQ-044
+TITLE: Memory Efficiency
+STATEMENT: The system shall operate with memory usage that scales linearly with input message size, avoiding excessive memory overhead during encoding and decoding operations.
+RATIONALE: Efficient memory usage ensures the system can operate within reasonable resource constraints, supporting deployment in resource-limited environments.
+
