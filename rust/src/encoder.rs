@@ -11,10 +11,10 @@ use crate::errors::StegoError;
 ///
 /// * `message` - The message to encode. Can be any Unicode string.
 /// * `carrier` - Optional carrier text to embed the encoded message in.
-///               If provided, the encoded payload will be inserted after
-///               the first character of the carrier text.
+///   If provided, the encoded payload will be inserted after
+///   the first character of the carrier text.
 /// * `password` - Optional password for XOR encryption. If provided, the
-///                message will be encrypted before Base64 encoding.
+///   message will be encrypted before Base64 encoding.
 ///
 /// # Returns
 ///

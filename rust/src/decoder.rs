@@ -11,7 +11,7 @@ use crate::errors::StegoError;
 ///
 /// * `encoded_text` - Text containing the encoded message with control markers.
 /// * `password` - Optional password for XOR decryption. If provided, the
-///                message will be decrypted after Base64 decoding.
+///   message will be decrypted after Base64 decoding.
 ///
 /// # Returns
 ///

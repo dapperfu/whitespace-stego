@@ -10,7 +10,7 @@ int test_encode_decode() {
     int result;
 
     printf("Testing encode...\n");
-    result = whitespace_encode(message, NULL, output, sizeof(output), &output_len);
+    result = whitespace_encode(message, NULL, NULL, output, sizeof(output), &output_len);
     if (result != STEGO_SUCCESS) {
         printf("Encode failed: %s\n", whitespace_error_string(result));
         return 1;
@@ -20,7 +20,7 @@ int test_encode_decode() {
     printf("Testing decode...\n");
     char decoded[1024];
     size_t decoded_len;
-    result = whitespace_decode(output, decoded, sizeof(decoded), &decoded_len);
+    result = whitespace_decode(output, NULL, decoded, sizeof(decoded), &decoded_len);
     if (result != STEGO_SUCCESS) {
         printf("Decode failed: %s\n", whitespace_error_string(result));
         return 1;
