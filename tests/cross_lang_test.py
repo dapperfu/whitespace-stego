@@ -9,6 +9,7 @@ import json
 import subprocess
 import sys
 import os
+import shutil
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional
 
@@ -36,22 +37,24 @@ def load_test_vectors() -> List[Dict]:
     return all_cases
 
 
-def python_encode(message: str, carrier: Optional[str] = None) -> str:
+def python_encode(message: str, carrier: Optional[str] = None, password: Optional[str] = None) -> str:
     """Encode using Python implementation."""
-    return encode(message, carrier if carrier else None)
+    return encode(message, carrier if carrier else None, password)
 
 
-def python_decode(encoded_text: str) -> str:
+def python_decode(encoded_text: str, password: Optional[str] = None) -> str:
     """Decode using Python implementation."""
-    return decode(encoded_text)
+    return decode(encoded_text, password)
 
 
-def rust_encode(message: str, carrier: Optional[str] = None) -> str:
+def rust_encode(message: str, carrier: Optional[str] = None, password: Optional[str] = None) -> str:
     """Encode using Rust implementation."""
     rust_dir = Path(__file__).parent.parent / "rust"
     cmd = ["cargo", "run", "--example", "cli", "--", "encode", message]
     if carrier:
         cmd.extend(["-c", carrier])
+    if password:
+        cmd.extend(["-p", password])
     
     result = subprocess.run(
         cmd,
@@ -65,11 +68,15 @@ def rust_encode(message: str, carrier: Optional[str] = None) -> str:
     return result.stdout.strip()
 
 
-def rust_decode(encoded_text: str) -> str:
+def rust_decode(encoded_text: str, password: Optional[str] = None) -> str:
     """Decode using Rust implementation."""
     rust_dir = Path(__file__).parent.parent / "rust"
+    cmd = ["cargo", "run", "--example", "cli", "--", "decode", encoded_text]
+    if password:
+        cmd.extend(["-p", password])
+    
     result = subprocess.run(
-        ["cargo", "run", "--example", "cli", "--", "decode", encoded_text],
+        cmd,
         cwd=rust_dir,
         capture_output=True,
         text=True,
@@ -85,9 +92,10 @@ def test_round_trip_python(test_case: Dict) -> Tuple[bool, str]:
     try:
         message = test_case["message"]
         carrier = test_case.get("carrier", "")
+        password = test_case.get("password", None)
         
-        encoded = python_encode(message, carrier if carrier else None)
-        decoded = python_decode(encoded)
+        encoded = python_encode(message, carrier if carrier else None, password)
+        decoded = python_decode(encoded, password)
         
         if decoded == message:
             return True, ""
@@ -101,6 +109,7 @@ def test_cross_language(test_case: Dict) -> Tuple[bool, str]:
     """Test cross-language compatibility."""
     message = test_case["message"]
     carrier = test_case.get("carrier", "")
+    password = test_case.get("password", None)
     
     # Skip tests with special characters that don't work well via CLI
     # (newlines, tabs, etc. get mangled by shell argument parsing)
@@ -110,13 +119,13 @@ def test_cross_language(test_case: Dict) -> Tuple[bool, str]:
     
     # Encode with Python
     try:
-        encoded = python_encode(message, carrier if carrier else None)
+        encoded = python_encode(message, carrier if carrier else None, password)
     except Exception as e:
         return False, f"Python encode failed: {str(e)}"
     
     # Try to decode with Rust (if available)
     try:
-        decoded = rust_decode(encoded)
+        decoded = rust_decode(encoded, password)
         if decoded != message:
             return False, f"Cross-language decode failed: expected '{message!r}', got '{decoded!r}'"
     except FileNotFoundError:
@@ -168,11 +177,41 @@ def main():
         
         print(f"\nCross-language: {cross_passed} passed, {cross_failed} failed")
     
-    if failed > 0:
+    # Test password scenarios
+    print("\nTesting password encryption/decryption...")
+    password_passed = 0
+    password_failed = 0
+    
+    password_test_cases = [
+        {"name": "password_simple", "message": "Secret message", "password": "mypassword"},
+        {"name": "password_unicode", "message": "Hello 🌍", "password": "密码123"},
+        {"name": "password_long", "message": "A" * 100, "password": "short"},
+    ]
+    
+    for test_case in password_test_cases:
+        name = test_case["name"]
+        message = test_case["message"]
+        password = test_case["password"]
+        
+        try:
+            encoded = python_encode(message, None, password)
+            decoded = python_decode(encoded, password)
+            if decoded == message:
+                password_passed += 1
+                print(f"  ✓ {name}")
+            else:
+                password_failed += 1
+                print(f"  ✗ {name}: Round-trip failed")
+        except Exception as e:
+            password_failed += 1
+            print(f"  ✗ {name}: {str(e)}")
+    
+    print(f"\nPassword tests: {password_passed} passed, {password_failed} failed")
+    
+    if failed > 0 or password_failed > 0:
         sys.exit(1)
 
 
 if __name__ == "__main__":
-    import shutil
     main()
 
