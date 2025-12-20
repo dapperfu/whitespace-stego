@@ -24,6 +24,7 @@ classifiers = [
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
+    "pytest-html>=4.0.0",
 ]
 build = [
     "pyinstaller>=5.0.0",
@@ -37,4 +38,5 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+addopts = "--html=../docs/tests.html --self-contained-html"
 

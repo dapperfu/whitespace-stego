@@ -52,3 +52,30 @@ def test_round_trip():
     assert isinstance(encoded, str)
     assert len(encoded) > 0
 
+
+def test_encode_with_password():
+    """Test encoding with password."""
+    message = "Secret message"
+    password = "mypassword"
+    encoded = encode(message, password=password)
+    assert isinstance(encoded, str)
+    assert len(encoded) > 0
+    # Encoded output should be different from non-password encoding
+    encoded_no_password = encode(message)
+    assert encoded != encoded_no_password
+
+
+def test_encode_password_different_outputs():
+    """Test that different passwords produce different encodings."""
+    message = "Test message"
+    encoded1 = encode(message, password="password1")
+    encoded2 = encode(message, password="password2")
+    assert encoded1 != encoded2
+
+
+def test_encode_password_empty_message():
+    """Test encoding empty message with password."""
+    encoded = encode("", password="password")
+    assert "\u2060" in encoded  # CONTROL_START
+    assert "\u2063" in encoded  # CONTROL_END
+

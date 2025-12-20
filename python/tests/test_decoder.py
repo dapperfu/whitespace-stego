@@ -60,3 +60,50 @@ def test_decode_invalid_payload():
     with pytest.raises(InvalidPayloadError):
         decode(invalid)
 
+
+def test_round_trip_with_password():
+    """Test round-trip encoding and decoding with password."""
+    message = "Secret message"
+    password = "mypassword"
+    encoded = encode(message, password=password)
+    decoded = decode(encoded, password=password)
+    assert decoded == message
+
+
+def test_decode_wrong_password():
+    """Test that wrong password produces incorrect decoding."""
+    message = "Secret message"
+    password = "correctpassword"
+    wrong_password = "wrongpassword"
+    encoded = encode(message, password=password)
+    decoded = decode(encoded, password=wrong_password)
+    # Should decode to something, but not the original message
+    assert decoded != message
+
+
+def test_round_trip_password_unicode():
+    """Test round-trip with password and Unicode."""
+    message = "Hello 🌍 你好"
+    password = "密码123"
+    encoded = encode(message, password=password)
+    decoded = decode(encoded, password=password)
+    assert decoded == message
+
+
+def test_round_trip_password_with_carrier():
+    """Test round-trip with password and carrier text."""
+    message = "Secret message"
+    password = "mypassword"
+    carrier = "This is normal text."
+    encoded = encode(message, carrier=carrier, password=password)
+    decoded = decode(encoded, password=password)
+    assert decoded == message
+
+
+def test_backward_compatibility_no_password():
+    """Test that messages encoded without password can be decoded without password."""
+    message = "Test message"
+    encoded = encode(message)  # No password
+    decoded = decode(encoded)  # No password
+    assert decoded == message
+
