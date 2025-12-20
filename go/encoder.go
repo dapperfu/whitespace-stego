@@ -21,13 +21,31 @@ const (
 //   - carrier: Optional carrier text to embed the encoded message in.
 //     If provided, the encoded payload will be inserted after
 //     the first character of the carrier text.
+//   - password: Optional password for XOR encryption. If provided, the
+//     message will be encrypted before Base64 encoding.
 //
 // Returns:
 //   - Encoded string with invisible Unicode characters
 //   - Error if encoding fails
-func Encode(message string, carrier *string) (string, error) {
+func Encode(message string, carrier *string, password *string) (string, error) {
 	// Convert message to UTF-8 bytes
 	utf8Bytes := []byte(message)
+
+	// Apply XOR encryption if password is provided
+	if password != nil && len(*password) > 0 {
+		passwordBytes := []byte(*password)
+		// Derive key by repeating password bytes cyclically
+		key := make([]byte, len(utf8Bytes))
+		for i := range key {
+			key[i] = passwordBytes[i%len(passwordBytes)]
+		}
+		// XOR encrypt each byte
+		for i := range utf8Bytes {
+			utf8Bytes[i] ^= key[i]
+		}
+	} else if password != nil && len(*password) == 0 {
+		return "", fmt.Errorf("password cannot be empty")
+	}
 
 	// Encode to Base64
 	base64Str := base64.StdEncoding.EncodeToString(utf8Bytes)
