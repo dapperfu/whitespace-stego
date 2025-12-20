@@ -9,6 +9,7 @@ use whitespace_stego::{decode, encode};
 ///
 /// * `message` - The message to encode
 /// * `carrier` - Optional carrier text (null/undefined for no carrier)
+/// * `password` - Optional password for encryption (null/undefined for no password)
 ///
 /// # Returns
 ///
@@ -18,8 +19,8 @@ use whitespace_stego::{decode, encode};
 ///
 /// Throws a JavaScript error if encoding fails
 #[wasm_bindgen]
-pub fn encode_message(message: &str, carrier: Option<String>) -> Result<String, JsValue> {
-    encode(message, carrier.as_deref()).map_err(|e| JsValue::from_str(&e.to_string()))
+pub fn encode_message(message: &str, carrier: Option<String>, password: Option<String>) -> Result<String, JsValue> {
+    encode(message, carrier.as_deref(), password.as_deref()).map_err(|e| JsValue::from_str(&e.to_string()))
 }
 
 /// Decode a message from invisible Unicode characters.
@@ -27,6 +28,7 @@ pub fn encode_message(message: &str, carrier: Option<String>) -> Result<String, 
 /// # Arguments
 ///
 /// * `encoded_text` - Text containing the encoded message
+/// * `password` - Optional password for decryption (null/undefined for no password)
 ///
 /// # Returns
 ///
@@ -36,8 +38,8 @@ pub fn encode_message(message: &str, carrier: Option<String>) -> Result<String, 
 ///
 /// Throws a JavaScript error if decoding fails
 #[wasm_bindgen]
-pub fn decode_message(encoded_text: &str) -> Result<String, JsValue> {
-    decode(encoded_text).map_err(|e| JsValue::from_str(&e.to_string()))
+pub fn decode_message(encoded_text: &str, password: Option<String>) -> Result<String, JsValue> {
+    decode(encoded_text, password.as_deref()).map_err(|e| JsValue::from_str(&e.to_string()))
 }
 
 /// Check if a string contains encoded data.
