@@ -279,13 +279,24 @@
 
         async function loadWasm() {
             try {
-                await init();
+                // Try explicit path first (for GitHub Pages)
+                try {
+                    await init('./pkg/whitespace_stego_wasm_bg.wasm');
+                } catch (explicitPathError) {
+                    // Fallback: let init() resolve the path automatically
+                    console.warn('Explicit path failed, trying auto-resolution:', explicitPathError);
+                    await init();
+                }
                 wasmReady = true;
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('app').classList.remove('hidden');
             } catch (error) {
+                console.error('WASM loading error:', error);
+                const errorMsg = error.message || String(error);
                 document.getElementById('loading').innerHTML = 
-                    '<strong style="color: #e74c3c;">Error loading WASM:</strong> ' + error.message;
+                    '<strong style="color: #e74c3c;">Error loading WASM:</strong> ' + errorMsg + 
+                    '<br><small>Check the browser console for more details.</small>' +
+                    '<br><small>Ensure the WASM file exists at: ./pkg/whitespace_stego_wasm_bg.wasm</small>';
             }
         }
 
