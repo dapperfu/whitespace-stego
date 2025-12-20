@@ -18,11 +18,13 @@ BIT_0 = "\u200B"  # U+200B Zero Width Space
 BIT_1 = "\u200C"  # U+200C Zero Width Non-Joiner
 
 
-def decode(encoded_text: str) -> str:
+def decode(encoded_text: str, password: Optional[str] = None) -> str:
     """Decode a message from invisible Unicode characters.
 
     Args:
         encoded_text: Text containing the encoded message with control markers.
+        password: Optional password for XOR decryption. If provided, the
+                 message will be decrypted after Base64 decoding.
 
     Returns:
         The decoded original message string.
@@ -93,6 +95,16 @@ def decode(encoded_text: str) -> str:
             utf8_bytes = base64.b64decode(base64_str)
         except Exception as e:
             raise InvalidBase64Error(f"Base64 decoding failed: {str(e)}") from e
+
+        # Apply XOR decryption if password is provided
+        if password is not None:
+            password_bytes = password.encode("utf-8")
+            if len(password_bytes) == 0:
+                raise DecodingError("Password cannot be empty")
+            # Derive key by repeating password bytes cyclically
+            key = (password_bytes * ((len(utf8_bytes) // len(password_bytes)) + 1))[:len(utf8_bytes)]
+            # XOR decrypt each byte
+            utf8_bytes = bytes(a ^ b for a, b in zip(utf8_bytes, key))
 
         # Decode UTF-8 bytes to original message
         try:
