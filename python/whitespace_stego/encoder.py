@@ -12,7 +12,7 @@ BIT_0 = "\u200B"  # U+200B Zero Width Space
 BIT_1 = "\u200C"  # U+200C Zero Width Non-Joiner
 
 
-def encode(message: str, carrier: Optional[str] = None) -> str:
+def encode(message: str, carrier: Optional[str] = None, password: Optional[str] = None) -> str:
     """Encode a message into invisible Unicode characters.
 
     Args:
@@ -20,6 +20,8 @@ def encode(message: str, carrier: Optional[str] = None) -> str:
         carrier: Optional carrier text to embed the encoded message in.
                  If provided, the encoded payload will be inserted after
                  the first character of the carrier text.
+        password: Optional password for XOR encryption. If provided, the
+                 message will be encrypted before Base64 encoding.
 
     Returns:
         A string containing the encoded message wrapped in control markers.
@@ -31,6 +33,16 @@ def encode(message: str, carrier: Optional[str] = None) -> str:
     try:
         # Convert message to UTF-8 bytes
         utf8_bytes = message.encode("utf-8")
+
+        # Apply XOR encryption if password is provided
+        if password is not None:
+            password_bytes = password.encode("utf-8")
+            if len(password_bytes) == 0:
+                raise EncodingError("Password cannot be empty")
+            # Derive key by repeating password bytes cyclically
+            key = (password_bytes * ((len(utf8_bytes) // len(password_bytes)) + 1))[:len(utf8_bytes)]
+            # XOR encrypt each byte
+            utf8_bytes = bytes(a ^ b for a, b in zip(utf8_bytes, key))
 
         # Encode to Base64
         base64_str = base64.b64encode(utf8_bytes).decode("ascii")
