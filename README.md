@@ -1,6 +1,10 @@
 # whitespace-stego
 
+![Logo](39e228c0-fefd-4bc1-82bf-fe581329754b.png)
+
 **Hide secrets in plain sight using invisible Unicode characters!** 🕵️
+
+🌐 **[Try the live demo on GitHub Pages](https://whitespace-stego.github.io/whitespace-stego/)** - Encode and decode messages directly in your browser!
 
 Ever wanted to send a message that looks like normal text but actually contains hidden data? Well, now you can! This project implements whitespace steganography across **7 different programming languages** - because why choose one when you can have them all?
 
@@ -58,6 +62,10 @@ go run cmd/cli/main.go decode "<encoded_output>"
 ```
 
 ### Web (WASM)
+
+🌐 **[Try the live demo](https://whitespace-stego.github.io/whitespace-stego/)** - No installation needed!
+
+Or run locally:
 
 ```bash
 # First, install wasm-pack (if not already installed):
