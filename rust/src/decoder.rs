@@ -10,6 +10,8 @@ use crate::errors::StegoError;
 /// # Arguments
 ///
 /// * `encoded_text` - Text containing the encoded message with control markers.
+/// * `password` - Optional password for XOR decryption. If provided, the
+///                message will be decrypted after Base64 decoding.
 ///
 /// # Returns
 ///
@@ -23,7 +25,7 @@ use crate::errors::StegoError;
 /// - `InvalidBase64` if Base64 decoding fails
 /// - `InvalidUTF8` if UTF-8 decoding fails
 /// - `Decoding` for other decoding errors
-pub fn decode(encoded_text: &str) -> Result<String, StegoError> {
+pub fn decode(encoded_text: &str, password: Option<&str>) -> Result<String, StegoError> {
     // Find control markers
     let start_idx = encoded_text
         .find(CONTROL_START)
@@ -79,9 +81,28 @@ pub fn decode(encoded_text: &str) -> Result<String, StegoError> {
         .map_err(|e| StegoError::InvalidBase64(format!("Invalid Base64 data: {}", e)))?;
 
     // Decode Base64 to UTF-8 bytes
-    let utf8_bytes = general_purpose::STANDARD
+    let mut utf8_bytes = general_purpose::STANDARD
         .decode(&base64_str)
         .map_err(|e| StegoError::InvalidBase64(format!("Base64 decoding failed: {}", e)))?;
+
+    // Apply XOR decryption if password is provided
+    if let Some(password) = password {
+        if password.is_empty() {
+            return Err(StegoError::Decoding("Password cannot be empty".to_string()));
+        }
+        let password_bytes = password.as_bytes();
+        // Derive key by repeating password bytes cyclically
+        let key: Vec<u8> = password_bytes
+            .iter()
+            .cycle()
+            .take(utf8_bytes.len())
+            .copied()
+            .collect();
+        // XOR decrypt each byte
+        for (byte, key_byte) in utf8_bytes.iter_mut().zip(key.iter()) {
+            *byte ^= key_byte;
+        }
+    }
 
     // Decode UTF-8 bytes to original message
     let message = String::from_utf8(utf8_bytes)
