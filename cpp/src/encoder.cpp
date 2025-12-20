@@ -61,10 +61,20 @@ static std::string base64_encode(const std::vector<unsigned char>& data) {
 }
 
 std::string WhitespaceStego::encode(const std::string& message,
-                                     const std::string& carrier) {
+                                     const std::string& carrier,
+                                     const std::string& password) {
     try {
         // Convert message to UTF-8 bytes
         std::vector<unsigned char> utf8_bytes(message.begin(), message.end());
+
+        // Apply XOR encryption if password is provided
+        if (!password.empty()) {
+            std::vector<unsigned char> password_bytes(password.begin(), password.end());
+            // Derive key by repeating password bytes cyclically
+            for (size_t i = 0; i < utf8_bytes.size(); i++) {
+                utf8_bytes[i] ^= password_bytes[i % password_bytes.size()];
+            }
+        }
 
         // Encode to Base64
         std::string base64_str = base64_encode(utf8_bytes);

@@ -71,7 +71,8 @@ static std::vector<unsigned char> base64_decode(const std::string& encoded) {
     return ret;
 }
 
-std::string WhitespaceStego::decode(const std::string& encoded_text) {
+std::string WhitespaceStego::decode(const std::string& encoded_text,
+                                     const std::string& password) {
     try {
         // Find control markers (UTF-8 encoded)
         std::string control_start_utf8 = "\xE2\x81\xA0";  // U+2060
@@ -142,6 +143,15 @@ std::string WhitespaceStego::decode(const std::string& encoded_text) {
 
         // Decode Base64 to UTF-8 bytes
         std::vector<unsigned char> utf8_bytes = base64_decode(base64_str);
+
+        // Apply XOR decryption if password is provided
+        if (!password.empty()) {
+            std::vector<unsigned char> password_bytes(password.begin(), password.end());
+            // Derive key by repeating password bytes cyclically
+            for (size_t i = 0; i < utf8_bytes.size(); i++) {
+                utf8_bytes[i] ^= password_bytes[i % password_bytes.size()];
+            }
+        }
 
         // Decode UTF-8 bytes to original message
         std::string message(utf8_bytes.begin(), utf8_bytes.end());
