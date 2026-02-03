@@ -4,7 +4,7 @@
 
 **Hide secrets in plain sight using invisible Unicode characters!** 🕵️
 
-🌐 **[Try the live demo on GitHub Pages](https://whitespace-stego.github.io/whitespace-stego/)** - Encode and decode messages directly in your browser!
+🌐 **[Try the live demo on GitHub Pages](https://dapperfu.github.io/whitespace-stego/)** - Encode and decode messages directly in your browser!
 
 Ever wanted to send a message that looks like normal text but actually contains hidden data? Well, now you can! This project implements whitespace steganography across **7 different programming languages** - because why choose one when you can have them all?
 
