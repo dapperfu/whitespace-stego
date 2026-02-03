@@ -15,6 +15,10 @@ base64 = "0.21"
 name = "integration_test"
 path = "tests/integration_test.rs"
 
+[[bin]]
+name = "whitespace-stego-rust"
+path = "examples/cli.rs"
+
 [[example]]
 name = "cli"
 path = "examples/cli.rs"
