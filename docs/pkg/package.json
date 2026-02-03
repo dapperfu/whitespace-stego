@@ -1,0 +1,17 @@
+{
+  "name": "whitespace-stego-wasm",
+  "type": "module",
+  "description": "WASM bindings for whitespace steganography",
+  "version": "0.1.0",
+  "license": "MIT",
+  "files": [
+    "whitespace_stego_wasm_bg.wasm",
+    "whitespace_stego_wasm.js",
+    "whitespace_stego_wasm.d.ts"
+  ],
+  "main": "whitespace_stego_wasm.js",
+  "types": "whitespace_stego_wasm.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}

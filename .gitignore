@@ -103,6 +103,11 @@ target/
 # WASM build artifacts
 **/pkg/
 **/*.wasm
+# Exception: Allow WASM files for web demo and GitHub Pages
+!rust-wasm/pkg/
+!docs/pkg/
+!rust-wasm/pkg/**
+!docs/pkg/**
 
 # Python build artifacts (already covered but being explicit)
 **/build/
